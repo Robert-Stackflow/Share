@@ -8,13 +8,21 @@ import {
   Title,
 } from "@mantine/core";
 import { useForm, yupResolver } from "@mantine/form";
+import { GetStaticPaths, GetStaticProps } from "next";
 import { useRouter } from "next/router";
 import { FormattedMessage } from "react-intl";
 import * as yup from "yup";
 import useTranslate from "../../../hooks/useTranslate.hook";
+import useStaticRouteParam from "../../../hooks/staticRouteParam.hook";
 import authService from "../../../services/auth.service";
 import toast from "../../../utils/toast.util";
 import classes from "./[resetPasswordToken].module.css";
+
+export const getStaticPaths: GetStaticPaths = async () => ({
+  paths: [{ params: { resetPasswordToken: "_" } }],
+  fallback: false,
+});
+export const getStaticProps: GetStaticProps = async () => ({ props: {} });
 
 const ResetPassword = () => {
   const router = useRouter();
@@ -34,7 +42,7 @@ const ResetPassword = () => {
     ),
   });
 
-  const resetPasswordToken = router.query.resetPasswordToken as string;
+  const resetPasswordToken = useStaticRouteParam("resetPasswordToken", 2);
 
   return (
     <Container size={460} my={30}>

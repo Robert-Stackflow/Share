@@ -1,53 +1,50 @@
-const { readFileSync } = require("node:fs");
-const { existsSync } = require("node:fs");
+const { existsSync, readFileSync } = require("node:fs");
 const { join } = require("node:path");
 const { strict: assert } = require("node:assert");
 const { test } = require("node:test");
 
-test("middleware stays Edge-safe by avoiding browser/server service imports", () => {
-  const middleware = readFileSync(
-    join(__dirname, "middleware.ts"),
+const frontendRoot = join(__dirname, "..");
+const repositoryRoot = join(frontendRoot, "..");
+
+test("frontend is exported as static files without Next runtime routes", () => {
+  const nextConfig = readFileSync(join(frontendRoot, "next.config.js"), "utf8");
+  const entrypoint = readFileSync(
+    join(repositoryRoot, "scripts/docker/entrypoint.sh"),
     "utf8",
   );
 
-  assert.equal(
-    middleware.includes("./services/config.service"),
-    false,
-    "middleware must not import config.service because it pulls axios into the Edge runtime",
-  );
+  assert.match(nextConfig, /output:\s*"export"/);
+  assert.equal(existsSync(join(__dirname, "middleware.ts")), false);
+  assert.equal(existsSync(join(__dirname, "pages/api/[...all].tsx")), false);
+  assert.doesNotMatch(entrypoint, /frontend\/server\.js|next-server/);
 });
 
-test("short links use the /s/:code alias while shares still fall back through /s/:shareId", () => {
-  const middleware = readFileSync(join(__dirname, "middleware.ts"), "utf8");
-  const shortLinksWorkspace = readFileSync(
-    join(__dirname, "components/shortLink/ShortLinksWorkspace.tsx"),
+test("Caddy serves dynamic placeholders and delegates short links to Nest", () => {
+  const caddy = readFileSync(
+    join(repositoryRoot, "reverse-proxy/Caddyfile"),
     "utf8",
   );
-  const shortLinkDetail = readFileSync(
-    join(__dirname, "components/shortLink/ShortLinkDetailPage.tsx"),
-    "utf8",
-  );
-  const shareAlias = readFileSync(
-    join(__dirname, "pages/s/[shareId].ts"),
+  const shortLinkController = readFileSync(
+    join(repositoryRoot, "backend/src/shortLink/shortLink.controller.ts"),
     "utf8",
   );
 
-  assert.match(middleware, /"\/s\/\*"/);
-  assert.doesNotMatch(middleware, /"\/l\/\*"/);
-
-  assert.match(shareAlias, /short-links\/\$\{encodeURIComponent\(/);
-  assert.match(shareAlias, /\/share\/"\s*\+/);
-
-  assert.equal(existsSync(join(__dirname, "pages/l/[code].tsx")), false);
-  assert.doesNotMatch(shortLinksWorkspace, /\/l\//);
-  assert.doesNotMatch(shortLinkDetail, /\/l\//);
-  assert.match(shortLinksWorkspace, /\/s\//);
-  assert.match(shortLinkDetail, /\/s\//);
+  assert.match(caddy, /\/api\/short-links\/\{re\.short\.1\}\/open/);
+  assert.match(caddy, /rewrite @share \/share\/_\//);
+  assert.match(caddy, /rewrite @inbox \/inbox\/_\//);
+  assert.match(caddy, /rewrite @reverseShare \/upload\/_\//);
+  assert.match(shortLinkController, /@Get\(":code\/open"\)/);
+  assert.match(shortLinkController, /`\/share\/\$\{encodeURIComponent\(code\)\}/);
 });
 
-test("inbox visitor links are public like legacy reverse-share upload links", () => {
-  const middleware = readFileSync(join(__dirname, "middleware.ts"), "utf8");
+test("backend authorization keeps visitor routes public", () => {
+  const appController = readFileSync(
+    join(repositoryRoot, "backend/src/app.controller.ts"),
+    "utf8",
+  );
 
-  assert.match(middleware, /"\/upload\/\*"/);
-  assert.match(middleware, /"\/inbox\/\*"/);
+  assert.match(appController, /@Get\("frontend-route"\)/);
+  for (const route of ["/share/*", "/s/*", "/upload/*", "/inbox/*"]) {
+    assert.ok(appController.includes(`"${route}"`), `${route} must stay public`);
+  }
 });

@@ -1,6 +1,6 @@
 import { LoadingOverlay, Paper, Stack, Text, Title } from "@mantine/core";
 import { useModals } from "@mantine/modals";
-import { GetServerSidePropsContext } from "next";
+import { GetStaticPaths, GetStaticProps } from "next";
 import { FormattedMessage } from "react-intl";
 import { useEffect, useMemo, useState } from "react";
 import Meta from "../../../components/Meta";
@@ -12,17 +12,19 @@ import AssetComposer from "../../../components/asset/AssetComposer";
 import showErrorModal from "../../../components/share/showErrorModal";
 import useConfirmLeave from "../../../hooks/confirm-leave.hook";
 import useTranslate from "../../../hooks/useTranslate.hook";
+import useStaticRouteParam from "../../../hooks/staticRouteParam.hook";
 import shareService from "../../../services/share.service";
 import { Asset, CreateAsset } from "../../../types/asset.type";
 import { Share as ShareType } from "../../../types/share.type";
 
-export function getServerSideProps(context: GetServerSidePropsContext) {
-  return {
-    props: { shareId: context.params!.shareId },
-  };
-}
+export const getStaticPaths: GetStaticPaths = async () => ({
+  paths: [{ params: { shareId: "_" } }],
+  fallback: false,
+});
+export const getStaticProps: GetStaticProps = async () => ({ props: { shareId: "_" } });
 
-const Share = ({ shareId }: { shareId: string }) => {
+const Share = () => {
+  const shareId = useStaticRouteParam("shareId", 1);
   const t = useTranslate();
   const modals = useModals();
 
@@ -34,6 +36,7 @@ const Share = ({ shareId }: { shareId: string }) => {
   );
 
   const reloadShare = async () => {
+    if (!shareId) return;
     const fresh = await shareService.getFromOwner(shareId);
     setShare(fresh);
   };
@@ -44,6 +47,7 @@ const Share = ({ shareId }: { shareId: string }) => {
   });
 
   useEffect(() => {
+    if (!shareId) return;
     shareService
       .getFromOwner(shareId)
       .then((share) => {
@@ -78,7 +82,7 @@ const Share = ({ shareId }: { shareId: string }) => {
       .finally(() => {
         setIsLoading(false);
       });
-  }, []);
+  }, [shareId]);
 
   const removeShareAsset = async (asset: Asset) => {
     await shareService.removeAsset(shareId, asset.id);

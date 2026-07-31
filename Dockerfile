@@ -6,6 +6,8 @@ RUN npm ci
 
 # Stage 2: Build frontend
 FROM node:24-alpine AS frontend-builder
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_OPTIONS=--max-old-space-size=896
 WORKDIR /opt/app
 COPY ./frontend .
 COPY --from=frontend-dependencies /opt/app/node_modules ./node_modules
@@ -15,6 +17,9 @@ RUN npm run build
 FROM node:24-alpine AS backend-dependencies
 RUN apk add --no-cache python3
 WORKDIR /opt/app
+# BuildKit otherwise runs the memory-heavy frontend and backend dependency
+# stages concurrently. This tiny marker makes them run serially on small hosts.
+COPY --from=frontend-builder /opt/app/out/404.html /tmp/frontend-build-complete
 COPY backend/package.json backend/package-lock.json ./
 RUN npm ci
 
@@ -41,9 +46,7 @@ RUN apk update --no-cache \
     && rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
 
 WORKDIR /opt/app/frontend
-COPY --from=frontend-builder /opt/app/public ./public
-COPY --from=frontend-builder /opt/app/.next/standalone ./
-COPY --from=frontend-builder /opt/app/.next/static ./.next/static
+COPY --from=frontend-builder /opt/app/out ./public
 COPY --from=frontend-builder /opt/app/public/img /tmp/img
 
 WORKDIR /opt/app/backend

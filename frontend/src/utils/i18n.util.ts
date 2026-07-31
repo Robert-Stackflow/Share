@@ -1,9 +1,23 @@
 import { setCookie } from "cookies-next";
 import { LOCALES } from "../i18n/locales";
 
+const loadedMessages = new Map<string, Awaited<ReturnType<(typeof LOCALES)[keyof typeof LOCALES]["load"]>>>();
+
 const getLocaleByCode = (code: string) => {
   return Object.values(LOCALES).find((l) => l.code === code) ?? LOCALES.ENGLISH;
 };
+
+const loadMessages = async (code: string) => {
+  const locale = getLocaleByCode(code);
+  const cached = loadedMessages.get(locale.code);
+  if (cached) return cached;
+  const messages = await locale.load();
+  loadedMessages.set(locale.code, messages);
+  return messages;
+};
+
+const getLoadedMessages = (code: string) =>
+  loadedMessages.get(getLocaleByCode(code).code) ?? {};
 
 // Parse the Accept-Language header and return the first supported language
 const getLanguageFromAcceptHeader = (acceptLanguage?: string) => {
@@ -44,6 +58,8 @@ const setLanguageCookie = (code: string) => {
 
 export default {
   getLocaleByCode,
+  loadMessages,
+  getLoadedMessages,
   getLanguageFromAcceptHeader,
   isLanguageSupported,
   setLanguageCookie,

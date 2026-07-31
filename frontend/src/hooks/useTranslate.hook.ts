@@ -23,7 +23,7 @@ export const translateOutsideContext = () => {
   const intl = createIntl(
     {
       locale,
-      messages: i18nUtil.getLocaleByCode(locale)?.messages,
+      messages: i18nUtil.getLoadedMessages(locale),
       defaultLocale: "en",
     },
     cache,

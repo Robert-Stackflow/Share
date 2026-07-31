@@ -42,6 +42,7 @@ import tableClasses from "../../components/core/DataTable.module.css";
 import { HoverTip } from "../../components/core/HoverTip";
 import modalClasses from "../../components/core/ModalForm.module.css";
 import useTranslate from "../../hooks/useTranslate.hook";
+import useStaticRouteParam from "../../hooks/staticRouteParam.hook";
 import shortLinkService from "../../services/shortLink.service";
 import {
   ShortLink,
@@ -269,10 +270,7 @@ const ShortLinkDetailPage = () => {
     },
   });
 
-  const code = useMemo(() => {
-    const value = router.query.code;
-    return Array.isArray(value) ? value[0] : value;
-  }, [router.query.code]);
+  const code = useStaticRouteParam("code", 1);
 
   const publicLink = (shortCode: string) => {
     if (typeof window === "undefined") return `/s/${shortCode}`;

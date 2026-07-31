@@ -236,7 +236,7 @@ test("profile menu links directly to admin sections", () => {
     assert.doesNotMatch(file, /href="\/admin"/);
   }
 
-  assert.match(adminIndex, /destination:\s*"\/admin\/users"/);
+  assert.match(adminIndex, /router\.replace\("\/admin\/users"\)/);
   assert.doesNotMatch(adminIndex, /managementOptions/);
 });
 

@@ -17,7 +17,13 @@ import authService from "../../services/auth.service";
 import { safeRedirectPath } from "../../utils/router.util";
 import toast from "../../utils/toast.util";
 
-function TotpForm({ redirectPath }: { redirectPath: string }) {
+function TotpForm({
+  redirectPath,
+  loginToken,
+}: {
+  redirectPath: string;
+  loginToken?: string;
+}) {
   const t = useTranslate();
   const router = useRouter();
   const { refreshUser } = useUser();
@@ -44,7 +50,7 @@ function TotpForm({ redirectPath }: { redirectPath: string }) {
     try {
       await authService.signInTotp(
         form.values.code,
-        router.query.loginToken as string,
+        loginToken || (router.query.loginToken as string),
       );
       await refreshUser();
       await router.replace(safeRedirectPath(redirectPath));

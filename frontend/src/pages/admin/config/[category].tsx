@@ -11,6 +11,7 @@ import {
   Title,
 } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
+import { GetStaticPaths, GetStaticProps } from "next";
 
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -26,8 +27,15 @@ import TestRedisButton from "../../../components/admin/configuration/TestRedisBu
 import CenterLoader from "../../../components/core/CenterLoader";
 import useConfig from "../../../hooks/config.hook";
 import useTranslate from "../../../hooks/useTranslate.hook";
+import useStaticRouteParam from "../../../hooks/staticRouteParam.hook";
 import configService from "../../../services/config.service";
 import { AdminConfig, UpdateConfig } from "../../../types/config.type";
+
+export const getStaticPaths: GetStaticPaths = async () => ({
+  paths: [{ params: { category: "_" } }],
+  fallback: false,
+});
+export const getStaticProps: GetStaticProps = async () => ({ props: {} });
 import { camelToKebab } from "../../../utils/string.util";
 import toast from "../../../utils/toast.util";
 
@@ -62,13 +70,10 @@ export default function AppShellDemo() {
   const isMobile = useMediaQuery("(max-width: 560px)");
   const config = useConfig();
 
-  let categoryId = "General";
-  if (
-    router.query.category &&
-    !categories.includes(router.query.category as string)
-  ) {
-    categoryId = router.query.category as string;
-  }
+  const routeCategory = useStaticRouteParam("category", 2);
+  const categoryId = categories.includes(routeCategory)
+    ? routeCategory
+    : "general";
 
   const [configVariables, setConfigVariables] = useState<AdminConfig[]>();
   const [updatedConfigVariables, setUpdatedConfigVariables] = useState<

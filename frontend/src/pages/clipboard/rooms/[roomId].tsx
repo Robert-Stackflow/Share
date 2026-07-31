@@ -11,6 +11,7 @@ import {
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { AxiosError } from "axios";
+import { GetStaticPaths, GetStaticProps } from "next";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { TbKey, TbLock, TbWorld } from "react-icons/tb";
@@ -21,18 +22,24 @@ import CenterLoader from "../../../components/core/CenterLoader";
 import Meta from "../../../components/Meta";
 import useTranslate from "../../../hooks/useTranslate.hook";
 import useUser from "../../../hooks/user.hook";
+import useStaticRouteParam from "../../../hooks/staticRouteParam.hook";
 import clipboardService from "../../../services/clipboard.service";
 import { Asset } from "../../../types/asset.type";
 import { Clipboard, CreateClipboardAsset } from "../../../types/clipboard.type";
 import { rememberVisitedClipboardRoom } from "../../../utils/visitedClipboardRooms.util";
 import toast from "../../../utils/toast.util";
 
+export const getStaticPaths: GetStaticPaths = async () => ({
+  paths: [{ params: { roomId: "_" } }],
+  fallback: false,
+});
+export const getStaticProps: GetStaticProps = async () => ({ props: {} });
+
 const ClipboardRoomPage = () => {
   const t = useTranslate();
   const router = useRouter();
   const { user } = useUser();
-  const roomId =
-    typeof router.query.roomId === "string" ? router.query.roomId : undefined;
+  const roomId = useStaticRouteParam("roomId", 2);
   const [room, setRoom] = useState<Clipboard>();
   const [needsPasscode, setNeedsPasscode] = useState(false);
   const [isLoading, setIsLoading] = useState(true);

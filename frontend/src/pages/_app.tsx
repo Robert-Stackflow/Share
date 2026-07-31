@@ -12,20 +12,18 @@ import "@mantine/core/styles.css";
 import "@mantine/notifications/styles.css";
 import "@mantine/dropzone/styles.css";
 import "../styles/global.css";
-import axios from "axios";
 import { getCookie, setCookie } from "cookies-next";
 import moment from "moment";
-import "moment/min/locales";
-import { GetServerSidePropsContext } from "next";
 import type { AppProps } from "next/app";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { IntlProvider } from "react-intl";
 import Header from "../components/header/Header";
 import { ConfigContext } from "../hooks/config.hook";
 import { UserContext } from "../hooks/user.hook";
-import { LOCALES } from "../i18n/locales";
+import { DEFAULT_LOCALE } from "../i18n/locales";
+import type { Messages } from "../i18n/locales";
 import authService from "../services/auth.service";
 import configService from "../services/config.service";
 import userService from "../services/user.service";
@@ -126,12 +124,14 @@ const createMantineScaleFromHex = (hex: string) =>
 function App({ Component, pageProps }: AppProps) {
   const router = useRouter();
 
-  const [user, setUser] = useState<CurrentUser | null>(pageProps.user);
-  const [route, setRoute] = useState<string>(pageProps.route);
+  const [user, setUser] = useState<CurrentUser | null>(null);
+  const [route, setRoute] = useState<string>(router.pathname);
 
   const [configVariables, setConfigVariables] = useState<Config[]>(
-    pageProps.configVariables,
+    getDefaultConfig(),
   );
+  const [language, setLanguage] = useState(DEFAULT_LOCALE);
+  const [messages, setMessages] = useState<Messages>({});
   const getStringConfigValue = (key: string, fallback = ""): string => {
     const config = configVariables?.find((item) => item.key === key);
     return (config?.value ?? config?.defaultValue ?? fallback).trim();
@@ -211,6 +211,49 @@ function App({ Component, pageProps }: AppProps) {
   }, [router.pathname]);
 
   useEffect(() => {
+    let active = true;
+
+    Promise.all([configService.list(), userService.getCurrentUser()]).then(
+      async ([configs, currentUser]) => {
+        if (!active) return;
+        setConfigVariables(configs);
+        setUser(currentUser);
+
+        const configuredLanguage = configs.find(
+          (item) => item.key === "general.defaultLanguage",
+        )?.value;
+        const requestedLanguage = i18nUtil.getLanguageFromAcceptHeader(
+          navigator.languages?.join(",") || navigator.language,
+        );
+        const selectedLanguage =
+          getCookie("language")?.toString() ||
+          configuredLanguage ||
+          requestedLanguage ||
+          DEFAULT_LOCALE;
+        const supportedLanguage = i18nUtil.isLanguageSupported(selectedLanguage)
+          ? selectedLanguage
+          : DEFAULT_LOCALE;
+
+        if (!getCookie("language")) {
+          i18nUtil.setLanguageCookie(supportedLanguage);
+        }
+        const loaded = await i18nUtil.loadMessages(supportedLanguage);
+        if (!active) return;
+        setLanguage(supportedLanguage);
+        setMessages(loaded);
+        moment.locale(supportedLanguage.toLowerCase());
+      },
+    ).catch(async () => {
+      const loaded = await i18nUtil.loadMessages(DEFAULT_LOCALE);
+      if (active) setMessages(loaded);
+    });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
     const interval = setInterval(
       async () => await authService.refreshAccessToken(),
       2 * 60 * 1000, // 2 minutes
@@ -218,19 +261,6 @@ function App({ Component, pageProps }: AppProps) {
 
     return () => clearInterval(interval);
   }, []);
-
-  useEffect(() => {
-    if (!pageProps.language) return;
-    const cookieLanguage = getCookie("language");
-    if (!cookieLanguage) {
-      i18nUtil.setLanguageCookie(pageProps.language);
-    } else if (pageProps.language !== cookieLanguage) {
-      location.reload();
-    }
-  }, [pageProps.language]);
-
-  const language = useRef(pageProps.language);
-  moment.locale(language.current);
 
   // Self-heal the color-scheme cookie so SSR (ColorSchemeScript reads the cookie)
   // matches the client's resolved preference and there is no first-paint flash.
@@ -253,9 +283,9 @@ function App({ Component, pageProps }: AppProps) {
         />
       </Head>
       <IntlProvider
-        messages={i18nUtil.getLocaleByCode(language.current)?.messages}
-        locale={language.current}
-        defaultLocale={LOCALES.ENGLISH.code}
+        messages={messages}
+        locale={language}
+        defaultLocale={DEFAULT_LOCALE}
       >
         <MantineProvider
           theme={mergedTheme}
@@ -308,53 +338,5 @@ function App({ Component, pageProps }: AppProps) {
     </>
   );
 }
-
-// Fetch user and config variables on server side when the first request is made
-// These will get passed as a page prop to the App component and stored in the contexts
-App.getInitialProps = async ({ ctx }: { ctx: GetServerSidePropsContext }) => {
-  let pageProps: {
-    user?: CurrentUser;
-    configVariables?: Config[];
-    route?: string;
-    language?: string;
-  } = {
-    route: ctx.resolvedUrl,
-  };
-
-  if (ctx.req) {
-    const apiURL = process.env.API_URL || "http://localhost:8080";
-    const cookieHeader = ctx.req.headers.cookie;
-
-    pageProps.user = await axios(`${apiURL}/api/users/me`, {
-      headers: { cookie: cookieHeader },
-    })
-      .then((res) => res.data)
-      .catch(() => null);
-
-    try {
-      pageProps.configVariables = (
-        await axios(`${apiURL}/api/configs`, {
-          timeout: 1000,
-        })
-      ).data;
-    } catch (e) {
-      pageProps.configVariables = getDefaultConfig();
-    }
-
-    pageProps.route = ctx.req.url;
-
-    const requestLanguage = i18nUtil.getLanguageFromAcceptHeader(
-      ctx.req.headers["accept-language"],
-    );
-
-    const defaultLanguage = pageProps.configVariables?.find(
-      (item) => item.key === "general.defaultLanguage",
-    )?.value;
-
-    pageProps.language =
-      ctx.req.cookies["language"] || defaultLanguage || requestLanguage;
-  }
-  return { pageProps };
-};
 
 export default App;

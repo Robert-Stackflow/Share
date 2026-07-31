@@ -67,7 +67,7 @@ const i18nPath = existsSync(join(__dirname, "../i18n"))
       fallbackLanguage: "en-US",
       loaderOptions: {
         path: i18nPath,
-        watch: true,
+        watch: process.env.NODE_ENV === "development",
       },
       resolvers: [SystemLanguageResolver],
     }),

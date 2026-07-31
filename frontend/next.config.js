@@ -14,8 +14,20 @@ const withPWA = require("next-pwa")({
 });
 
 module.exports = withPWA({
+  eslint: {
+    // Lint is run as a separate CI step. Running lint and TypeScript together
+    // doubles peak memory during a production image build.
+    ignoreDuringBuilds: true,
+  },
+  experimental: {
+    // Keep production builds viable on small self-hosted machines. Next uses
+    // this value for its worker pool instead of spawning one worker per CPU.
+    cpus: 1,
+    webpackBuildWorker: true,
+  },
   transpilePackages: ["@uiw/react-md-editor", "@uiw/react-markdown-preview"],
-  output: "standalone",
+  output: "export",
+  trailingSlash: true,
   images: {
     unoptimized: true,
   },

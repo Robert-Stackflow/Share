@@ -1,19 +1,21 @@
 import { LoadingOverlay } from "@mantine/core";
 import { useModals } from "@mantine/modals";
-import { GetServerSidePropsContext } from "next";
+import { GetStaticPaths, GetStaticProps } from "next";
 import { useEffect, useState } from "react";
 import Upload from ".";
 import showErrorModal from "../../components/share/showErrorModal";
 import shareService from "../../services/share.service";
 import useTranslate from "../../hooks/useTranslate.hook";
+import useStaticRouteParam from "../../hooks/staticRouteParam.hook";
 
-export function getServerSideProps(context: GetServerSidePropsContext) {
-  return {
-    props: { reverseShareToken: context.params!.reverseShareToken },
-  };
-}
+export const getStaticPaths: GetStaticPaths = async () => ({
+  paths: [{ params: { reverseShareToken: "_" } }],
+  fallback: false,
+});
+export const getStaticProps: GetStaticProps = async () => ({ props: { reverseShareToken: "_" } });
 
-const Share = ({ reverseShareToken }: { reverseShareToken: string }) => {
+const Share = () => {
+  const reverseShareToken = useStaticRouteParam("reverseShareToken", 1);
   const modals = useModals();
   const t = useTranslate();
   const [isLoading, setIsLoading] = useState(true);
@@ -22,6 +24,7 @@ const Share = ({ reverseShareToken }: { reverseShareToken: string }) => {
   const [simplified, setSimplified] = useState(false);
 
   useEffect(() => {
+    if (!reverseShareToken) return;
     shareService
       .setReverseShare(reverseShareToken)
       .then((reverseShareTokenData) => {
@@ -38,9 +41,9 @@ const Share = ({ reverseShareToken }: { reverseShareToken: string }) => {
         );
         setIsLoading(false);
       });
-  }, []);
+  }, [reverseShareToken]);
 
-  if (isLoading) return <LoadingOverlay visible />;
+  if (!reverseShareToken || isLoading) return <LoadingOverlay visible />;
 
   return (
     <Upload

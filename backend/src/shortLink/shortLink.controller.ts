@@ -10,6 +10,7 @@ import {
   Res,
   UseGuards,
 } from "@nestjs/common";
+import { NotFoundException } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 import { User } from "@prisma/client";
 import { Request, Response } from "express";
@@ -68,6 +69,34 @@ export class ShortLinkController {
       referer: request.headers.referer,
     });
     response.redirect(302, targetUrl);
+  }
+
+  @Get(":code/open")
+  async open(
+    @Param("code") code: string,
+    @Req() request: Request,
+    @Res() response: Response,
+  ) {
+    try {
+      const targetUrl = await this.shortLinkService.recordVisit(code, {
+        ip: this.getClientIp(request),
+        userAgent: request.headers["user-agent"],
+        referer: request.headers.referer,
+      });
+      response.redirect(302, targetUrl);
+      return;
+    } catch (error) {
+      if (!(error instanceof NotFoundException)) throw error;
+      const recipient =
+        typeof request.query.recipient === "string"
+          ? `?recipient=${encodeURIComponent(request.query.recipient)}`
+          : "";
+      response.redirect(
+        302,
+        `/share/${encodeURIComponent(code)}${recipient}`,
+      );
+      return;
+    }
   }
 
   private getClientIp(request: Request) {

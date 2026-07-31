@@ -1,6 +1,6 @@
 import { ActionIcon, Box, Group, Text, Title } from "@mantine/core";
 import { useModals } from "@mantine/modals";
-import { GetServerSidePropsContext } from "next";
+import { GetStaticPaths, GetStaticProps } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -15,6 +15,7 @@ import showShareInformationsModal from "../../../components/share/showShareInfor
 import useConfig from "../../../hooks/config.hook";
 import useTranslate from "../../../hooks/useTranslate.hook";
 import useUser from "../../../hooks/user.hook";
+import useStaticRouteParam from "../../../hooks/staticRouteParam.hook";
 import shareService from "../../../services/share.service";
 import { MyShare, Share as ShareType } from "../../../types/share.type";
 import toast from "../../../utils/toast.util";
@@ -22,15 +23,18 @@ import { byteToHumanSizeString } from "../../../utils/fileSize.util";
 import { getQueryString } from "../../../utils/router.util";
 import { HoverTip } from "../../../components/core/HoverTip";
 
-export function getServerSideProps(context: GetServerSidePropsContext) {
-  return {
-    props: { shareId: context.params!.shareId },
-  };
-}
+export const getStaticPaths: GetStaticPaths = async () => ({
+  paths: [{ params: { shareId: "_" } }],
+  fallback: false,
+});
+export const getStaticProps: GetStaticProps = async () => ({
+  props: { shareId: "_" },
+});
 
-const Share = ({ shareId }: { shareId: string }) => {
+const Share = () => {
   const modals = useModals();
   const router = useRouter();
+  const shareId = useStaticRouteParam("shareId", 1);
   const [share, setShare] = useState<ShareType>();
   const { user } = useUser();
   const config = useConfig();
@@ -84,6 +88,7 @@ const Share = ({ shareId }: { shareId: string }) => {
   };
 
   const getShareToken = async (password?: string) => {
+    if (!shareId) return;
     await shareService
       .getShareToken(shareId, password)
       .then(() => {
@@ -108,6 +113,7 @@ const Share = ({ shareId }: { shareId: string }) => {
   };
 
   const getFiles = async () => {
+    if (!shareId) return;
     shareService
       .get(shareId)
       .then((share) => {
@@ -153,8 +159,9 @@ const Share = ({ shareId }: { shareId: string }) => {
   };
 
   useEffect(() => {
+    if (!shareId) return;
     getFiles();
-  }, []);
+  }, [shareId]);
 
   return (
     <>

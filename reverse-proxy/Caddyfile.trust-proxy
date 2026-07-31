@@ -1,11 +1,43 @@
 :3000 {
-	# Reverse proxy for /api
-	reverse_proxy /api/* http://localhost:{$BACKEND_PORT:8080} {
+	root * /opt/app/frontend/public
+
+	@page {
+		not path /api/* /_next/* /img/* /manifest.json /sw.js /workbox-*.js /*.*
+	}
+	forward_auth @page http://localhost:{$BACKEND_PORT:8080} {
+		uri /api/frontend-route
 		trusted_proxies 0.0.0.0/0
 	}
 
-	# Reverse proxy for all other requests
-	reverse_proxy /* http://localhost:{$PORT:3333} {
+	reverse_proxy /api/* http://localhost:{$BACKEND_PORT:8080} {
 		trusted_proxies 0.0.0.0/0
 	}
+	@short path_regexp short ^/s/([^/]+)/?$
+	route @short {
+		rewrite * /api/short-links/{re.short.1}/open
+		reverse_proxy http://localhost:{$BACKEND_PORT:8080} {
+			trusted_proxies 0.0.0.0/0
+		}
+	}
+
+	@adminConfig path_regexp adminConfig ^/admin/config/[^/]+/?$
+	rewrite @adminConfig /admin/config/_/
+	@resetPassword path_regexp resetPassword ^/auth/resetPassword/[^/]+/?$
+	rewrite @resetPassword /auth/resetPassword/_/
+	@totp path_regexp totp ^/auth/totp/[^/]+/?$
+	rewrite @totp /auth/totp/_/
+	@room path_regexp room ^/clipboard/rooms/[^/]+/?$
+	rewrite @room /clipboard/rooms/_/
+	@inbox path_regexp inbox ^/inbox/[^/]+/?$
+	rewrite @inbox /inbox/_/
+	@shareEdit path_regexp shareEdit ^/share/[^/]+/edit/?$
+	rewrite @shareEdit /share/_/edit/
+	@share path_regexp share ^/share/[^/]+/?$
+	rewrite @share /share/_/
+	@shortLinkAdmin path_regexp shortLinkAdmin ^/short-links/[^/]+/?$
+	rewrite @shortLinkAdmin /short-links/_/
+	@reverseShare path_regexp reverseShare ^/upload/[^/]+/?$
+	rewrite @reverseShare /upload/_/
+
+	file_server
 }

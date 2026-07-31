@@ -1,19 +1,21 @@
 import { LoadingOverlay } from "@mantine/core";
 import { useModals } from "@mantine/modals";
-import { GetServerSidePropsContext } from "next";
+import { GetStaticPaths, GetStaticProps } from "next";
 import { useEffect, useState } from "react";
 import showErrorModal from "../../components/share/showErrorModal";
 import useTranslate from "../../hooks/useTranslate.hook";
+import useStaticRouteParam from "../../hooks/staticRouteParam.hook";
 import inboxService from "../../services/inbox.service";
 import Upload from "../upload";
 
-export function getServerSideProps(context: GetServerSidePropsContext) {
-  return {
-    props: { inboxToken: context.params!.token },
-  };
-}
+export const getStaticPaths: GetStaticPaths = async () => ({
+  paths: [{ params: { token: "_" } }],
+  fallback: false,
+});
+export const getStaticProps: GetStaticProps = async () => ({ props: { inboxToken: "_" } });
 
-const InboxUpload = ({ inboxToken }: { inboxToken: string }) => {
+const InboxUpload = () => {
+  const inboxToken = useStaticRouteParam("token", 1);
   const modals = useModals();
   const t = useTranslate();
   const [isLoading, setIsLoading] = useState(true);
@@ -22,6 +24,7 @@ const InboxUpload = ({ inboxToken }: { inboxToken: string }) => {
   const [simplified, setSimplified] = useState(false);
 
   useEffect(() => {
+    if (!inboxToken) return;
     inboxService
       .setInbox(inboxToken)
       .then((inbox) => {
@@ -38,9 +41,9 @@ const InboxUpload = ({ inboxToken }: { inboxToken: string }) => {
         );
         setIsLoading(false);
       });
-  }, []);
+  }, [inboxToken]);
 
-  if (isLoading) return <LoadingOverlay visible />;
+  if (!inboxToken || isLoading) return <LoadingOverlay visible />;
 
   return (
     <Upload
