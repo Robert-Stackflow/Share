@@ -1,4 +1,14 @@
-import { Check, Info, Link2, Plus, Share2, Trash2, X } from "lucide-react";
+import {
+  Check,
+  ChevronDown,
+  Info,
+  Link2,
+  Plus,
+  Send,
+  Share2,
+  Trash2,
+  X,
+} from "lucide-react";
 import {
   Accordion,
   ActionIcon,
@@ -8,6 +18,9 @@ import {
   Button,
   Center,
   Group,
+  Menu,
+  Modal,
+  Select,
   Stack,
   Table,
   Text,
@@ -29,8 +42,10 @@ import showCreateReverseShareModal from "../../components/share/modals/showCreat
 import useConfig from "../../hooks/config.hook";
 import useTranslate from "../../hooks/useTranslate.hook";
 import inboxService from "../../services/inbox.service";
+import roomService from "../../services/room.service";
 import { Asset } from "../../types/asset.type";
 import { InboxSubmission } from "../../types/inbox.type";
+import { Room } from "../../types/room.type";
 import { MyReverseShare } from "../../types/share.type";
 import { byteToHumanSizeString } from "../../utils/fileSize.util";
 import toast from "../../utils/toast.util";
@@ -60,6 +75,12 @@ const MyShares = () => {
     Record<string, InboxSubmission[]>
   >({});
   const [submissionAction, setSubmissionAction] = useState<string>();
+  const [roomSubmission, setRoomSubmission] = useState<InboxSubmission | null>(
+    null,
+  );
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
+  const [isLoadingRooms, setIsLoadingRooms] = useState(false);
 
   const publicBaseUrl =
     appUrl !== defaultAppUrl
@@ -161,6 +182,39 @@ const MyShares = () => {
         }
       },
     });
+  };
+
+  const openRoomApproval = async (submission: InboxSubmission) => {
+    setRoomSubmission(submission);
+    setRooms([]);
+    setSelectedRoomId(null);
+    setIsLoadingRooms(true);
+    try {
+      setRooms(await roomService.list());
+    } catch (error) {
+      toast.axiosError(error);
+    } finally {
+      setIsLoadingRooms(false);
+    }
+  };
+
+  const acceptIntoRoom = async () => {
+    if (!roomSubmission || !selectedRoomId) return;
+    setSubmissionAction(`${roomSubmission.id}:accept-room`);
+    try {
+      await inboxService.acceptSubmission(
+        roomSubmission.id,
+        false,
+        selectedRoomId,
+      );
+      toast.success(t("account.reverseShares.submissions.notify.acceptedRoom"));
+      setRoomSubmission(null);
+      await getReverseShares();
+    } catch (error) {
+      toast.axiosError(error);
+    } finally {
+      setSubmissionAction(undefined);
+    }
   };
 
   if (!reverseShares) return <CenterLoader />;
@@ -282,36 +336,55 @@ const MyShares = () => {
                         <td>{moment(submission.createdAt).format("LLL")}</td>
                         <td className={tableClasses.actionCell}>
                           <Group justify="flex-end" gap={6} wrap="nowrap">
-                            <Button
-                              color="gray"
-                              leftSection={<Check />}
-                              loading={
-                                submissionAction ===
-                                `${submission.id}:accept-assets`
-                              }
-                              size="xs"
-                              variant="default"
-                              onClick={() =>
-                                void acceptSubmission(submission, false)
-                              }
-                            >
-                              <FormattedMessage id="account.reverseShares.submissions.acceptAssets" />
-                            </Button>
-                            <Button
-                              color="gray"
-                              leftSection={<Share2 />}
-                              loading={
-                                submissionAction ===
-                                `${submission.id}:accept-share`
-                              }
-                              size="xs"
-                              variant="default"
-                              onClick={() =>
-                                void acceptSubmission(submission, true)
-                              }
-                            >
-                              <FormattedMessage id="account.reverseShares.submissions.acceptShare" />
-                            </Button>
+                            <Menu withinPortal position="bottom-end">
+                              <Menu.Target>
+                                <Button
+                                  color="gray"
+                                  rightSection={<ChevronDown size={14} />}
+                                  loading={submissionAction?.startsWith(
+                                    `${submission.id}:accept`,
+                                  )}
+                                  size="xs"
+                                  variant="default"
+                                >
+                                  {t(
+                                    "account.reverseShares.submissions.approve",
+                                  )}
+                                </Button>
+                              </Menu.Target>
+                              <Menu.Dropdown>
+                                <Menu.Item
+                                  leftSection={<Check />}
+                                  onClick={() =>
+                                    void acceptSubmission(submission, false)
+                                  }
+                                >
+                                  {t(
+                                    "account.reverseShares.submissions.acceptAssets",
+                                  )}
+                                </Menu.Item>
+                                <Menu.Item
+                                  leftSection={<Send />}
+                                  onClick={() =>
+                                    void openRoomApproval(submission)
+                                  }
+                                >
+                                  {t(
+                                    "account.reverseShares.submissions.acceptRoom",
+                                  )}
+                                </Menu.Item>
+                                <Menu.Item
+                                  leftSection={<Share2 />}
+                                  onClick={() =>
+                                    void acceptSubmission(submission, true)
+                                  }
+                                >
+                                  {t(
+                                    "account.reverseShares.submissions.acceptShare",
+                                  )}
+                                </Menu.Item>
+                              </Menu.Dropdown>
+                            </Menu>
                             <Button
                               color="red"
                               leftSection={<X />}
@@ -524,6 +597,45 @@ const MyShares = () => {
           </Box>
         </Stack>
       )}
+      <Modal
+        opened={Boolean(roomSubmission)}
+        onClose={() => setRoomSubmission(null)}
+        title={t("account.reverseShares.submissions.acceptRoom")}
+      >
+        <Stack>
+          <Select
+            data={rooms.map((room) => ({
+              value: room.roomId,
+              label:
+                room.name ||
+                (room.visibility === "PRIVATE"
+                  ? t("room.private.title")
+                  : room.roomId),
+            }))}
+            disabled={isLoadingRooms}
+            label={t("account.assets.sendToRoom.select")}
+            onChange={setSelectedRoomId}
+            value={selectedRoomId}
+          />
+          {rooms.length === 0 && !isLoadingRooms && (
+            <Text c="dimmed" size="sm">
+              {t("account.assets.sendToRoom.empty")}
+            </Text>
+          )}
+          <Group justify="flex-end">
+            <Button variant="subtle" onClick={() => setRoomSubmission(null)}>
+              {t("common.button.cancel")}
+            </Button>
+            <Button
+              disabled={!selectedRoomId}
+              loading={submissionAction === `${roomSubmission?.id}:accept-room`}
+              onClick={() => void acceptIntoRoom()}
+            >
+              {t("account.reverseShares.submissions.acceptRoom")}
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
     </>
   );
 };

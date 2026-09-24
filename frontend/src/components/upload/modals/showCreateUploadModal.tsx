@@ -5,6 +5,7 @@ import {
   Link2,
   Plus,
   RefreshCw,
+  Send,
   Share2,
   Trash2,
 } from "lucide-react";
@@ -408,7 +409,11 @@ const CreateUploadModalBody = ({
               <div className={modalClasses.sectionHeader}>
                 <div>
                   <Text className={modalClasses.sectionTitle}>
-                    {t("upload.modal.content.title")}
+                    {t(
+                      options.isInbox
+                        ? "inbox.submit.contentTitle"
+                        : "upload.modal.content.title",
+                    )}
                   </Text>
                   <Text className={modalClasses.sectionDescription}>
                     {t(
@@ -724,20 +729,28 @@ const CreateUploadModalBody = ({
             <section className={modalClasses.flatSection}>
               <div className={modalClasses.sectionHeader}>
                 <Text className={modalClasses.sectionTitle}>
-                  {t("upload.modal.details.title")}
+                  {t(
+                    options.isInbox
+                      ? "inbox.submit.messageTitle"
+                      : "upload.modal.details.title",
+                  )}
                 </Text>
               </div>
               <Stack align="stretch" gap="sm">
-                <TextInput
-                  placeholder={t("upload.modal.details.name.placeholder")}
-                  variant="filled"
-                  {...form.getInputProps("name")}
-                />
+                {!options.isInbox && (
+                  <TextInput
+                    placeholder={t("upload.modal.details.name.placeholder")}
+                    variant="filled"
+                    {...form.getInputProps("name")}
+                  />
+                )}
                 <Textarea
                   autosize
                   minRows={3}
                   placeholder={t(
-                    "upload.modal.details.description.placeholder",
+                    options.isInbox
+                      ? "inbox.submit.messagePlaceholder"
+                      : "upload.modal.details.description.placeholder",
                   )}
                   variant="filled"
                   {...form.getInputProps("description")}
@@ -837,7 +850,7 @@ const CreateUploadModalBody = ({
               color="gray"
               data-autofocus
               disabled={contentCount === 0}
-              leftSection={<Share2 />}
+              leftSection={options.isInbox ? <Send /> : <Share2 />}
               type="submit"
             >
               <FormattedMessage
@@ -946,19 +959,27 @@ const SimplifiedCreateUploadModalModal = ({
             >
               <div className={modalClasses.sectionHeader}>
                 <Text className={modalClasses.sectionTitle}>
-                  {t("upload.modal.details.title")}
+                  {t(
+                    options.isInbox
+                      ? "inbox.submit.messageTitle"
+                      : "upload.modal.details.title",
+                  )}
                 </Text>
               </div>
               <Stack align="stretch" gap="sm">
-                <TextInput
-                  variant="filled"
-                  placeholder={t("upload.modal.details.name.placeholder")}
-                  {...form.getInputProps("name")}
-                />
+                {!options.isInbox && (
+                  <TextInput
+                    variant="filled"
+                    placeholder={t("upload.modal.details.name.placeholder")}
+                    {...form.getInputProps("name")}
+                  />
+                )}
                 <Textarea
                   variant="filled"
                   placeholder={t(
-                    "upload.modal.details.description.placeholder",
+                    options.isInbox
+                      ? "inbox.submit.messagePlaceholder"
+                      : "upload.modal.details.description.placeholder",
                   )}
                   {...form.getInputProps("description")}
                 />
@@ -977,7 +998,7 @@ const SimplifiedCreateUploadModalModal = ({
             <Button
               color="gray"
               data-autofocus
-              leftSection={<Share2 />}
+              leftSection={options.isInbox ? <Send /> : <Share2 />}
               type="submit"
             >
               <FormattedMessage

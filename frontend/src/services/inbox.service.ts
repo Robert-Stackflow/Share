@@ -60,21 +60,23 @@ const uploadSubmissionFile = async (
   if (!isValidId(inboxToken)) throw new Error("Invalid Inbox Token");
   if (!isValidId(submissionId)) throw new Error("Invalid Submission ID");
   return (
-    await api.post(`inboxes/${inboxToken}/submissions/${submissionId}/files`, chunk, {
-      headers: { "Content-Type": "application/octet-stream" },
-      params: {
-        id: file.id,
-        name: file.name,
-        chunkIndex,
-        totalChunks,
+    await api.post(
+      `inboxes/${inboxToken}/submissions/${submissionId}/files`,
+      chunk,
+      {
+        headers: { "Content-Type": "application/octet-stream" },
+        params: {
+          id: file.id,
+          name: file.name,
+          chunkIndex,
+          totalChunks,
+        },
       },
-    })
+    )
   ).data;
 };
 
-const listSubmissions = async (
-  inboxId: string,
-): Promise<InboxSubmission[]> => {
+const listSubmissions = async (inboxId: string): Promise<InboxSubmission[]> => {
   if (!isValidId(inboxId)) throw new Error("Invalid Inbox ID");
   return (await api.get(`inboxes/${inboxId}/submissions`)).data;
 };
@@ -82,11 +84,13 @@ const listSubmissions = async (
 const acceptSubmission = async (
   submissionId: string,
   createShare = false,
+  roomId?: string,
 ): Promise<InboxSubmission> => {
   if (!isValidId(submissionId)) throw new Error("Invalid Submission ID");
   return (
     await api.post(`inbox-submissions/${submissionId}/accept`, {
       createShare,
+      roomId,
     })
   ).data;
 };

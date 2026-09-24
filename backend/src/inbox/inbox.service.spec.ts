@@ -1,8 +1,9 @@
-import { NotFoundException } from "@nestjs/common";
+import { BadRequestException, NotFoundException } from "@nestjs/common";
 import { InboxSubmissionStatus } from "@prisma/client";
 import { strict as assert } from "node:assert";
 import { test } from "node:test";
 import { InboxService } from "./inbox.service";
+import { roomChanges } from "../room/room.events";
 
 const createInbox = {
   shareExpiration: "7-days",
@@ -197,6 +198,15 @@ function createServiceMock() {
           };
         },
       },
+      room: {
+        findFirst: async (args: any) => {
+          calls.push(["room.findFirst", args]);
+          return args.where.roomId === "room-1" &&
+            args.where.ownerId === "user-1"
+            ? { id: "room-db-1", roomId: "room-1" }
+            : null;
+        },
+      },
     },
     assetService: {
       createText: async (data: any, owner: any, container: any) => {
@@ -337,7 +347,10 @@ test("create upserts an access policy for the reverse share when accessControl i
   );
 
   await service.create(
-    { ...createInbox, accessControl: { maxViews: 2, allowAnonymous: false } } as any,
+    {
+      ...createInbox,
+      accessControl: { maxViews: 2, allowAnonymous: false },
+    } as any,
     "user-1",
   );
 
@@ -572,6 +585,77 @@ test("acceptSubmission can publish pending assets as a completed share", async (
         call[1].data.shareId === accepted.share.id &&
         call[1].data.ownerId === "user-1",
     ),
+  );
+});
+
+test("acceptSubmission moves pending assets directly into an owned room", async () => {
+  const mocks = createServiceMock();
+  const service = createInboxService(mocks);
+  const changedRooms: string[] = [];
+  const subscription = roomChanges.subscribe((id) => changedRooms.push(id));
+
+  const accepted = await service.acceptSubmission(
+    "submission-1",
+    { id: "user-1" },
+    {
+      roomId: "room-1",
+    },
+  );
+  subscription.unsubscribe();
+
+  assert.equal(accepted.status, InboxSubmissionStatus.ACCEPTED);
+  assert.deepEqual(changedRooms, ["room-1"]);
+  assert.ok(
+    mocks.calls.some(
+      (call) =>
+        call[0] === "asset.updateMany" &&
+        call[1].data.roomId === "room-db-1" &&
+        call[1].data.source === "ROOM" &&
+        call[1].data.ownerId === "user-1",
+    ),
+  );
+});
+
+test("acceptSubmission rejects selecting a share and a room together", async () => {
+  const mocks = createServiceMock();
+  const service = createInboxService(mocks);
+
+  await assert.rejects(
+    () =>
+      service.acceptSubmission(
+        "submission-1",
+        { id: "user-1" },
+        {
+          createShare: true,
+          roomId: "room-1",
+        },
+      ),
+    BadRequestException,
+  );
+  assert.equal(
+    mocks.calls.filter((call) => call[0] === "asset.updateMany").length,
+    0,
+  );
+});
+
+test("acceptSubmission refuses rooms not owned by the inbox owner", async () => {
+  const mocks = createServiceMock();
+  const service = createInboxService(mocks);
+
+  await assert.rejects(
+    () =>
+      service.acceptSubmission(
+        "submission-1",
+        { id: "user-1" },
+        {
+          roomId: "another-room",
+        },
+      ),
+    NotFoundException,
+  );
+  assert.equal(
+    mocks.calls.filter((call) => call[0] === "asset.updateMany").length,
+    0,
   );
 });
 

@@ -19,6 +19,7 @@ import { ConfigService } from "src/config/config.service";
 import { PrismaService } from "src/prisma/prisma.service";
 import { CreateReverseShareDTO } from "src/reverseShare/dto/createReverseShare.dto";
 import { ReverseShareService } from "src/reverseShare/reverseShare.service";
+import { roomChanges } from "src/room/room.events";
 
 type CreateInboxSubmissionInput = {
   message?: string;
@@ -28,6 +29,7 @@ type CreateInboxSubmissionInput = {
 
 type AcceptInboxSubmissionInput = {
   createShare?: boolean;
+  roomId?: string;
 };
 
 @Injectable()
@@ -168,13 +170,10 @@ export class InboxService {
       throw new NotFoundException(this.i18n.t("reverseShare.notFound"));
     }
 
-    return this.assetService.createFile(
-      data,
-      chunk,
-      file,
-      undefined,
-      { id: submission.id, kind: "INBOX_SUBMISSION" },
-    );
+    return this.assetService.createFile(data, chunk, file, undefined, {
+      id: submission.id,
+      kind: "INBOX_SUBMISSION",
+    });
   }
 
   async listSubmissions(inboxId: string, ownerId: string) {
@@ -201,6 +200,17 @@ export class InboxService {
     options: AcceptInboxSubmissionInput = {},
   ) {
     const submission = await this.getOwnedPendingSubmission(id, owner.id);
+    if (options.createShare && options.roomId) {
+      throw new BadRequestException("Choose a share or a room");
+    }
+    const room = options.roomId
+      ? await this.prisma.room.findFirst({
+          where: { roomId: options.roomId, ownerId: owner.id },
+        })
+      : null;
+    if (options.roomId && !room) {
+      throw new NotFoundException("Room not found");
+    }
     let share = undefined;
 
     if (options.createShare) {
@@ -228,7 +238,9 @@ export class InboxService {
         inboxSubmissionId: null,
         ...(share
           ? { shareId: share.id, source: AssetSource.SHARE }
-          : { shareId: null, source: AssetSource.INBOX }),
+          : room
+            ? { shareId: null, roomId: room.id, source: AssetSource.ROOM }
+            : { shareId: null, source: AssetSource.INBOX }),
       },
     });
 
@@ -243,8 +255,10 @@ export class InboxService {
       action: "inbox.accept",
       targetType: "inboxSubmission",
       targetId: id,
-      metadata: { createdShare: Boolean(share) },
+      metadata: { createdShare: Boolean(share), roomId: room?.roomId },
     });
+
+    if (room) roomChanges.next(room.roomId);
 
     return share ? { ...accepted, share } : accepted;
   }

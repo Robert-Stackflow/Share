@@ -272,7 +272,7 @@ test("inbox route is the primary reverse-share visitor entry", () => {
   );
   assert.match(
     inboxService,
-    /api\.post\(`inboxes\/\$\{inboxToken\}\/submissions\/\$\{submissionId\}\/files`/,
+    /api\.post\(\s*`inboxes\/\$\{inboxToken\}\/submissions\/\$\{submissionId\}\/files`/,
   );
   assert.match(
     inboxService,

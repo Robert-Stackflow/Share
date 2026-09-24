@@ -96,7 +96,7 @@ export class InboxSubmissionController {
   @UseGuards(JwtGuard)
   async accept(
     @Param("id") id: string,
-    @Body() body: { createShare?: boolean },
+    @Body() body: { createShare?: boolean; roomId?: string },
     @GetUser() user: User,
   ) {
     return this.inboxService.acceptSubmission(id, user, body);
