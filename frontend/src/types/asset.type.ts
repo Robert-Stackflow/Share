@@ -13,7 +13,7 @@ export type Asset = {
   type: AssetType;
   ownerId?: string;
   shareId?: string;
-  clipboardId?: string;
+  roomId?: string;
   name?: string;
   size?: string;
   mimeType?: string;

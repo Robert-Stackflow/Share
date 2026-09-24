@@ -45,7 +45,7 @@ export class AppController {
     const publicRoutes = [
       "/share/*",
       "/s/*",
-      "/clipboard/rooms/*",
+      "/rooms/*",
       "/inbox/*",
       "/upload/*",
       "/error",
@@ -62,9 +62,7 @@ export class AppController {
         !this.configService.get("legal.enabled"));
 
     let destination: string | null = disabled ? "/" : null;
-    const allowAll = this.configService.get(
-      "share.allowUnauthenticatedShares",
-    );
+    const allowAll = this.configService.get("share.allowUnauthenticatedShares");
     const isPublic = allowAll || isAny(publicRoutes);
     const isUnauthenticatedRoute = isAny(unauthenticated);
 

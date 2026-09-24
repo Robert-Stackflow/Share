@@ -159,7 +159,7 @@ test("listByOwner returns standalone owned assets newest first", async () => {
       content: "hello",
       ownerId: "user-1",
       shareId: null,
-      clipboardId: null,
+      roomId: null,
     },
   ]);
   const { storage } = createStorageMock();
@@ -172,7 +172,7 @@ test("listByOwner returns standalone owned assets newest first", async () => {
     where: {
       ownerId: "user-1",
       shareId: null,
-      clipboardId: null,
+      roomId: null,
       inboxSubmissionId: null,
     },
     orderBy: { createdAt: "desc" },
@@ -190,7 +190,7 @@ test("listByOwner filters by q substring over name, content, and url", async () 
   assert.deepEqual(calls.findMany.where, {
     ownerId: "user-1",
     shareId: null,
-    clipboardId: null,
+    roomId: null,
     inboxSubmissionId: null,
     OR: [
       { name: { contains: "Road" } },
@@ -214,7 +214,7 @@ test("listByOwner filters by type, source, and favorite", async () => {
   assert.deepEqual(calls.findMany.where, {
     ownerId: "user-1",
     shareId: null,
-    clipboardId: null,
+    roomId: null,
     inboxSubmissionId: null,
     type: "TEXT",
     source: "UPLOAD",
@@ -232,7 +232,7 @@ test("listByOwner filters by tag name via tag assignments", async () => {
   assert.deepEqual(calls.findMany.where, {
     ownerId: "user-1",
     shareId: null,
-    clipboardId: null,
+    roomId: null,
     inboxSubmissionId: null,
     tagAssignments: { some: { tag: { name: "docs" } } },
   });
@@ -283,7 +283,7 @@ test("getOwned returns an owned asset", async () => {
       content: "hello",
       ownerId: "user-1",
       shareId: null,
-      clipboardId: null,
+      roomId: null,
     },
   ]);
   const { storage } = createStorageMock();
@@ -302,7 +302,7 @@ test("getOwned rejects missing or foreign assets", async () => {
       content: "hello",
       ownerId: "user-2",
       shareId: null,
-      clipboardId: null,
+      roomId: null,
     },
   ]);
   const { storage } = createStorageMock();
@@ -322,7 +322,7 @@ test("removeOwned deletes only after owner lookup", async () => {
       content: "hello",
       ownerId: "user-1",
       shareId: null,
-      clipboardId: null,
+      roomId: null,
     },
   ]);
   const { storage } = createStorageMock();
@@ -334,7 +334,7 @@ test("removeOwned deletes only after owner lookup", async () => {
     id: "asset-1",
     ownerId: "user-1",
     shareId: null,
-    clipboardId: null,
+    roomId: null,
   });
   assert.deepEqual(calls.delete, { where: { id: "asset-1" } });
 });
@@ -346,7 +346,7 @@ test("remove deletes file bytes before deleting file asset metadata", async () =
     name: "note.txt",
     ownerId: "user-1",
     shareId: null,
-    clipboardId: "clipboard-1",
+    roomId: "room-1",
   };
   const { calls, prisma } = createPrismaMock([fileAsset]);
   const { calls: storageCalls, storage } = createStorageMock();
@@ -366,7 +366,7 @@ test("remove deletes file bytes from the asset storage provider", async () => {
     name: "note.txt",
     ownerId: "user-1",
     shareId: null,
-    clipboardId: "clipboard-1",
+    roomId: "room-1",
   };
   const { calls, prisma } = createPrismaMock([fileAsset]);
   const { calls: localCalls, storage: localStorage } = createStorageMock();
@@ -392,7 +392,7 @@ test("remove deletes non-file asset metadata without touching storage", async ()
     content: "hello",
     ownerId: "user-1",
     shareId: null,
-    clipboardId: "clipboard-1",
+    roomId: "room-1",
   };
   const { calls, prisma } = createPrismaMock([textAsset]);
   const { calls: storageCalls, storage } = createStorageMock();
@@ -489,7 +489,7 @@ test("getOwnedDownloadStream returns metadata and stream for file assets", async
       mimeType: "text/plain",
       ownerId: "user-1",
       shareId: null,
-      clipboardId: null,
+      roomId: null,
     },
   ]);
   const { calls, storage } = createStorageMock();
@@ -553,7 +553,7 @@ test("getOwnedDownloadStream rejects non-file assets", async () => {
       content: "hello",
       ownerId: "user-1",
       shareId: null,
-      clipboardId: null,
+      roomId: null,
     },
   ]);
   const { storage } = createStorageMock();

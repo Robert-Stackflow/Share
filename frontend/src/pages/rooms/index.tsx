@@ -1,0 +1,644 @@
+import {
+  ActionIcon,
+  Badge,
+  Button,
+  Center,
+  Checkbox,
+  Group,
+  Modal,
+  Paper,
+  PasswordInput,
+  SegmentedControl,
+  Stack,
+  Text,
+  TextInput,
+  Title,
+} from "@mantine/core";
+import { useForm } from "@mantine/form";
+import { useClipboard } from "@mantine/hooks";
+import { useModals } from "@mantine/modals";
+import { AxiosError } from "axios";
+import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
+import {
+  TbEdit,
+  TbExternalLink,
+  TbKey,
+  TbLink,
+  TbLock,
+  TbPlus,
+  TbTrash,
+  TbWorld,
+} from "react-icons/tb";
+import { FormattedMessage } from "react-intl";
+import AccessControlForm from "../../components/access/AccessControlForm";
+import AssetComposer from "../../components/asset/AssetComposer";
+import RoomConversationPanel from "../../components/room/RoomConversationPanel";
+import CenterLoader from "../../components/core/CenterLoader";
+import Meta from "../../components/Meta";
+import useLiveSync from "../../hooks/useLiveSync.hook";
+import useTranslate from "../../hooks/useTranslate.hook";
+import useUser from "../../hooks/user.hook";
+import roomService from "../../services/room.service";
+import {
+  AccessControl,
+  toAccessControlPayload,
+} from "../../types/accessControl.type";
+import { Asset } from "../../types/asset.type";
+import { CreateRoomAsset, Room } from "../../types/room.type";
+import {
+  readVisitedRooms,
+  rememberVisitedRoom,
+  VisitedRoom,
+} from "../../utils/visitedRooms.util";
+import toast from "../../utils/toast.util";
+import classes from "./RoomsPage.module.css";
+
+type Selection = { kind: "owned" | "visited"; roomId: string } | null;
+type Filter = "all" | "mine" | "visited";
+const policyFields: Array<keyof AccessControl> = [
+  "expiresAt",
+  "maxViews",
+  "allowDownload",
+  "allowAnonymous",
+  "oneTime",
+];
+
+export default function RoomsPage() {
+  const t = useTranslate();
+  const { user } = useUser();
+  const clipboard = useClipboard();
+  const modals = useModals();
+  const [owned, setOwned] = useState<Room[]>();
+  const [visited, setVisited] = useState<VisitedRoom[]>([]);
+  const [selection, setSelection] = useState<Selection>(null);
+  const selectionRef = useRef(selection);
+  selectionRef.current = selection;
+  const [activeVisited, setActiveVisited] = useState<Room>();
+  const [locked, setLocked] = useState(false);
+  const [filter, setFilter] = useState<Filter>("all");
+  const [createOpen, setCreateOpen] = useState(false);
+  const [editing, setEditing] = useState<Room>();
+  const [policy, setPolicy] = useState<AccessControl>({});
+  const [scrollSignal, setScrollSignal] = useState(0);
+  const createForm = useForm({ initialValues: { name: "", passcode: "" } });
+  const editForm = useForm({
+    initialValues: { name: "", passcode: "", removePasscode: false },
+  });
+  const passcodeForm = useForm({ initialValues: { passcode: "" } });
+
+  const selectedOwned =
+    selection?.kind === "owned"
+      ? owned?.find((room) => room.roomId === selection.roomId)
+      : undefined;
+  const selectedVisited =
+    selection?.kind === "visited" && activeVisited?.roomId === selection.roomId
+      ? activeVisited
+      : undefined;
+  const active = selectedOwned ?? selectedVisited;
+  const visibleOwned = filter === "visited" ? [] : (owned ?? []);
+  const ownedIds = new Set((owned ?? []).map((room) => room.roomId));
+  const visibleVisited =
+    filter === "mine"
+      ? []
+      : visited.filter((room) => !ownedIds.has(room.roomId));
+
+  const refreshList = async () => setOwned(await roomService.list());
+  useLiveSync(user ? roomService.listEventsUrl : null, refreshList);
+  useEffect(() => {
+    if (!user) return;
+    setVisited(readVisitedRooms());
+    void refreshList().catch(toast.axiosError);
+  }, [user]);
+
+  const refreshActive = async () => {
+    const current = selectionRef.current;
+    if (!current) return;
+    if (current.kind === "owned") {
+      const room = await roomService.getOwned(current.roomId);
+      if (selectionRef.current?.roomId === current.roomId) {
+        setOwned((previous) =>
+          previous?.map((item) => (item.id === room.id ? room : item)),
+        );
+      }
+      return;
+    }
+    try {
+      const room = await roomService.get(current.roomId);
+      if (
+        selectionRef.current?.kind === "visited" &&
+        selectionRef.current.roomId === current.roomId
+      ) {
+        setActiveVisited(room);
+        setLocked(false);
+        rememberVisitedRoom(room);
+        setVisited(readVisitedRooms());
+      }
+    } catch (error) {
+      if (error instanceof AxiosError && error.response?.status === 403) {
+        setActiveVisited(undefined);
+        setLocked(true);
+        return;
+      }
+      throw error;
+    }
+  };
+
+  const eventsUrl =
+    selection?.kind === "owned"
+      ? roomService.ownedEventsUrl(selection.roomId)
+      : selection?.kind === "visited" && !locked && activeVisited
+        ? roomService.eventsUrl(selection.roomId)
+        : null;
+  const syncStatus = useLiveSync(eventsUrl, refreshActive);
+
+  const selectVisited = (room: VisitedRoom) => {
+    setActiveVisited(undefined);
+    setLocked(false);
+    setSelection({ kind: "visited", roomId: room.roomId });
+    void roomService
+      .get(room.roomId)
+      .then((loaded) => {
+        if (
+          selectionRef.current?.kind !== "visited" ||
+          selectionRef.current.roomId !== room.roomId
+        )
+          return;
+        setActiveVisited(loaded);
+        rememberVisitedRoom(loaded);
+        setVisited(readVisitedRooms());
+      })
+      .catch((error) => {
+        if (error instanceof AxiosError && error.response?.status === 403)
+          setLocked(true);
+        else toast.axiosError(error);
+      });
+  };
+
+  const create = createForm.onSubmit((values) => {
+    void roomService
+      .create({
+        name: values.name.trim() || undefined,
+        passcode: values.passcode.trim() || undefined,
+        accessControl: toAccessControlPayload(policy),
+      })
+      .then((room) => {
+        setOwned((current) =>
+          current?.some((item) => item.id === room.id)
+            ? current.map((item) => (item.id === room.id ? room : item))
+            : [room, ...(current ?? [])],
+        );
+        setFilter("all");
+        setSelection({ kind: "owned", roomId: room.roomId });
+        setCreateOpen(false);
+        createForm.reset();
+        setPolicy({});
+        toast.success(t("room.notify.room-created"));
+      })
+      .catch(toast.axiosError);
+  });
+
+  const openEdit = (room: Room) => {
+    if (room.visibility === "PRIVATE") return;
+    setEditing(room);
+    editForm.setValues({
+      name: room.name ?? "",
+      passcode: "",
+      removePasscode: false,
+    });
+    setPolicy({
+      ...room.accessControl,
+      expiresAt: room.accessControl?.expiresAt?.slice(0, 16),
+    });
+  };
+  const update = editForm.onSubmit((values) => {
+    if (!editing) return;
+    void roomService
+      .update(editing.roomId, {
+        name: values.name.trim() || null,
+        passcode: values.removePasscode
+          ? null
+          : values.passcode.trim() || undefined,
+        accessControl: toAccessControlPayload(policy),
+      })
+      .then((room) => {
+        setOwned((current) =>
+          current?.map((item) => (item.id === room.id ? room : item)),
+        );
+        setEditing(undefined);
+        setPolicy({});
+        toast.success(t("room.notify.room-updated"));
+      })
+      .catch(toast.axiosError);
+  });
+
+  const confirmDelete = (room: Room) =>
+    modals.openConfirmModal({
+      title: t("room.rooms.delete.title"),
+      children: (
+        <Text size="sm">
+          {t("room.rooms.delete.description", {
+            room: room.name || room.roomId,
+          })}
+        </Text>
+      ),
+      confirmProps: { color: "red" },
+      labels: {
+        confirm: t("common.button.delete"),
+        cancel: t("common.button.cancel"),
+      },
+      onConfirm: () =>
+        void roomService
+          .remove(room.roomId)
+          .then(() => {
+            setOwned((current) =>
+              current?.filter((item) => item.id !== room.id),
+            );
+            if (selectionRef.current?.roomId === room.roomId)
+              setSelection(null);
+            toast.success(t("room.notify.room-deleted"));
+          })
+          .catch(toast.axiosError),
+    });
+
+  const copyLink = (roomId: string) => {
+    clipboard.copy(`${window.location.origin}/rooms/${roomId}`);
+    toast.success(t("common.notify.copied-link"));
+  };
+  const verify = passcodeForm.onSubmit((values) => {
+    if (selection?.kind !== "visited") return;
+    void roomService
+      .verify(selection.roomId, values.passcode)
+      .then(() => {
+        passcodeForm.reset();
+        setLocked(false);
+        return refreshActive();
+      })
+      .catch(toast.axiosError);
+  });
+
+  const addAsset = async (input: CreateRoomAsset) => {
+    if (!selection) return;
+    const created = await roomService.addAsset(selection.roomId, input);
+    updateActiveAssets((assets) => [created, ...assets]);
+    setScrollSignal((value) => value + 1);
+  };
+  const addFiles = (assets: Asset[]) => {
+    updateActiveAssets((current) => [...assets, ...current]);
+    setScrollSignal((value) => value + 1);
+  };
+  const updateActiveAssets = (transform: (assets: Asset[]) => Asset[]) => {
+    if (selection?.kind === "owned")
+      setOwned((current) =>
+        current?.map((item) =>
+          item.roomId === selection.roomId
+            ? { ...item, assets: transform(item.assets) }
+            : item,
+        ),
+      );
+    if (selection?.kind === "visited")
+      setActiveVisited(
+        (current) =>
+          current && { ...current, assets: transform(current.assets) },
+      );
+  };
+  const removeAsset = async (asset: Asset) => {
+    if (selection?.kind !== "owned") return;
+    await roomService.removeAsset(selection.roomId, asset.id);
+    updateActiveAssets((assets) =>
+      assets.filter((item) => item.id !== asset.id),
+    );
+  };
+
+  if (!user)
+    return (
+      <>
+        <Meta title={t("room.rooms.title")} />
+        <Center h="50vh">
+          <Stack align="center">
+            <Title order={3}>
+              <FormattedMessage id="room.auth.title" />
+            </Title>
+            <Button component={Link} href="/auth/signIn">
+              <FormattedMessage id="navbar.signin" />
+            </Button>
+          </Stack>
+        </Center>
+      </>
+    );
+  if (!owned) return <CenterLoader />;
+
+  return (
+    <>
+      <Meta title={t("room.rooms.title")} />
+      <Group justify="space-between" mb="md">
+        <Title order={3}>
+          <FormattedMessage id="room.rooms.title" />
+        </Title>
+        <Button
+          leftSection={<TbPlus />}
+          onClick={() => {
+            setPolicy({});
+            setCreateOpen(true);
+          }}
+        >
+          <FormattedMessage id="room.rooms.create" />
+        </Button>
+      </Group>
+      <div className={classes.shell}>
+        <aside className={classes.sidebar}>
+          <SegmentedControl
+            fullWidth
+            value={filter}
+            onChange={(value) => setFilter(value as Filter)}
+            data={[
+              { value: "all", label: t("room.filter.all") },
+              { value: "mine", label: t("room.rooms.title") },
+              { value: "visited", label: t("room.rooms.visited") },
+            ]}
+          />
+          <div className={classes.roomList}>
+            {visibleOwned.length > 0 && (
+              <Text c="dimmed" fw={600} size="xs" mt="sm">
+                <FormattedMessage id="room.rooms.title" />
+              </Text>
+            )}
+            {visibleOwned.map((room) => (
+              <button
+                className={`${classes.roomEntry} ${selection?.kind === "owned" && selection.roomId === room.roomId ? classes.selected : ""}`}
+                key={room.id}
+                onClick={() => {
+                  setSelection({ kind: "owned", roomId: room.roomId });
+                  setLocked(false);
+                }}
+                type="button"
+              >
+                <span className={classes.entryText}>
+                  <strong>
+                    {room.visibility === "PRIVATE"
+                      ? t("room.private.title")
+                      : room.name || room.roomId}
+                  </strong>
+                  <small>
+                    {room.visibility === "PRIVATE"
+                      ? t("room.private.subtitle")
+                      : room.roomId}
+                  </small>
+                </span>
+                {room.visibility === "PRIVATE" ? (
+                  <TbLock />
+                ) : room.hasPasscode ? (
+                  <TbLock />
+                ) : (
+                  <TbWorld />
+                )}
+              </button>
+            ))}
+            {visibleVisited.length > 0 && (
+              <Text c="dimmed" fw={600} size="xs" mt="sm">
+                <FormattedMessage id="room.rooms.visited" />
+              </Text>
+            )}
+            {visibleVisited.map((room) => (
+              <button
+                className={`${classes.roomEntry} ${selection?.kind === "visited" && selection.roomId === room.roomId ? classes.selected : ""}`}
+                key={room.roomId}
+                onClick={() => selectVisited(room)}
+                type="button"
+              >
+                <span className={classes.entryText}>
+                  <strong>{room.name || room.roomId}</strong>
+                  <small>{room.roomId}</small>
+                </span>
+                {room.hasPasscode ? <TbLock /> : <TbWorld />}
+              </button>
+            ))}
+            {visibleOwned.length + visibleVisited.length === 0 && (
+              <Text c="dimmed" size="sm" py="xl">
+                <FormattedMessage id="room.rooms.empty" />
+              </Text>
+            )}
+          </div>
+        </aside>
+        <main className={classes.content}>
+          {selection && (
+            <Group
+              className={classes.toolbar}
+              justify="space-between"
+              wrap="nowrap"
+            >
+              <Group gap="xs" wrap="nowrap">
+                <Badge color={selection.kind === "owned" ? "blue" : "gray"}>
+                  {t(
+                    selection.kind === "owned"
+                      ? "room.role.owner"
+                      : "room.role.visitor",
+                  )}
+                </Badge>
+                {active && (
+                  <Badge
+                    color={
+                      active.visibility === "PRIVATE"
+                        ? "gray"
+                        : active.hasPasscode
+                          ? "yellow"
+                          : "green"
+                    }
+                    variant="light"
+                  >
+                    {t(
+                      active.visibility === "PRIVATE"
+                        ? "room.private.title"
+                        : active.hasPasscode
+                          ? "room.rooms.protected"
+                          : "room.rooms.open",
+                    )}
+                  </Badge>
+                )}
+                {eventsUrl && syncStatus !== "connected" && (
+                  <Text c="dimmed" size="xs">
+                    <FormattedMessage id="room.sync.reconnecting" />
+                  </Text>
+                )}
+              </Group>
+              <Group gap={4} wrap="nowrap">
+                {active?.visibility !== "PRIVATE" && (
+                  <>
+                    <ActionIcon
+                      aria-label={t("common.button.copy-link")}
+                      onClick={() => copyLink(selection.roomId)}
+                      variant="subtle"
+                    >
+                      <TbLink />
+                    </ActionIcon>
+                    <ActionIcon
+                      aria-label={t("common.text.navigate-to-link")}
+                      component={Link}
+                      href={`/rooms/${selection.roomId}`}
+                      target="_blank"
+                      variant="subtle"
+                    >
+                      <TbExternalLink />
+                    </ActionIcon>
+                  </>
+                )}
+                {selectedOwned?.visibility === "SHARED" && (
+                  <>
+                    <ActionIcon
+                      aria-label={t("common.button.edit")}
+                      onClick={() => openEdit(selectedOwned)}
+                      variant="subtle"
+                    >
+                      <TbEdit />
+                    </ActionIcon>
+                    <ActionIcon
+                      aria-label={t("common.button.delete")}
+                      color="red"
+                      onClick={() => confirmDelete(selectedOwned)}
+                      variant="subtle"
+                    >
+                      <TbTrash />
+                    </ActionIcon>
+                  </>
+                )}
+              </Group>
+            </Group>
+          )}
+          {locked && selection?.kind === "visited" ? (
+            <Center className={classes.empty}>
+              <Paper withBorder p="lg" maw={360} w="100%">
+                <form onSubmit={verify}>
+                  <Stack>
+                    <Title order={4}>
+                      <FormattedMessage id="room.room.locked.title" />
+                    </Title>
+                    <PasswordInput
+                      label={t("room.room.passcode")}
+                      leftSection={<TbKey />}
+                      {...passcodeForm.getInputProps("passcode")}
+                    />
+                    <Button
+                      disabled={!passcodeForm.values.passcode.trim()}
+                      type="submit"
+                    >
+                      <FormattedMessage id="room.room.unlock" />
+                    </Button>
+                  </Stack>
+                </form>
+              </Paper>
+            </Center>
+          ) : active ? (
+            <RoomConversationPanel
+              key={`${selection?.kind}:${active.id}`}
+              assets={active.assets}
+              composer={
+                <AssetComposer
+                  variant="chat"
+                  onCreate={addAsset}
+                  onFilesUploaded={addFiles}
+                  uploadFile={(chunk, file, index, total) =>
+                    roomService.uploadFile(
+                      active.roomId,
+                      chunk,
+                      file,
+                      index,
+                      total,
+                    )
+                  }
+                />
+              }
+              getFileDownloadUrl={(asset) =>
+                roomService.downloadFileUrl(active.roomId, asset.id)
+              }
+              onDelete={selection?.kind === "owned" ? removeAsset : undefined}
+              scrollToLatestSignal={scrollSignal}
+              subtitle={
+                active.visibility === "PRIVATE" ? undefined : active.roomId
+              }
+              title={
+                active.visibility === "PRIVATE"
+                  ? t("room.private.title")
+                  : active.name || active.roomId
+              }
+            />
+          ) : (
+            <Center className={classes.empty}>
+              <Text c="dimmed">
+                <FormattedMessage id="room.rooms.editor.empty" />
+              </Text>
+            </Center>
+          )}
+        </main>
+      </div>
+
+      <Modal
+        centered
+        opened={createOpen}
+        onClose={() => setCreateOpen(false)}
+        title={t("room.rooms.create.title")}
+      >
+        <form onSubmit={create}>
+          <Stack>
+            <TextInput
+              label={t("room.rooms.name")}
+              {...createForm.getInputProps("name")}
+            />
+            <PasswordInput
+              label={t("room.rooms.passcode")}
+              {...createForm.getInputProps("passcode")}
+            />
+            <AccessControlForm
+              fields={policyFields}
+              value={policy}
+              onChange={setPolicy}
+            />
+            <Group justify="flex-end">
+              <Button type="submit">
+                <FormattedMessage id="room.rooms.create" />
+              </Button>
+            </Group>
+          </Stack>
+        </form>
+      </Modal>
+      <Modal
+        centered
+        opened={Boolean(editing)}
+        onClose={() => setEditing(undefined)}
+        title={t("room.rooms.edit.title")}
+      >
+        <form onSubmit={update}>
+          <Stack>
+            <TextInput
+              label={t("room.rooms.name")}
+              {...editForm.getInputProps("name")}
+            />
+            <PasswordInput
+              disabled={editForm.values.removePasscode}
+              description={t("room.rooms.passcode.keep")}
+              label={t("room.rooms.passcode")}
+              {...editForm.getInputProps("passcode")}
+            />
+            {editing?.hasPasscode && (
+              <Checkbox
+                label={t("room.rooms.passcode.remove")}
+                {...editForm.getInputProps("removePasscode", {
+                  type: "checkbox",
+                })}
+              />
+            )}
+            <AccessControlForm
+              fields={policyFields}
+              value={policy}
+              onChange={setPolicy}
+            />
+            <Group justify="flex-end">
+              <Button type="submit">
+                <FormattedMessage id="common.button.save" />
+              </Button>
+            </Group>
+          </Stack>
+        </form>
+      </Modal>
+    </>
+  );
+}

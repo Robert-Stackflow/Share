@@ -1,32 +1,36 @@
-import { Clipboard } from "../types/clipboard.type";
+import { Room } from "../types/room.type";
 
-export type VisitedClipboardRoom = {
+export type VisitedRoom = {
   hasPasscode?: boolean;
   lastVisitedAt: string;
   name?: string;
   roomId: string;
 };
 
-const visitedRoomsKey = "clipboard.visitedRooms";
+const visitedRoomsKey = "room.visitedRooms";
 const maxVisitedRooms = 12;
 
-export const readVisitedClipboardRooms = (): VisitedClipboardRoom[] => {
+export const readVisitedRooms = (): VisitedRoom[] => {
   if (typeof window === "undefined") return [];
 
   try {
     const raw = window.localStorage.getItem(visitedRoomsKey);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed.filter((room) => room?.roomId) : [];
+    const rooms = Array.isArray(parsed)
+      ? parsed.filter((room) => room?.roomId)
+      : [];
+    window.localStorage.setItem(visitedRoomsKey, JSON.stringify(rooms));
+    return rooms;
   } catch {
     return [];
   }
 };
 
-export const rememberVisitedClipboardRoom = (room: Clipboard) => {
+export const rememberVisitedRoom = (room: Room) => {
   if (typeof window === "undefined" || !room.roomId) return;
 
-  const nextRoom: VisitedClipboardRoom = {
+  const nextRoom: VisitedRoom = {
     roomId: room.roomId,
     name: room.name || undefined,
     hasPasscode: room.hasPasscode,
@@ -34,7 +38,7 @@ export const rememberVisitedClipboardRoom = (room: Clipboard) => {
   };
   const nextRooms = [
     nextRoom,
-    ...readVisitedClipboardRooms().filter((item) => item.roomId !== room.roomId),
+    ...readVisitedRooms().filter((item) => item.roomId !== room.roomId),
   ].slice(0, maxVisitedRooms);
 
   window.localStorage.setItem(visitedRoomsKey, JSON.stringify(nextRooms));

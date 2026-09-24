@@ -15,7 +15,6 @@ import { AppCacheModule } from "./cache/cache.module";
 import { AppController } from "./app.controller";
 import { AssetModule } from "./asset/asset.module";
 import { ClamScanModule } from "./clamscan/clamscan.module";
-import { ClipboardModule } from "./clipboard/clipboard.module";
 import { ConfigModule } from "./config/config.module";
 import { EmailModule } from "./email/email.module";
 import { FileModule } from "./file/file.module";
@@ -24,6 +23,7 @@ import { JobsModule } from "./jobs/jobs.module";
 import { OAuthModule } from "./oauth/oauth.module";
 import { PrismaModule } from "./prisma/prisma.module";
 import { ReverseShareModule } from "./reverseShare/reverseShare.module";
+import { RoomModule } from "./room/room.module";
 import { ShareModule } from "./share/share.module";
 import { ShortLinkModule } from "./shortLink/shortLink.module";
 import { UserModule } from "./user/user.module";
@@ -41,7 +41,7 @@ const i18nPath = existsSync(join(__dirname, "../i18n"))
     AccessPolicyModule,
     ActivityModule,
     AssetModule,
-    ClipboardModule,
+    RoomModule,
     AuthModule,
     ShareModule,
     ShortLinkModule,

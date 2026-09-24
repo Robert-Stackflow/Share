@@ -18,9 +18,9 @@ enum StorageProvider {
   S3
 }
 
-enum ClipboardType {
+enum RoomVisibility {
   PRIVATE
-  ROOM
+  SHARED
 }
 
 enum ShortLinkTargetType {
@@ -54,7 +54,7 @@ model User {
 
   shares        Share[]
   assets        Asset[]
-  clipboards    Clipboard[]
+  rooms         Room[]
   shortLinks    ShortLink[]
   assetTags     AssetTag[]
   activityEvents ActivityEvent[]
@@ -179,8 +179,8 @@ model Asset {
   shareId String?
   share   Share?  @relation(fields: [shareId], references: [id], onDelete: Cascade)
 
-  clipboardId String?
-  clipboard   Clipboard? @relation(fields: [clipboardId], references: [id], onDelete: Cascade)
+  roomId String?
+  room   Room?   @relation(fields: [roomId], references: [id], onDelete: Cascade)
 
   inboxSubmissionId String?
   inboxSubmission   InboxSubmission? @relation(fields: [inboxSubmissionId], references: [id], onDelete: Cascade)
@@ -199,25 +199,24 @@ model Asset {
 
   @@index([ownerId])
   @@index([shareId])
-  @@index([clipboardId])
+  @@index([roomId])
   @@index([inboxSubmissionId])
   @@index([source])
   @@index([favorite])
   @@index([lastAccessedAt])
 }
 
-model Clipboard {
-  id        String        @id @default(uuid())
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
-  type      ClipboardType
+model Room {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  roomId    String   @unique
+  visibility RoomVisibility @default(SHARED)
+  name      String?
+  passcodeHash String?
 
   ownerId String?
-  owner   User?   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-
-  roomId       String? @unique
-  name         String?
-  passcodeHash String?
+  owner   User? @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 
   assets Asset[]
   accessPolicy AccessPolicy?
@@ -263,8 +262,8 @@ model AccessPolicy {
   shareId String? @unique
   share   Share?  @relation(fields: [shareId], references: [id], onDelete: Cascade)
 
-  clipboardId String? @unique
-  clipboard   Clipboard? @relation(fields: [clipboardId], references: [id], onDelete: Cascade)
+  roomId String? @unique
+  room   Room?   @relation(fields: [roomId], references: [id], onDelete: Cascade)
 
   shortLinkId String? @unique
   shortLink   ShortLink? @relation(fields: [shortLinkId], references: [id], onDelete: Cascade)

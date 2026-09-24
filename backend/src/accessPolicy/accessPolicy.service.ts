@@ -8,7 +8,7 @@ import { AccessControlDTO } from "./dto/accessControl.dto";
 
 type AccessPolicyRelation =
   | { shareId: string }
-  | { clipboardId: string }
+  | { roomId: string }
   | { shortLinkId: string }
   | { reverseShareId: string };
 
@@ -31,7 +31,10 @@ export class AccessPolicyService {
     private config: ConfigService,
   ) {}
 
-  assertAllowed(policy?: Partial<AccessPolicy> | null, context: AccessContext = {}) {
+  assertAllowed(
+    policy?: Partial<AccessPolicy> | null,
+    context: AccessContext = {},
+  ) {
     if (!policy) return true;
 
     const now = context.now ?? new Date();
@@ -56,7 +59,10 @@ export class AccessPolicyService {
     return true;
   }
 
-  async verifyPassword(policy: Pick<AccessPolicy, "passwordHash">, password?: string) {
+  async verifyPassword(
+    policy: Pick<AccessPolicy, "passwordHash">,
+    password?: string,
+  ) {
     if (!policy.passwordHash) return true;
     if (!password || !(await argon.verify(policy.passwordHash, password))) {
       throw new ForbiddenException("Invalid password");

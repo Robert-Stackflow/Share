@@ -74,10 +74,10 @@ const AssetComposer = ({
   const typeOptions = useMemo(
     () => [
       ...(fileEnabled
-        ? [{ value: "FILE", label: t("clipboard.asset.type.file") }]
+        ? [{ value: "FILE", label: t("room.asset.type.file") }]
         : []),
-      { value: "TEXT", label: t("clipboard.asset.type.text") },
-      { value: "LINK", label: t("clipboard.asset.type.link") },
+      { value: "TEXT", label: t("room.asset.type.text") },
+      { value: "LINK", label: t("room.asset.type.link") },
     ],
     [fileEnabled, t],
   );
@@ -202,7 +202,7 @@ const AssetComposer = ({
             loading={isSubmitting}
             disabled={isEmpty}
           >
-            <FormattedMessage id="clipboard.asset.create" />
+            <FormattedMessage id="room.asset.create" />
           </Button>
         </Group>
 
@@ -212,8 +212,8 @@ const AssetComposer = ({
               compact={variant === "chat"}
               title={
                 variant === "chat"
-                  ? t("clipboard.asset.file.choose")
-                  : t("clipboard.asset.file")
+                  ? t("room.asset.file.choose")
+                  : t("room.asset.file")
               }
               isUploading={isSubmitting}
               maxShareSize={parseInt(config.get("share.maxSize"))}
@@ -226,7 +226,7 @@ const AssetComposer = ({
             // Fixed height (not autosize) so it lines up with the dropzone and
             // link input; react-textarea-autosize rejects height styles.
             <Textarea
-              placeholder={t("clipboard.asset.content")}
+              placeholder={t("room.asset.content")}
               styles={{ input: { height: CHAT_FIELD_HEIGHT } }}
               {...form.getInputProps("content")}
             />
@@ -234,13 +234,13 @@ const AssetComposer = ({
             <Textarea
               minRows={4}
               autosize
-              label={t("clipboard.asset.content")}
+              label={t("room.asset.content")}
               {...form.getInputProps("content")}
             />
           )
         ) : (
           <TextInput
-            label={variant === "chat" ? undefined : t("clipboard.asset.url")}
+            label={variant === "chat" ? undefined : t("room.asset.url")}
             placeholder="https://example.com"
             styles={
               variant === "chat"

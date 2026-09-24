@@ -533,7 +533,7 @@ export class ShareService {
       type: asset.type,
       ownerId: asset.ownerId,
       shareId: asset.shareId,
-      clipboardId: asset.clipboardId,
+      roomId: asset.roomId,
       name: asset.name,
       size: asset.size,
       mimeType: asset.mimeType,

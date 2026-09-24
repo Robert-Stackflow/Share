@@ -17,7 +17,7 @@ export class AssetDTO {
   shareId?: string;
 
   @Expose()
-  clipboardId?: string;
+  roomId?: string;
 
   @Expose()
   name?: string;

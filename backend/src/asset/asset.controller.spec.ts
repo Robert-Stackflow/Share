@@ -61,7 +61,7 @@ function createServiceMock() {
       },
       sendToRoom: async (assetId: string, roomId: string, currentUser: any) => {
         calls.push(["sendToRoom", assetId, roomId, currentUser]);
-        return { id: "asset-room", clipboardId: "clipboard-1" };
+        return { id: "asset-room", roomId: "room-1" };
       },
       getOwnedDownloadStream: async (assetId: string, ownerId: string) => {
         calls.push(["getOwnedDownloadStream", assetId, ownerId]);

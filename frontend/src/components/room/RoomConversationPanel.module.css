@@ -1,4 +1,4 @@
-.clipboardConversationPanel {
+.roomConversationPanel {
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -7,7 +7,8 @@
 }
 
 .header {
-  border-bottom: 1px solid light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
+  border-bottom: 1px solid
+    light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
   padding: 14px var(--mantine-spacing-md);
 }
 
@@ -17,12 +18,25 @@
   padding-bottom: 4px;
 }
 
-.clipboardConversationMessages {
-  background: var(--mantine-color-body);
+.messageViewport {
   flex: 1;
   min-height: 0;
+  position: relative;
+}
+
+.roomConversationMessages {
+  background: var(--mantine-color-body);
+  height: 100%;
   overflow-y: auto;
   padding: var(--mantine-spacing-md);
+}
+
+.newItemsButton {
+  bottom: var(--mantine-spacing-sm);
+  left: 50%;
+  position: absolute;
+  transform: translateX(-50%);
+  z-index: 1;
 }
 
 .messageRow {
@@ -37,8 +51,12 @@
 
 .messageIcon {
   align-items: center;
-  background: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-6));
-  border: 1px solid light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
+  background: light-dark(
+    var(--mantine-color-gray-0),
+    var(--mantine-color-dark-6)
+  );
+  border: 1px solid
+    light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
   border-radius: 999px;
   color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-0));
   display: flex;
@@ -49,9 +67,13 @@
   width: 28px;
 }
 
-.clipboardMessageBubble {
-  background: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-6));
-  border: 1px solid light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
+.roomMessageBubble {
+  background: light-dark(
+    var(--mantine-color-gray-0),
+    var(--mantine-color-dark-6)
+  );
+  border: 1px solid
+    light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
   border-radius: 8px;
   flex: 0 1 auto;
   max-width: min(820px, calc(100% - 44px));
@@ -84,12 +106,13 @@
 }
 
 .composer {
-  border-top: 1px solid light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
+  border-top: 1px solid
+    light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
   padding: 14px var(--mantine-spacing-md);
 }
 
 @media (max-width: 62em) {
-  .clipboardConversationPanel {
+  .roomConversationPanel {
     min-height: 620px;
   }
 
@@ -97,7 +120,7 @@
     padding: var(--mantine-spacing-md);
   }
 
-  .clipboardConversationMessages {
+  .roomConversationMessages {
     padding: var(--mantine-spacing-md);
   }
 }

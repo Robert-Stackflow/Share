@@ -458,21 +458,21 @@ test("updateOwned updates an owned link and refreshes the target cache", async (
     "abc123",
     {
       targetType: "INTERNAL_PATH",
-      targetUrl: "/clipboard",
-      title: "Clipboard",
+      targetUrl: "/rooms",
+      title: "Rooms",
       isActive: false,
     },
     "user-1",
   );
 
   assert.equal(updated.targetType, "INTERNAL_PATH");
-  assert.equal(updated.targetUrl, "/clipboard");
-  assert.equal(updated.title, "Clipboard");
+  assert.equal(updated.targetUrl, "/rooms");
+  assert.equal(updated.title, "Rooms");
   assert.equal(updated.isActive, false);
-  assert.equal(links[0].targetUrl, "/clipboard");
+  assert.equal(links[0].targetUrl, "/rooms");
   assert.deepEqual(
     cacheCalls.find(([name, key]) => name === "set" && key.endsWith(":target")),
-    ["set", "short-link:abc123:target", "/clipboard"],
+    ["set", "short-link:abc123:target", "/rooms"],
   );
 });
 

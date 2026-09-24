@@ -56,10 +56,7 @@ const Header = () => {
       link: "/upload",
       label: t("navbar.upload"),
     },
-    {
-      link: "/clipboard",
-      label: t("navbar.clipboard"),
-    },
+    { link: "/rooms", label: t("navbar.rooms") },
     {
       link: "/short-links",
       label: t("navbar.links.shortLinks"),
@@ -104,10 +101,7 @@ const Header = () => {
           link: "/upload",
           label: t("navbar.upload"),
         },
-        {
-          link: "/clipboard",
-          label: t("navbar.clipboard"),
-        },
+        { link: "/rooms", label: t("navbar.rooms") },
         {
           link: "/short-links",
           label: t("navbar.links.shortLinks"),

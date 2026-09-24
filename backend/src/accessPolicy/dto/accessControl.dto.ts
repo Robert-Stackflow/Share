@@ -1,10 +1,4 @@
-import {
-  IsBoolean,
-  IsInt,
-  IsOptional,
-  IsString,
-  Min,
-} from "class-validator";
+import { IsBoolean, IsInt, IsOptional, IsString, Min } from "class-validator";
 
 export class AccessControlDTO {
   @IsOptional()
@@ -13,12 +7,12 @@ export class AccessControlDTO {
 
   @IsOptional()
   @IsString()
-  expiresAt?: string;
+  expiresAt?: string | null;
 
   @IsOptional()
   @IsInt()
   @Min(1)
-  maxViews?: number;
+  maxViews?: number | null;
 
   @IsOptional()
   @IsBoolean()

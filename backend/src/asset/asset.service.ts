@@ -7,6 +7,7 @@ import {
   Asset,
   AssetSource,
   AssetType,
+  Room,
   Share,
   StorageProvider,
   User,
@@ -21,6 +22,7 @@ import { ActivityService } from "src/activity/activity.service";
 import { ConfigService } from "src/config/config.service";
 import { ShortLinkService } from "src/shortLink/shortLink.service";
 import { PrismaService } from "../prisma/prisma.service";
+import { roomChanges } from "../room/room.events";
 import { AssetStorageService } from "./storage/asset.storage";
 import { AssetLocalStorageService } from "./storage/assetLocal.storage";
 import { AssetS3StorageService } from "./storage/assetS3.storage";
@@ -32,10 +34,11 @@ const createShareId = customAlphabet(
 
 type AssetContainer =
   | Share
+  | Room
   | {
       id: string;
       type?: string;
-      kind?: "SHARE" | "CLIPBOARD" | "INBOX_SUBMISSION";
+      kind?: "SHARE" | "ROOM" | "INBOX_SUBMISSION";
     };
 
 type UpdateAssetInput = {
@@ -202,7 +205,7 @@ export class AssetService {
     const where: Record<string, unknown> = {
       ownerId,
       shareId: null,
-      clipboardId: null,
+      roomId: null,
       inboxSubmissionId: null,
     };
 
@@ -241,7 +244,7 @@ export class AssetService {
 
   async getOwned(assetId: string, ownerId: string) {
     const asset = await this.prisma.asset.findFirst({
-      where: { id: assetId, ownerId, shareId: null, clipboardId: null },
+      where: { id: assetId, ownerId, shareId: null, roomId: null },
     });
 
     if (!asset) throw new NotFoundException("Asset not found");
@@ -346,16 +349,18 @@ export class AssetService {
   }
 
   async sendToRoom(assetId: string, roomId: string, owner: User) {
-    const room = await this.prisma.clipboard.findFirst({
-      where: { roomId, ownerId: owner.id, type: "ROOM" },
+    const room = await this.prisma.room.findFirst({
+      where: { roomId, ownerId: owner.id },
     });
-    if (!room) throw new NotFoundException("Clipboard room not found");
+    if (!room) throw new NotFoundException("Room not found");
 
     const asset = await this.getOwned(assetId, owner.id);
-    return this.cloneAsset(asset, owner, {
-      container: { id: room.id, type: "ROOM", kind: "CLIPBOARD" },
+    const clone = await this.cloneAsset(asset, owner, {
+      container: { id: room.id, kind: "ROOM" },
       source: AssetSource.ROOM,
     });
+    roomChanges.next(roomId);
+    return clone;
   }
 
   async remove(asset: Pick<Asset, "id" | "type" | "storage">) {
@@ -414,16 +419,16 @@ export class AssetService {
   }
 
   private getRelationData(owner?: User, container?: AssetContainer) {
-    const isClipboard = this.isClipboardContainer(container);
+    const isRoom = this.isRoomContainer(container);
     const isInboxSubmission =
       this.getContainerKind(container) === "INBOX_SUBMISSION";
     return {
       ...(owner ? { owner: { connect: { id: owner.id } } } : {}),
-      ...(container && !isClipboard && !isInboxSubmission
+      ...(container && !isRoom && !isInboxSubmission
         ? { share: { connect: { id: container.id } } }
         : {}),
-      ...(container && isClipboard
-        ? { clipboard: { connect: { id: container.id } } }
+      ...(container && isRoom
+        ? { room: { connect: { id: container.id } } }
         : {}),
       ...(container && isInboxSubmission
         ? { inboxSubmission: { connect: { id: container.id } } }
@@ -441,15 +446,14 @@ export class AssetService {
     if (this.getContainerKind(container) === "INBOX_SUBMISSION") {
       return AssetSource.INBOX;
     }
-    if (this.isClipboardContainer(container)) return AssetSource.ROOM;
+    if (this.isRoomContainer(container)) return AssetSource.ROOM;
     return AssetSource.SHARE;
   }
 
-  private isClipboardContainer(container?: AssetContainer) {
-    return (
+  private isRoomContainer(container?: AssetContainer) {
+    return Boolean(
       container &&
-      (this.getContainerKind(container) === "CLIPBOARD" ||
-        ("type" in container && ["PRIVATE", "ROOM"].includes(container.type)))
+        (this.getContainerKind(container) === "ROOM" || "roomId" in container),
     );
   }
 

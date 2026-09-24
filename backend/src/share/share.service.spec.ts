@@ -239,7 +239,7 @@ test("removeAsset removes an asset belonging to the share", async () => {
     type: "TEXT",
     content: "Meeting notes",
     shareId: "share-1",
-    clipboardId: null,
+    roomId: null,
   };
   const { calls: prismaCalls, prisma } = createPrismaMock({
     shares: [{ id: "share-1", assets: [asset] }],

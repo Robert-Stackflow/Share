@@ -1,7 +1,7 @@
 export type AccessControl = {
   password?: string;
-  expiresAt?: string;
-  maxViews?: number;
+  expiresAt?: string | null;
+  maxViews?: number | null;
   allowDownload?: boolean;
   allowAnonymous?: boolean;
   oneTime?: boolean;
@@ -30,9 +30,13 @@ export const toAccessControlPayload = (
     value.expiresAt.trim().length > 0
   ) {
     payload.expiresAt = new Date(value.expiresAt).toISOString();
+  } else if (value.expiresAt === null || value.expiresAt === "") {
+    payload.expiresAt = null;
   }
   if (typeof value.maxViews === "number" && value.maxViews > 0) {
     payload.maxViews = value.maxViews;
+  } else if (value.maxViews === null) {
+    payload.maxViews = null;
   }
   if (typeof value.allowDownload === "boolean") {
     payload.allowDownload = value.allowDownload;

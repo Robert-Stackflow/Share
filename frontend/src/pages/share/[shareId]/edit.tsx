@@ -149,7 +149,7 @@ const Share = () => {
                 value: <FormattedMessage id="share.table.name" />,
                 size: <FormattedMessage id="account.assets.table.size" />,
                 createdAt: (
-                  <FormattedMessage id="clipboard.assets.table.createdAt" />
+                  <FormattedMessage id="room.assets.table.createdAt" />
                 ),
               }}
               empty={

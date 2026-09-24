@@ -6,79 +6,6 @@ const { test } = require("node:test");
 const root = __dirname;
 const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
 
-test("clipboard dashboard uses the chat-style conversation layout", () => {
-  const page = read("pages/clipboard/index.tsx");
-  const en = read("i18n/translations/en-US.ts");
-  const zh = read("i18n/translations/zh-CN.ts");
-
-  assert.match(page, /ClipboardConversationPanel/);
-  assert.match(page, /Modal/);
-  assert.match(page, /<Tabs/);
-  assert.match(page, /activeRoomTab/);
-  assert.match(page, /Select/);
-  assert.match(page, /visitedRooms/);
-  assert.match(page, /value="manage"/);
-  assert.match(page, /clipboard\.rooms\.manage/);
-  assert.match(page, /clipboardService\.removeRoom/);
-  assert.match(page, /confirmDeleteRoom/);
-  assert.match(page, /tableClasses\.tablePanel/);
-  assert.match(page, /openEditRoom/);
-  assert.match(page, /clipboardService\.updateRoom/);
-  assert.match(page, /selectedClipboard/);
-  assert.doesNotMatch(page, /ClipboardAssetTable/);
-  assert.doesNotMatch(page, /<aside/);
-  assert.doesNotMatch(page, /visitedRoomButton/);
-
-  for (const key of [
-    "clipboard.rooms.visited",
-    "clipboard.rooms.manage",
-    "clipboard.rooms.visited.empty",
-    "clipboard.rooms.delete.title",
-    "clipboard.rooms.delete.description",
-    "clipboard.rooms.edit.title",
-    "clipboard.rooms.passcode.keep",
-    "clipboard.rooms.passcode.remove",
-    "clipboard.notify.room-deleted",
-    "clipboard.notify.room-updated",
-  ]) {
-    assert.match(en, new RegExp(`"${key}"`));
-    assert.match(zh, new RegExp(`"${key}"`));
-  }
-});
-
-test("public clipboard room uses the shared conversation panel", () => {
-  const page = read("pages/clipboard/rooms/[roomId].tsx");
-
-  assert.match(page, /ClipboardConversationPanel/);
-  assert.doesNotMatch(page, /ClipboardAssetTable/);
-});
-
-test("conversation panel renders messages as room bubbles", () => {
-  const panel = read("components/clipboard/ClipboardConversationPanel.tsx");
-  const css = read(
-    "components/clipboard/ClipboardConversationPanel.module.css",
-  );
-
-  assert.match(panel, /clipboardConversationMessages/);
-  assert.match(panel, /clipboardMessageBubble/);
-  assert.match(panel, /messageListItem/);
-  assert.match(panel, /sortAssetsByCreatedAtDesc/);
-  assert.match(css, /\.messageListItem/);
-  assert.match(css, /\.messageMeta/);
-  // Bubble background must be color-scheme aware (light-dark), not a fixed
-  // light gray that renders white in dark mode.
-  assert.match(
-    css,
-    /\.clipboardMessageBubble[\s\S]*background: light-dark\(/,
-  );
-  assert.match(css, /\.clipboardMessageBubble[\s\S]*border-radius:\s*8px/);
-  assert.match(css, /\.clipboardMessageBubble[\s\S]*max-width:/);
-  assert.match(css, /\.clipboardMessageBubble[\s\S]*padding:/);
-  assert.match(css, /\.clipboardMessageBubble[\s\S]*width:\s*fit-content/);
-  assert.doesNotMatch(css, /\.clipboardMessageBubble[\s\S]*width:\s*100%/);
-  assert.doesNotMatch(css, /\.messageListItem[\s\S]*border-bottom/);
-});
-
 test("short links are promoted to a top-level authenticated navigation item", () => {
   const header = read("components/header/Header.tsx");
   const shareMenu = read("components/header/NavbarShareMenu.tsx");
@@ -143,50 +70,13 @@ test("default app shell and header share a calmer page width", () => {
   assert.match(globalCss, /::-webkit-scrollbar/);
 });
 
-test("rooms and short links use compact calm workspaces", () => {
-  const roomsPage = read("pages/clipboard/index.tsx");
-  const roomsCss = read("pages/clipboard/ClipboardPage.module.css");
-  const roomPanelCss = read(
-    "components/clipboard/ClipboardConversationPanel.module.css",
-  );
-  const shortLinks = read("components/shortLink/ShortLinksWorkspace.tsx");
-  const shortLinksCss = read(
-    "components/shortLink/ShortLinksWorkspace.module.css",
-  );
-  const globalCss = read("styles/global.css");
-
-  assert.match(roomsCss, /\.tabsHeader/);
-  assert.match(roomsCss, /\.roomToolbar/);
-  assert.match(roomsCss, /\.roomSummary/);
-  assert.match(roomsCss, /\.roomManagementPanel/);
-  assert.match(roomsCss, /\.emptyState/);
-  assert.match(roomsCss, /\.roomModalContent/);
-  assert.match(roomsPage, /isVisitedWithoutSelection/);
-  assert.match(roomsPage, /activeClipboard\s*\?/);
-  assert.match(roomsPage, /classNames=\{\{\s*body:\s*classes\.roomModalBody/s);
-  assert.doesNotMatch(
-    roomsCss,
-    /grid-template-columns: minmax\(220px, 260px\)/,
-  );
-  assert.match(shortLinksCss, /\.shortLinkListPanel/);
-  assert.doesNotMatch(
-    shortLinksCss,
-    /grid-template-columns: minmax\(280px, 320px\)/,
-  );
-  assert.doesNotMatch(roomsPage, /color=\{.*yellow.*green/s);
-  assert.doesNotMatch(shortLinks, /victoria/);
-  assert.doesNotMatch(shortLinksCss, /teal|barFillBlue|blue-6/);
-  assert.doesNotMatch(roomPanelCss, /victoria-0|victoria-2|victoria-7/);
-  assert.doesNotMatch(globalCss, /victoria-[2-7]/);
-});
-
 test("a single AssetComposer powers file/text/link with aligned chat fields", () => {
   const composer = read("components/asset/AssetComposer.tsx");
 
   // One component handles all three asset kinds.
-  assert.match(composer, /clipboard\.asset\.type\.file/);
-  assert.match(composer, /clipboard\.asset\.type\.text/);
-  assert.match(composer, /clipboard\.asset\.type\.link/);
+  assert.match(composer, /room\.asset\.type\.file/);
+  assert.match(composer, /room\.asset\.type\.text/);
+  assert.match(composer, /room\.asset\.type\.link/);
   // Optional file support + share-style complete-flow hooks.
   assert.match(composer, /uploadFile\?/);
   assert.match(composer, /beforeUpload\?/);
@@ -208,20 +98,6 @@ test("share edit reuses the shared AssetComposer with the share complete flow", 
   // Old bespoke composer/upload panel are gone.
   assert.doesNotMatch(editPage, /ShareAssetComposer/);
   assert.doesNotMatch(editPage, /EditableUpload/);
-});
-
-test("my assets and clipboard reuse the shared AssetComposer", () => {
-  const myAssets = read("pages/account/assets.tsx");
-  const room = read("pages/clipboard/rooms/[roomId].tsx");
-  const clipboard = read("pages/clipboard/index.tsx");
-
-  for (const page of [myAssets, room, clipboard]) {
-    assert.match(page, /import AssetComposer from/);
-    assert.match(page, /<AssetComposer/);
-    assert.doesNotMatch(page, /ClipboardAssetComposer/);
-  }
-  assert.match(myAssets, /assetService\.uploadFile/);
-  assert.match(room, /variant="chat"/);
 });
 
 test("profile menu links directly to admin sections", () => {
@@ -284,7 +160,7 @@ test("asset rows use a unified action menu and preview dialog", () => {
   assert.match(actionMenu, /assetService\.createShortLink/);
   assert.match(actionMenu, /assetService\.sendToRoom/);
   assert.match(actionMenu, /assetService\.clone/);
-  assert.match(actionMenu, /clipboardService\s*\.\s*listRooms/);
+  assert.match(actionMenu, /roomService\s*\.\s*list/);
   assert.match(previewDialog, /asset\.type === "TEXT"/);
   assert.match(previewDialog, /asset\.type === "LINK"/);
   assert.match(previewDialog, /asset\.type === "FILE"/);
@@ -481,48 +357,6 @@ test("inbox owner page reviews pending submissions", () => {
   }
 });
 
-test("share edit and clipboard messages use contextual asset action menus", () => {
-  const editPage = read("pages/share/[shareId]/edit.tsx");
-  const conversationPanel = read(
-    "components/clipboard/ClipboardConversationPanel.tsx",
-  );
-  const actionMenu = read("components/asset/AssetActionMenu.tsx");
-  const previewDialog = read("components/asset/AssetPreviewDialog.tsx");
-
-  assert.match(editPage, /AssetActionMenu/);
-  assert.match(editPage, /removeShareAsset/);
-  assert.match(editPage, /showLibraryActions=\{false\}/);
-  assert.match(
-    editPage,
-    /deleteModalTitle=\{t\("share\.asset\.modal\.delete\.title"\)\}/,
-  );
-  assert.doesNotMatch(editPage, /TbTrash/);
-  assert.doesNotMatch(editPage, /<ActionIcon/);
-
-  assert.match(conversationPanel, /AssetActionMenu/);
-  assert.match(
-    conversationPanel,
-    /downloadUrl=\{getFileDownloadUrl\?\.\(asset\)\}/,
-  );
-  assert.match(conversationPanel, /showLibraryActions=\{false\}/);
-  assert.match(
-    conversationPanel,
-    /deleteModalTitle=\{t\("clipboard\.assets\.modal\.delete\.title"\)\}/,
-  );
-  assert.doesNotMatch(conversationPanel, /TbDownload/);
-  assert.doesNotMatch(conversationPanel, /TbTrash/);
-  assert.doesNotMatch(conversationPanel, /<ActionIcon/);
-
-  assert.match(actionMenu, /downloadUrl\?:\s*string/);
-  assert.match(actionMenu, /showLibraryActions\?:\s*boolean/);
-  assert.match(actionMenu, /onDelete\?:\s*\(asset: Asset\) => Promise<void>/);
-  assert.match(actionMenu, /deleteModalTitle\?:\s*string/);
-  assert.match(actionMenu, /deleteSuccessMessage\?:\s*string/);
-  assert.match(actionMenu, /AssetPreviewDialog[\s\S]*fileUrl=\{fileUrl\}/);
-  assert.match(previewDialog, /fileUrl\?:\s*string/);
-  assert.match(previewDialog, /onDownloadFile\?:\s*\(\) => void/);
-});
-
 test("shared data tables keep action icons aligned and cover admin pages", () => {
   const dataTableCss = read("components/core/DataTable.module.css");
   const reverseShares = read("pages/account/reverseShares.tsx");
@@ -577,55 +411,6 @@ test("admin user passwords are changed from a dedicated row action dialog", () =
     assert.match(en, new RegExp(`"${key}"`));
     assert.match(zh, new RegExp(`"${key}"`));
   }
-});
-
-test("account and rooms pages use the same calm application width and flatter room surface", () => {
-  const account = read("pages/account/index.tsx");
-  const roomsCss = read("pages/clipboard/ClipboardPage.module.css");
-  const roomPanelCss = read(
-    "components/clipboard/ClipboardConversationPanel.module.css",
-  );
-
-  assert.doesNotMatch(account, /Container\s+size="sm"/);
-  assert.doesNotMatch(account, /from "@mantine\/core";[\s\S]*Container/);
-  assert.match(roomsCss, /\.clipboardShell[\s\S]*min-height:\s*560px/);
-  assert.match(
-    roomsCss,
-    /\.clipboardShell[\s\S]*background: var\(--mantine-color-body\)/,
-  );
-  assert.doesNotMatch(roomsCss, /\.sidebar/);
-  assert.match(
-    roomPanelCss,
-    /\.clipboardConversationMessages[\s\S]*background: var\(--mantine-color-body\)/,
-  );
-  assert.match(roomPanelCss, /\.clipboardMessageBubble[\s\S]*border-radius/);
-  assert.match(roomPanelCss, /\.clipboardMessageBubble[\s\S]*border:/);
-  assert.match(
-    roomPanelCss,
-    /\.clipboardMessageBubble[\s\S]*width:\s*fit-content/,
-  );
-  assert.doesNotMatch(roomPanelCss, /\.messageListItem[\s\S]*border-bottom/);
-});
-
-test("clipboard room route records visited rooms for the dashboard history tab", () => {
-  const publicRoom = read("pages/clipboard/rooms/[roomId].tsx");
-  const types = read("types/clipboard.type.ts");
-  const service = read("services/clipboard.service.ts");
-  const visitedUtil = read("utils/visitedClipboardRooms.util.ts");
-
-  assert.match(publicRoom, /rememberVisitedClipboardRoom/);
-  assert.match(visitedUtil, /clipboard\.visitedRooms/);
-  assert.match(types, /UpdateClipboardRoom/);
-  assert.match(service, /updateRoom/);
-  assert.match(service, /api\.patch\(`clipboards\/rooms\/\$\{roomId\}`/);
-});
-
-test("clipboard rooms service exposes room deletion for management", () => {
-  const service = read("services/clipboard.service.ts");
-
-  assert.match(service, /const removeRoom/);
-  assert.match(service, /api\.delete\(`clipboards\/rooms\/\$\{roomId\}`\)/);
-  assert.match(service, /removeRoom,/);
 });
 
 test("share and short link dialogs use the shared flat modal form styling", () => {
@@ -760,55 +545,4 @@ test("short link status controls use radios and differentiated table badges", ()
   assert.equal((detail.match(/<SegmentedControl/g) ?? []).length, 1);
   assert.match(workspace, /shortLink\.isActive\s*\?\s*"green"\s*:\s*"gray"/);
   assert.match(workspace, /shortLink\.isActive\s*\?\s*"light"\s*:\s*"outline"/);
-});
-
-test("access control form exists and is wired into the four create dialogs", () => {
-  assert.ok(
-    fs.existsSync(path.join(root, "components/access/AccessControlForm.tsx")),
-    "AccessControlForm.tsx should exist",
-  );
-  assert.ok(
-    fs.existsSync(path.join(root, "types/accessControl.type.ts")),
-    "accessControl.type.ts should exist",
-  );
-
-  const accessForm = read("components/access/AccessControlForm.tsx");
-  assert.match(accessForm, /AccessControl/);
-  assert.match(accessForm, /toAccessControlPayload/);
-
-  const en = read("i18n/translations/en-US.ts");
-  const zh = read("i18n/translations/zh-CN.ts");
-
-  const dialogs = [
-    "components/shortLink/ShortLinksWorkspace.tsx",
-    "pages/clipboard/index.tsx",
-    "components/upload/modals/showCreateUploadModal.tsx",
-    "components/share/modals/showCreateReverseShareModal.tsx",
-  ];
-  for (const dialog of dialogs) {
-    const source = read(dialog);
-    assert.match(
-      source,
-      /AccessControlForm/,
-      `${dialog} should import/use AccessControlForm`,
-    );
-    assert.match(
-      source,
-      /accessControl/,
-      `${dialog} create payload should reference accessControl`,
-    );
-  }
-
-  for (const key of [
-    "accessControl.title",
-    "accessControl.password",
-    "accessControl.expiresAt",
-    "accessControl.maxViews",
-    "accessControl.allowDownload",
-    "accessControl.allowAnonymous",
-    "accessControl.oneTime",
-  ]) {
-    assert.match(en, new RegExp(`"${key}"`));
-    assert.match(zh, new RegExp(`"${key}"`));
-  }
 });

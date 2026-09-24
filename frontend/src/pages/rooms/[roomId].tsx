@@ -16,18 +16,19 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { TbKey, TbLock, TbWorld } from "react-icons/tb";
 import { FormattedMessage } from "react-intl";
-import AssetComposer from "../../../components/asset/AssetComposer";
-import ClipboardConversationPanel from "../../../components/clipboard/ClipboardConversationPanel";
-import CenterLoader from "../../../components/core/CenterLoader";
-import Meta from "../../../components/Meta";
-import useTranslate from "../../../hooks/useTranslate.hook";
-import useUser from "../../../hooks/user.hook";
-import useStaticRouteParam from "../../../hooks/staticRouteParam.hook";
-import clipboardService from "../../../services/clipboard.service";
-import { Asset } from "../../../types/asset.type";
-import { Clipboard, CreateClipboardAsset } from "../../../types/clipboard.type";
-import { rememberVisitedClipboardRoom } from "../../../utils/visitedClipboardRooms.util";
-import toast from "../../../utils/toast.util";
+import AssetComposer from "../../components/asset/AssetComposer";
+import RoomConversationPanel from "../../components/room/RoomConversationPanel";
+import CenterLoader from "../../components/core/CenterLoader";
+import Meta from "../../components/Meta";
+import useTranslate from "../../hooks/useTranslate.hook";
+import useLiveSync from "../../hooks/useLiveSync.hook";
+import useUser from "../../hooks/user.hook";
+import useStaticRouteParam from "../../hooks/staticRouteParam.hook";
+import roomService from "../../services/room.service";
+import { Asset } from "../../types/asset.type";
+import { Room, CreateRoomAsset } from "../../types/room.type";
+import { rememberVisitedRoom } from "../../utils/visitedRooms.util";
+import toast from "../../utils/toast.util";
 
 export const getStaticPaths: GetStaticPaths = async () => ({
   paths: [{ params: { roomId: "_" } }],
@@ -35,52 +36,62 @@ export const getStaticPaths: GetStaticPaths = async () => ({
 });
 export const getStaticProps: GetStaticProps = async () => ({ props: {} });
 
-const ClipboardRoomPage = () => {
+const RoomPage = () => {
   const t = useTranslate();
   const router = useRouter();
   const { user } = useUser();
-  const roomId = useStaticRouteParam("roomId", 2);
-  const [room, setRoom] = useState<Clipboard>();
+  const roomId = useStaticRouteParam("roomId", 1);
+  const [room, setRoom] = useState<Room>();
   const [needsPasscode, setNeedsPasscode] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [scrollToLatestSignal, setScrollToLatestSignal] = useState(0);
   const form = useForm({
     initialValues: {
       passcode: "",
     },
   });
 
-  const loadRoom = () => {
+  const refreshRoom = async () => {
     if (!roomId) return;
+    try {
+      const loadedRoom = await roomService.get(roomId);
+      setRoom(loadedRoom);
+      rememberVisitedRoom(loadedRoom);
+      setNeedsPasscode(false);
+    } catch (error) {
+      if (error instanceof AxiosError && error.response?.status === 403) {
+        setNeedsPasscode(true);
+        setRoom(undefined);
+        return;
+      }
+      throw error;
+    }
+  };
+
+  const loadRoom = () => {
     setIsLoading(true);
-    clipboardService
-      .getRoom(roomId)
-      .then((loadedRoom) => {
-        setRoom(loadedRoom);
-        rememberVisitedClipboardRoom(loadedRoom);
-        setNeedsPasscode(false);
-      })
-      .catch((error) => {
-        if (error instanceof AxiosError && error.response?.status === 403) {
-          setNeedsPasscode(true);
-          setRoom(undefined);
-          return;
-        }
-        toast.axiosError(error);
-      })
+    refreshRoom()
+      .catch(toast.axiosError)
       .finally(() => setIsLoading(false));
   };
 
   useEffect(() => {
+    setRoom(undefined);
     loadRoom();
   }, [roomId]);
 
+  const syncStatus = useLiveSync(
+    roomId && room ? roomService.eventsUrl(roomId) : null,
+    refreshRoom,
+  );
+
   const verify = form.onSubmit((values) => {
     if (!roomId) return;
-    clipboardService
-      .verifyRoom(roomId, values.passcode)
+    roomService
+      .verify(roomId, values.passcode)
       .then(() => {
         form.reset();
-        toast.success(t("clipboard.room.notify.verified"));
+        toast.success(t("room.room.notify.verified"));
         loadRoom();
       })
       .catch(toast.axiosError);
@@ -91,7 +102,7 @@ const ClipboardRoomPage = () => {
   if (needsPasscode) {
     return (
       <>
-        <Meta title={t("clipboard.room.title")} />
+        <Meta title={t("room.room.title")} />
         <Center style={{ height: "55vh" }}>
           <Paper withBorder p="xl" maw={420} w="100%">
             <form onSubmit={verify}>
@@ -99,11 +110,11 @@ const ClipboardRoomPage = () => {
                 <Group>
                   <TbLock />
                   <Title order={3}>
-                    <FormattedMessage id="clipboard.room.locked.title" />
+                    <FormattedMessage id="room.room.locked.title" />
                   </Title>
                 </Group>
                 <PasswordInput
-                  label={t("clipboard.room.passcode")}
+                  label={t("room.room.passcode")}
                   leftSection={<TbKey />}
                   {...form.getInputProps("passcode")}
                 />
@@ -112,7 +123,7 @@ const ClipboardRoomPage = () => {
                   leftSection={<TbKey />}
                   disabled={form.values.passcode.trim().length === 0}
                 >
-                  <FormattedMessage id="clipboard.room.unlock" />
+                  <FormattedMessage id="room.room.unlock" />
                 </Button>
               </Stack>
             </form>
@@ -124,24 +135,28 @@ const ClipboardRoomPage = () => {
 
   if (!room) return null;
 
-  const roomKey = room.roomId as string;
+  const roomKey = room.roomId;
   const isLoggedIn = Boolean(user);
   const isOwner = Boolean(user && room.ownerId && user.id === room.ownerId);
 
-  const prependAssets = (assets: Asset[]) =>
+  const prependAssets = (assets: Asset[]) => {
     setRoom((current) =>
-      current ? { ...current, assets: [...assets, ...current.assets] } : current,
+      current
+        ? { ...current, assets: [...assets, ...current.assets] }
+        : current,
     );
+    setScrollToLatestSignal((value) => value + 1);
+  };
 
-  const addAsset = async (asset: CreateClipboardAsset) => {
-    const created = await clipboardService.addRoomAsset(roomKey, asset);
+  const addAsset = async (asset: CreateRoomAsset) => {
+    const created = await roomService.addAsset(roomKey, asset);
     prependAssets([created]);
-    toast.success(t("clipboard.notify.asset-created"));
+    toast.success(t("room.notify.asset-created"));
   };
 
   const addFiles = (assets: Asset[]) => {
     prependAssets(assets);
-    toast.success(t("clipboard.notify.asset-created"));
+    toast.success(t("room.notify.asset-created"));
   };
 
   const uploadFile = (
@@ -149,17 +164,10 @@ const ClipboardRoomPage = () => {
     file: { id?: string; name: string },
     chunkIndex: number,
     totalChunks: number,
-  ) =>
-    clipboardService.uploadRoomFile(
-      roomKey,
-      chunk,
-      file,
-      chunkIndex,
-      totalChunks,
-    );
+  ) => roomService.uploadFile(roomKey, chunk, file, chunkIndex, totalChunks);
 
   const deleteAsset = async (asset: Asset) => {
-    await clipboardService.removeRoomAsset(roomKey, asset.id);
+    await roomService.removeAsset(roomKey, asset.id);
     setRoom((current) =>
       current
         ? {
@@ -172,10 +180,11 @@ const ClipboardRoomPage = () => {
 
   return (
     <>
-      <Meta title={room.name || room.roomId || t("clipboard.room.title")} />
+      <Meta title={room.name || room.roomId || t("room.room.title")} />
       <div style={{ height: "min(760px, calc(100vh - 130px))" }}>
-        <ClipboardConversationPanel
+        <RoomConversationPanel
           assets={room.assets}
+          scrollToLatestSignal={scrollToLatestSignal}
           badge={
             <Badge
               color={room.hasPasscode ? "yellow" : "green"}
@@ -183,8 +192,8 @@ const ClipboardRoomPage = () => {
               variant="light"
             >
               {room.hasPasscode
-                ? t("clipboard.rooms.protected")
-                : t("clipboard.rooms.open")}
+                ? t("room.rooms.protected")
+                : t("room.rooms.open")}
             </Badge>
           }
           composer={
@@ -198,15 +207,29 @@ const ClipboardRoomPage = () => {
             ) : undefined
           }
           getFileDownloadUrl={(asset) =>
-            clipboardService.downloadRoomFileUrl(roomKey, asset.id)
+            roomService.downloadFileUrl(roomKey, asset.id)
           }
           onDelete={isOwner ? deleteAsset : undefined}
           subtitle={room.roomId}
           title={room.name || room.roomId}
+          empty={
+            room.assets.length === 0 ? (
+              <Stack align="center" gap="xs" py="xl">
+                <Text c="dimmed">
+                  <FormattedMessage id="room.assets.empty" />
+                </Text>
+                {syncStatus !== "connected" && (
+                  <Text c="dimmed" size="xs">
+                    <FormattedMessage id="room.sync.reconnecting" />
+                  </Text>
+                )}
+              </Stack>
+            ) : undefined
+          }
         />
       </div>
     </>
   );
 };
 
-export default ClipboardRoomPage;
+export default RoomPage;

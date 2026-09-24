@@ -15,7 +15,6 @@ import { useModals } from "@mantine/modals";
 import { useRouter } from "next/router";
 import { ReactNode, useMemo, useState } from "react";
 import {
-  TbClipboard,
   TbCopy,
   TbDotsVertical,
   TbDownload,
@@ -31,9 +30,9 @@ import {
 } from "react-icons/tb";
 import useTranslate from "../../hooks/useTranslate.hook";
 import assetService from "../../services/asset.service";
-import clipboardService from "../../services/clipboard.service";
+import roomService from "../../services/room.service";
 import { Asset } from "../../types/asset.type";
-import { Clipboard } from "../../types/clipboard.type";
+import { Room } from "../../types/room.type";
 import toast from "../../utils/toast.util";
 import AssetPreviewDialog from "./AssetPreviewDialog";
 
@@ -73,7 +72,7 @@ const AssetActionMenu = ({
   const [busyAction, setBusyAction] = useState<string>();
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isSendModalOpen, setIsSendModalOpen] = useState(false);
-  const [rooms, setRooms] = useState<Clipboard[]>([]);
+  const [rooms, setRooms] = useState<Room[]>([]);
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
   const [isLoadingRooms, setIsLoadingRooms] = useState(false);
   const [isTagsModalOpen, setIsTagsModalOpen] = useState(false);
@@ -161,8 +160,8 @@ const AssetActionMenu = ({
   const openSendToRoom = () => {
     setIsSendModalOpen(true);
     setIsLoadingRooms(true);
-    clipboardService
-      .listRooms()
+    roomService
+      .list()
       .then(setRooms)
       .catch(toast.axiosError)
       .finally(() => setIsLoadingRooms(false));
@@ -291,7 +290,7 @@ const AssetActionMenu = ({
               </Menu.Item>
               <Menu.Item
                 disabled={isBusy}
-                leftSection={<TbClipboard />}
+                    leftSection={<TbLink />}
                 onClick={() =>
                   runAction("short-link", async () => {
                     const shortLink = await assetService.createShortLink(

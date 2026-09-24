@@ -217,7 +217,7 @@ const ShortLinksWorkspace = () => {
                   placeholder={
                     form.values.targetType === "URL"
                       ? "https://example.com"
-                      : "/clipboard"
+                      : "/rooms"
                   }
                   {...form.getInputProps("targetUrl")}
                 />

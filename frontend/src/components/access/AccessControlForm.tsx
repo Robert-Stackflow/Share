@@ -23,7 +23,7 @@ type AccessControlFormProps = {
   onChange: (value: AccessControl) => void;
   /**
    * Restrict which controls render for a given surface. When omitted, every
-   * control is shown. e.g. clipboard rooms hide `password` because they keep
+   * control is shown. Rooms hide `password` because they keep
    * their existing passcode field.
    */
   fields?: AccessControlField[];
@@ -109,10 +109,7 @@ const AccessControlForm = ({
           value={value.maxViews ?? ""}
           variant="filled"
           onChange={(maxViews) =>
-            set(
-              "maxViews",
-              typeof maxViews === "number" ? maxViews : undefined,
-            )
+            set("maxViews", typeof maxViews === "number" ? maxViews : null)
           }
         />
       )}

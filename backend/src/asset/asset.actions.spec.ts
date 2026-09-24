@@ -14,7 +14,7 @@ function createPrismaMock() {
       content: "hello",
       ownerId: "user-1",
       shareId: null,
-      clipboardId: null,
+      roomId: null,
       source: "UPLOAD",
     },
     {
@@ -23,7 +23,7 @@ function createPrismaMock() {
       url: "https://example.com/docs",
       ownerId: "user-1",
       shareId: null,
-      clipboardId: null,
+      roomId: null,
       source: "UPLOAD",
     },
     {
@@ -35,7 +35,7 @@ function createPrismaMock() {
       storage: "LOCAL",
       ownerId: "user-1",
       shareId: null,
-      clipboardId: null,
+      roomId: null,
       source: "UPLOAD",
     },
   ];
@@ -58,7 +58,7 @@ function createPrismaMock() {
             createdAt: new Date("2026-06-28T00:00:00.000Z"),
             ownerId: args.data.owner?.connect?.id ?? null,
             shareId: args.data.share?.connect?.id ?? null,
-            clipboardId: args.data.clipboard?.connect?.id ?? null,
+            roomId: args.data.room?.connect?.id ?? null,
             inboxSubmissionId: args.data.inboxSubmission?.connect?.id ?? null,
             ...args.data,
           };
@@ -82,11 +82,11 @@ function createPrismaMock() {
           };
         },
       },
-      clipboard: {
+      room: {
         findFirst: async (args: any) => {
-          calls.push(["clipboard.findFirst", args]);
+          calls.push(["room.findFirst", args]);
           if (args.where.roomId === "room-1" && args.where.ownerId === "user-1") {
-            return { id: "clipboard-1", roomId: "room-1", type: "ROOM" };
+            return { id: "room-db-1", roomId: "room-1", type: "ROOM" };
           }
           return null;
         },
@@ -236,7 +236,7 @@ test("sendToRoom clones an owned asset into an owned room", async () => {
 
   const clone = await service.sendToRoom("asset-text", "room-1", user as any);
 
-  assert.equal(clone.clipboardId, "clipboard-1");
+  assert.equal(clone.roomId, "room-db-1");
   assert.equal(clone.source, "ROOM");
 });
 

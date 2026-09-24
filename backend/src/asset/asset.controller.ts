@@ -173,7 +173,7 @@ export class AssetController {
     @GetUser() user: User,
   ) {
     if (!body.roomId) {
-      throw new BadRequestException("Clipboard room id is required");
+      throw new BadRequestException("Room id is required");
     }
     return this.assetService.sendToRoom(id, body.roomId, user);
   }
