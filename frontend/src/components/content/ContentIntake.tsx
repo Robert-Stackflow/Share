@@ -55,6 +55,7 @@ export default function ContentIntake({
   target,
   buttonLabel,
   maxSize,
+  maxFiles = Number.POSITIVE_INFINITY,
   disabled = false,
   resetSignal = 0,
   onSubmit,
@@ -62,6 +63,7 @@ export default function ContentIntake({
   target: string;
   buttonLabel: string;
   maxSize: number;
+  maxFiles?: number;
   disabled?: boolean;
   resetSignal?: number;
   onSubmit: (
@@ -104,19 +106,30 @@ export default function ContentIntake({
         0,
       );
       let acceptedSize = currentSize;
+      let acceptedFiles = previous.filter(
+        (item) => item.type === "FILE" && !item.error,
+      ).length;
       return [
         ...previous,
         ...files.map((file): PendingContent => {
           const tooLarge =
             file.size > maxSize || acceptedSize + file.size > maxSize;
-          if (!tooLarge) acceptedSize += file.size;
+          const tooMany = acceptedFiles >= maxFiles;
+          if (!tooLarge && !tooMany) {
+            acceptedSize += file.size;
+            acceptedFiles += 1;
+          }
           return {
             id: newId(),
             type: "FILE",
             file,
-            error: tooLarge
-              ? t("content.error.size", { max: byteToHumanSizeString(maxSize) })
-              : undefined,
+            error: tooMany
+              ? t("content.error.fileCount", { max: String(maxFiles) })
+              : tooLarge
+                ? t("content.error.size", {
+                    max: byteToHumanSizeString(maxSize),
+                  })
+                : undefined,
           };
         }),
       ];
@@ -212,7 +225,7 @@ export default function ContentIntake({
       window.removeEventListener("drop", onDrop);
       window.removeEventListener("paste", onPaste);
     };
-  }, [disabled, dragging, maxSize, t]);
+  }, [disabled, dragging, maxSize, maxFiles, t]);
 
   const draftItem: PendingContent | null = draft.trim()
     ? {
@@ -328,7 +341,7 @@ export default function ContentIntake({
                 <Button
                   variant="light"
                   leftSection={<FileIcon />}
-                  disabled={disabled || submitting}
+                  disabled={disabled || submitting || maxFiles === 0}
                   {...props}
                 >
                   {t("content.choose-file")}

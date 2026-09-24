@@ -3,6 +3,7 @@ import {
   IsBoolean,
   IsOptional,
   IsString,
+  IsInt,
   MaxLength,
   Max,
   Min,
@@ -26,6 +27,12 @@ export class CreateReverseShareDTO {
 
   @IsString()
   maxShareSize: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(100)
+  maxFileCount?: number;
 
   @IsString()
   shareExpiration: string;

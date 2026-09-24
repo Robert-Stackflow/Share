@@ -162,31 +162,77 @@ export class AssetService {
     file: { id?: string; name: string },
     owner?: User,
     container?: AssetContainer,
+    trackIncomplete = false,
   ) {
     const assetId = this.getFileId(file.id);
     const storageProvider = this.getConfiguredStorageProvider();
     const storage = this.getStorage(storageProvider);
 
-    await storage.saveChunk(assetId, data, chunk);
+    let provisional: Asset | undefined;
+    let createdProvisional = false;
+    if (trackIncomplete && chunk.index === 0) {
+      const existing = file.id
+        ? await this.prisma.asset.findUnique({ where: { id: assetId } })
+        : null;
+      if (existing) {
+        if (
+          existing.inboxSubmissionId !== container?.id ||
+          existing.type !== AssetType.FILE ||
+          existing.size !== null
+        ) {
+          throw new BadRequestException("File asset id is already in use");
+        }
+        provisional = existing;
+      } else {
+        provisional = await this.prisma.asset.create({
+          data: {
+            id: assetId,
+            type: AssetType.FILE,
+            name: file.name,
+            size: null,
+            mimeType: mime.lookup(file.name) || "application/octet-stream",
+            storage: storageProvider,
+            ...this.getSourceData(container),
+            ...this.getRelationData(owner, container),
+          },
+        });
+        createdProvisional = true;
+      }
+    }
+
+    try {
+      await storage.saveChunk(assetId, data, chunk);
+    } catch (error) {
+      if (createdProvisional) {
+        await storage.remove(assetId);
+        await this.prisma.asset.delete({ where: { id: assetId } });
+      }
+      throw error;
+    }
 
     if (chunk.index !== chunk.total - 1) {
-      return { id: assetId, name: file.name };
+      return provisional ?? { id: assetId, name: file.name };
     }
 
     const fileSize = await storage.getSize(assetId);
 
-    const asset = await this.prisma.asset.create({
-      data: {
-        id: assetId,
-        type: AssetType.FILE,
-        name: file.name,
-        size: fileSize.toString(),
-        mimeType: mime.lookup(file.name) || "application/octet-stream",
-        storage: storageProvider,
-        ...this.getSourceData(container),
-        ...this.getRelationData(owner, container),
-      },
-    });
+    const asset = trackIncomplete
+      ? await this.prisma.asset.update({
+          where: { id: assetId },
+          data: { size: fileSize.toString() },
+        })
+      : await this.prisma.asset.create({
+          data: {
+            id: assetId,
+            type: AssetType.FILE,
+            name: file.name,
+            size: fileSize.toString(),
+            mimeType: mime.lookup(file.name) || "application/octet-stream",
+            storage: storageProvider,
+            ...this.getSourceData(container),
+            ...this.getRelationData(owner, container),
+          },
+        });
 
     if (owner && !container) {
       this.recordActivity({

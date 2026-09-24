@@ -1,11 +1,14 @@
 import {
   BadRequestException,
   Injectable,
+  Logger,
   NotFoundException,
 } from "@nestjs/common";
+import { Cron } from "@nestjs/schedule";
 import {
   AssetSource,
   AssetType,
+  Asset,
   InboxSubmissionStatus,
   User,
 } from "@prisma/client";
@@ -25,6 +28,7 @@ type CreateInboxSubmissionInput = {
   message?: string;
   assets?: CreateAssetDTO[];
   hasFiles?: boolean;
+  fileCount?: number;
 };
 
 type AcceptInboxSubmissionInput = {
@@ -34,6 +38,7 @@ type AcceptInboxSubmissionInput = {
 
 @Injectable()
 export class InboxService {
+  private readonly logger = new Logger(InboxService.name);
   constructor(
     private reverseShareService: ReverseShareService,
     private prisma: PrismaService,
@@ -112,8 +117,22 @@ export class InboxService {
   async createSubmission(token: string, data: CreateInboxSubmissionInput) {
     const inbox = await this.getValidInboxByToken(token);
     const assets = data.assets ?? [];
+    const modernClient = data.fileCount !== undefined;
+    const expectedFileCount = modernClient
+      ? data.fileCount
+      : data.hasFiles
+        ? -1
+        : 0;
 
-    if (assets.length === 0 && !data.hasFiles) {
+    if (
+      !Number.isInteger(expectedFileCount) ||
+      expectedFileCount > inbox.maxFileCount ||
+      expectedFileCount < (modernClient ? 0 : -1)
+    ) {
+      throw new BadRequestException("Invalid inbox file count");
+    }
+
+    if (assets.length === 0 && expectedFileCount === 0) {
       throw new BadRequestException(
         "Inbox submission requires at least one asset",
       );
@@ -135,6 +154,10 @@ export class InboxService {
       return transaction.inboxSubmission.create({
         data: {
           message: data.message,
+          status: modernClient
+            ? InboxSubmissionStatus.UPLOADING
+            : InboxSubmissionStatus.PENDING,
+          expectedFileCount,
           reverseShare: { connect: { id: inbox.id } },
         },
         include: { assets: true },
@@ -142,10 +165,19 @@ export class InboxService {
     });
 
     const createdAssets = [];
-    for (const asset of assets) {
-      createdAssets.push(
-        await this.createSubmissionAsset(submission.id, asset),
-      );
+    try {
+      for (const asset of assets) {
+        createdAssets.push(
+          await this.createSubmissionAsset(submission.id, asset),
+        );
+      }
+    } catch (error) {
+      if (modernClient) {
+        await this.cancelSubmission(token, submission.id).catch((cleanupError) =>
+          this.logger.error("Could not cancel failed inbox submission", cleanupError),
+        );
+      }
+      throw error;
     }
 
     this.recordActivity({
@@ -176,7 +208,10 @@ export class InboxService {
       where: {
         id: submissionId,
         reverseShareId: inbox.id,
-        status: InboxSubmissionStatus.PENDING,
+        OR: [
+          { status: InboxSubmissionStatus.UPLOADING },
+          { status: InboxSubmissionStatus.PENDING, expectedFileCount: -1 },
+        ],
       },
     });
 
@@ -184,10 +219,209 @@ export class InboxService {
       throw new NotFoundException(this.i18n.t("reverseShare.notFound"));
     }
 
-    return this.assetService.createFile(data, chunk, file, undefined, {
-      id: submission.id,
-      kind: "INBOX_SUBMISSION",
+    if (
+      !Number.isInteger(chunk.index) ||
+      !Number.isInteger(chunk.total) ||
+      chunk.index < 0 ||
+      chunk.total < 1 ||
+      chunk.index >= chunk.total ||
+      !file.name
+    ) {
+      throw new BadRequestException("Invalid inbox file chunk");
+    }
+
+    const modernUpload = submission.status === InboxSubmissionStatus.UPLOADING;
+    if (modernUpload && chunk.index > 0) {
+      const tracked = file.id
+        ? await this.prisma.asset.findFirst({
+            where: {
+              id: file.id,
+              inboxSubmissionId: submission.id,
+              type: AssetType.FILE,
+              size: null,
+            },
+          })
+        : null;
+      if (!tracked) {
+        throw new BadRequestException("Unknown inbox upload file");
+      }
+    }
+
+    const chunkSize = Buffer.isBuffer(data)
+      ? data.length
+      : Buffer.from(data, "base64").length;
+    if (BigInt(chunkSize) > BigInt(inbox.maxShareSize)) {
+      throw new BadRequestException("Inbox file exceeds the size limit");
+    }
+
+    const finishedFiles = await this.prisma.asset.findMany({
+      where: {
+        inboxSubmissionId: submission.id,
+        type: AssetType.FILE,
+        size: { not: null },
+      },
+      select: { size: true },
     });
+    const finishedSize = finishedFiles.reduce(
+      (sum, asset) => sum + BigInt(asset.size!),
+      0n,
+    );
+    const projectedFileSize =
+      BigInt(chunk.index) * BigInt(this.config.get("share.chunkSize")) +
+      BigInt(chunkSize);
+    if (finishedSize + projectedFileSize > BigInt(inbox.maxShareSize)) {
+      throw new BadRequestException("Inbox file exceeds the size limit");
+    }
+
+    const created = await this.assetService.createFile(
+      data,
+      chunk,
+      file,
+      undefined,
+      {
+        id: submission.id,
+        kind: "INBOX_SUBMISSION",
+      },
+      modernUpload,
+    );
+
+    const stored = await this.prisma.asset.findMany({
+      where: { inboxSubmissionId: submission.id, type: AssetType.FILE },
+      select: { id: true, size: true, type: true, storage: true },
+    });
+    const totalSize = stored.reduce(
+      (sum, asset) => sum + BigInt(asset.size ?? 0),
+      0n,
+    );
+    const stillUploading =
+      !modernUpload ||
+      (await this.prisma.inboxSubmission.findFirst({
+        where: { id: submission.id, status: InboxSubmissionStatus.UPLOADING },
+      }));
+    if (
+      !stillUploading ||
+      stored.length > inbox.maxFileCount ||
+      (modernUpload && stored.length > submission.expectedFileCount) ||
+      totalSize > BigInt(inbox.maxShareSize)
+    ) {
+      if (modernUpload || chunk.index === chunk.total - 1) {
+        await this.assetService.remove(created as Asset);
+      }
+      throw new BadRequestException(
+        "Inbox file limit exceeded or submission closed",
+      );
+    }
+
+    await this.prisma.inboxSubmission.update({
+      where: { id: submission.id },
+      data: { updatedAt: new Date() },
+    });
+
+    return created;
+  }
+
+  async completeSubmission(token: string, submissionId: string) {
+    const inbox = await this.reverseShareService.getByToken(token);
+    if (!inbox) {
+      throw new NotFoundException(this.i18n.t("reverseShare.notFound"));
+    }
+    const submission = await this.prisma.inboxSubmission.findFirst({
+      where: {
+        id: submissionId,
+        reverseShareId: inbox.id,
+        status: {
+          in: [InboxSubmissionStatus.UPLOADING, InboxSubmissionStatus.PENDING],
+        },
+        expectedFileCount: { gte: 0 },
+      },
+      include: { assets: true },
+    });
+    if (!submission) {
+      throw new NotFoundException(this.i18n.t("reverseShare.notFound"));
+    }
+    if (submission.status === InboxSubmissionStatus.PENDING) return submission;
+    const files = submission.assets.filter(
+      (asset) => asset.type === AssetType.FILE,
+    );
+    const totalSize = files.reduce(
+      (sum, asset) => sum + BigInt(asset.size ?? 0),
+      0n,
+    );
+    if (
+      submission.assets.length === 0 ||
+      files.length !== submission.expectedFileCount ||
+      files.some((asset) => asset.size === null) ||
+      files.length > inbox.maxFileCount ||
+      totalSize > BigInt(inbox.maxShareSize)
+    ) {
+      throw new BadRequestException(
+        "Inbox submission is incomplete or exceeds its limits",
+      );
+    }
+    const changed = await this.prisma.inboxSubmission.updateMany({
+      where: { id: submission.id, status: InboxSubmissionStatus.UPLOADING },
+      data: { status: InboxSubmissionStatus.PENDING },
+    });
+    if (changed.count !== 1) {
+      throw new BadRequestException("Inbox submission is no longer uploading");
+    }
+    return this.prisma.inboxSubmission.findFirst({
+      where: { id: submission.id },
+      include: { assets: true },
+    });
+  }
+
+  async cancelSubmission(token: string, submissionId: string) {
+    const inbox = await this.reverseShareService.getByToken(token);
+    if (!inbox) {
+      throw new NotFoundException(this.i18n.t("reverseShare.notFound"));
+    }
+    const submission = await this.prisma.inboxSubmission.findFirst({
+      where: { id: submissionId, reverseShareId: inbox.id },
+      include: { assets: true },
+    });
+    if (
+      !submission ||
+      (submission.status !== InboxSubmissionStatus.UPLOADING &&
+        submission.status !== InboxSubmissionStatus.CANCELLED)
+    ) {
+      throw new NotFoundException(this.i18n.t("reverseShare.notFound"));
+    }
+    if (submission.status === InboxSubmissionStatus.UPLOADING) {
+      await this.prisma.$transaction(async (transaction) => {
+        const changed = await transaction.inboxSubmission.updateMany({
+          where: { id: submission.id, status: InboxSubmissionStatus.UPLOADING },
+          data: { status: InboxSubmissionStatus.CANCELLED },
+        });
+        if (changed.count === 1) {
+          await transaction.reverseShare.update({
+            where: { id: inbox.id },
+            data: { remainingUses: { increment: 1 } },
+          });
+        }
+      });
+    }
+    for (const asset of submission.assets) {
+      await this.assetService.remove(asset);
+    }
+    return { cancelled: true };
+  }
+
+  @Cron("*/10 * * * *")
+  async cancelStaleSubmissions() {
+    const cutoff = new Date(Date.now() - 2 * 60 * 60 * 1000);
+    const stale = await this.prisma.inboxSubmission.findMany({
+      where: {
+        status: InboxSubmissionStatus.UPLOADING,
+        updatedAt: { lt: cutoff },
+      },
+      select: { id: true, reverseShare: { select: { token: true } } },
+    });
+    for (const submission of stale) {
+      await this.cancelSubmission(submission.reverseShare.token, submission.id).catch(
+        (error) => this.logger.error(`Could not cancel stale submission ${submission.id}`, error),
+      );
+    }
   }
 
   async listSubmissions(inboxId: string, ownerId: string) {
@@ -195,6 +429,15 @@ export class InboxService {
       where: { id: inboxId, creatorId: ownerId },
       include: {
         submissions: {
+          where: {
+            status: {
+              in: [
+                InboxSubmissionStatus.PENDING,
+                InboxSubmissionStatus.ACCEPTED,
+                InboxSubmissionStatus.REJECTED,
+              ],
+            },
+          },
           include: { assets: true },
           orderBy: { createdAt: "desc" },
         },

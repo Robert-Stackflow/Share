@@ -39,7 +39,12 @@ export class ReverseShareService {
 
     const globalMaxShareSize = this.config.get("share.maxSize");
 
-    if (globalMaxShareSize < data.maxShareSize)
+    const maxShareSize = Number(data.maxShareSize);
+    if (!Number.isSafeInteger(maxShareSize) || maxShareSize < 1) {
+      throw new BadRequestException("Invalid inbox size limit");
+    }
+
+    if (globalMaxShareSize < maxShareSize)
       throw new BadRequestException(
         this.i18n.t("reverseShare.maxShareSizeExceeded", {
           args: { maxSize: globalMaxShareSize },
@@ -53,6 +58,7 @@ export class ReverseShareService {
         shareExpiration: expirationDate,
         remainingUses: data.maxUseCount,
         maxShareSize: data.maxShareSize,
+        maxFileCount: data.maxFileCount ?? 10,
         sendEmailNotification: data.sendEmailNotification,
         simplified: data.simplified,
         publicAccess: data.publicAccess,

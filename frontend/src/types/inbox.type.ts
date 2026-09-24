@@ -7,6 +7,7 @@ export type CreateInbox = {
   description?: string;
   shareExpiration: string;
   maxShareSize: string;
+  maxFileCount: number;
   maxUseCount: number;
   sendEmailNotification: boolean;
   simplified: boolean;
@@ -21,6 +22,7 @@ export type PublicInbox = {
   name?: string;
   description?: string;
   maxShareSize: string;
+  maxFileCount: number;
   shareExpiration: Date;
   token: string;
   simplified: boolean;
@@ -45,13 +47,14 @@ export type CreateInboxSubmission = {
       }
   >;
   hasFiles?: boolean;
+  fileCount?: number;
 };
 
 export type InboxSubmission = {
   id: string;
   createdAt: Date;
   updatedAt: Date;
-  status: "PENDING" | "ACCEPTED" | "REJECTED";
+  status: "UPLOADING" | "PENDING" | "ACCEPTED" | "REJECTED" | "CANCELLED";
   message?: string;
   reverseShareId: string;
   assets: Asset[];

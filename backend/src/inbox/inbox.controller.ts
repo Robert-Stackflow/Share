@@ -62,6 +62,22 @@ export class InboxController {
     );
   }
 
+  @Post(":token/submissions/:id/complete")
+  async completeSubmission(
+    @Param("token") token: string,
+    @Param("id") id: string,
+  ) {
+    return this.inboxService.completeSubmission(token, id);
+  }
+
+  @Post(":token/submissions/:id/cancel")
+  async cancelSubmission(
+    @Param("token") token: string,
+    @Param("id") id: string,
+  ) {
+    return this.inboxService.cancelSubmission(token, id);
+  }
+
   @Get(":id/submissions")
   @UseGuards(JwtGuard)
   async listSubmissions(@Param("id") id: string, @GetUser() user: User) {

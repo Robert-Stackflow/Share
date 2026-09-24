@@ -14,6 +14,9 @@ export class ReverseShareDTO {
   maxShareSize: string;
 
   @Expose()
+  maxFileCount: number;
+
+  @Expose()
   shareExpiration: Date;
 
   @Expose()

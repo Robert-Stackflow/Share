@@ -76,6 +76,24 @@ const uploadSubmissionFile = async (
   ).data;
 };
 
+const completeSubmission = async (inboxToken: string, submissionId: string) => {
+  if (!isValidId(inboxToken) || !isValidId(submissionId)) {
+    throw new Error("Invalid inbox submission");
+  }
+  return (
+    await api.post(`inboxes/${inboxToken}/submissions/${submissionId}/complete`)
+  ).data;
+};
+
+const cancelSubmission = async (inboxToken: string, submissionId: string) => {
+  if (!isValidId(inboxToken) || !isValidId(submissionId)) {
+    throw new Error("Invalid inbox submission");
+  }
+  return (
+    await api.post(`inboxes/${inboxToken}/submissions/${submissionId}/cancel`)
+  ).data;
+};
+
 const listSubmissions = async (inboxId: string): Promise<InboxSubmission[]> => {
   if (!isValidId(inboxId)) throw new Error("Invalid Inbox ID");
   return (await api.get(`inboxes/${inboxId}/submissions`)).data;
@@ -110,6 +128,8 @@ export default {
   remove,
   createSubmission,
   uploadSubmissionFile,
+  completeSubmission,
+  cancelSubmission,
   listSubmissions,
   acceptSubmission,
   rejectSubmission,

@@ -36,9 +36,11 @@ enum AssetSource {
 }
 
 enum InboxSubmissionStatus {
+  UPLOADING
   PENDING
   ACCEPTED
   REJECTED
+  CANCELLED
 }
 
 model User {
@@ -184,6 +186,7 @@ model ReverseShare {
   maxShareSize          String
   sendEmailNotification Boolean
   remainingUses         Int
+  maxFileCount           Int      @default(10)
   simplified            Boolean  @default(false)
   publicAccess          Boolean  @default(true)
 
@@ -317,6 +320,7 @@ model InboxSubmission {
 
   status InboxSubmissionStatus @default(PENDING)
   message String?
+  expectedFileCount Int @default(0)
 
   reverseShareId String
   reverseShare   ReverseShare @relation(fields: [reverseShareId], references: [id], onDelete: Cascade)

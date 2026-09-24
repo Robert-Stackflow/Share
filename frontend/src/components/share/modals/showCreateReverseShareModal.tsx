@@ -82,6 +82,7 @@ const Body = ({
       name: "",
       description: "",
       maxShareSize: 104857600,
+      maxFileCount: 10,
       maxUseCount: 10,
       expiration_num: defaultTimespan.value,
       expiration_unit: `-${defaultTimespan.unit}` as string,
@@ -101,6 +102,12 @@ const Body = ({
           .typeError(t("common.error.invalid-number"))
           .min(1, t("common.error.number-too-small", { min: 1 }))
           .max(1000, t("common.error.number-too-large", { max: 1000 }))
+          .required(t("common.error.field-required")),
+        maxFileCount: yup
+          .number()
+          .integer()
+          .min(0)
+          .max(100)
           .required(t("common.error.field-required")),
       }),
     ),
@@ -137,6 +144,7 @@ const Body = ({
         description: values.description.trim() || undefined,
         shareExpiration: values.expiration_num + values.expiration_unit,
         maxShareSize: String(values.maxShareSize),
+        maxFileCount: values.maxFileCount,
         maxUseCount: submissionMode === "once" ? 1 : values.maxUseCount,
         sendEmailNotification: false,
         simplified: values.simplified,
@@ -266,6 +274,14 @@ const Body = ({
               label={t("account.reverseShares.modal.max-size.label")}
               value={form.values.maxShareSize}
               onChange={(number) => form.setFieldValue("maxShareSize", number)}
+            />
+            <NumberInput
+              decimalScale={0}
+              label={t("account.reverseShares.modal.max-files.label")}
+              max={100}
+              min={0}
+              variant="filled"
+              {...form.getInputProps("maxFileCount")}
             />
             <SegmentedControl
               aria-label={t("account.reverseShares.modal.mode.label")}

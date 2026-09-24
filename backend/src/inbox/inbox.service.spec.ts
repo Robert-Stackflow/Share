@@ -14,8 +14,13 @@ const createInbox = {
   publicAccess: true,
 };
 
-function createServiceMock(remainingUses = 3) {
+function createServiceMock(
+  remainingUses = 3,
+  maxShareSize = "1000",
+  maxFileCount = 10,
+) {
   const calls: any[] = [];
+  const fileChunkSizes: Record<string, number> = {};
   const reverseShares = [
     {
       id: "inbox-1",
@@ -23,7 +28,8 @@ function createServiceMock(remainingUses = 3) {
       creatorId: "user-1",
       shareExpiration: new Date(Date.now() + 60_000),
       remainingUses,
-      maxShareSize: "1000",
+      maxShareSize,
+      maxFileCount,
       sendEmailNotification: false,
       simplified: false,
       publicAccess: true,
@@ -34,6 +40,7 @@ function createServiceMock(remainingUses = 3) {
       id: "submission-1",
       reverseShareId: "inbox-1",
       status: InboxSubmissionStatus.PENDING,
+      expectedFileCount: -1,
       message: "Please review",
       assets: [
         {
@@ -115,10 +122,15 @@ function createServiceMock(remainingUses = 3) {
               item.creatorId === args.where.creatorId,
           );
           if (inbox && args.include?.submissions) {
+            const visible = args.include.submissions.where?.status?.in;
             return {
               ...inbox,
               submissions: submissions
-                .filter((submission) => submission.reverseShareId === inbox.id)
+                .filter(
+                  (submission) =>
+                    submission.reverseShareId === inbox.id &&
+                    (!visible || visible.includes(submission.status)),
+                )
                 .map(cloneSubmission),
             };
           }
@@ -139,6 +151,9 @@ function createServiceMock(remainingUses = 3) {
           if (inbox && args.data.remainingUses?.decrement) {
             inbox.remainingUses -= args.data.remainingUses.decrement;
           }
+          if (inbox && args.data.remainingUses?.increment) {
+            inbox.remainingUses += args.data.remainingUses.increment;
+          }
           return inbox;
         },
         updateMany: async (args: any) => {
@@ -156,15 +171,32 @@ function createServiceMock(remainingUses = 3) {
         },
       },
       inboxSubmission: {
+        findMany: async (args: any) => {
+          calls.push(["inboxSubmission.findMany", args]);
+          return submissions
+            .filter(
+              (item) =>
+                item.status === args.where.status &&
+                item.updatedAt < args.where.updatedAt.lt,
+            )
+            .map((item) => ({
+              id: item.id,
+              reverseShare: reverseShares.find(
+                (inbox) => inbox.id === item.reverseShareId,
+              ),
+            }));
+        },
         create: async (args: any) => {
           calls.push(["inboxSubmission.create", args]);
           const submission = {
             id: `submission-${submissions.length + 1}`,
             reverseShareId: args.data.reverseShare.connect.id,
             status: InboxSubmissionStatus.PENDING,
+            expectedFileCount: args.data.expectedFileCount ?? 0,
             message: args.data.message ?? null,
             assets: [],
           };
+          submission.status = args.data.status ?? InboxSubmissionStatus.PENDING;
           submissions.push(submission);
           return cloneSubmission(submission);
         },
@@ -172,12 +204,27 @@ function createServiceMock(remainingUses = 3) {
           calls.push(["inboxSubmission.findFirst", args]);
           const submission = submissions.find((item) => {
             if (item.id !== args.where.id) return false;
+            if (typeof args.where.status === "string" && item.status !== args.where.status)
+              return false;
+            if (args.where.status?.in && !args.where.status.in.includes(item.status))
+              return false;
+            if (
+              args.where.expectedFileCount?.gte !== undefined &&
+              item.expectedFileCount < args.where.expectedFileCount.gte
+            ) return false;
             if (args.where.reverseShareId) {
               return (
                 item.reverseShareId === args.where.reverseShareId &&
-                (!args.where.status || item.status === args.where.status)
+                (!args.where.OR ||
+                  args.where.OR.some(
+                    (clause: any) =>
+                      clause.status === item.status &&
+                      (clause.expectedFileCount === undefined ||
+                        clause.expectedFileCount === item.expectedFileCount),
+                  ))
               );
             }
+            if (!args.where.reverseShare) return true;
             const inbox = reverseShares.find(
               (reverseShare) => reverseShare.id === item.reverseShareId,
             );
@@ -195,8 +242,47 @@ function createServiceMock(remainingUses = 3) {
           }
           return cloneSubmission(submission);
         },
+        updateMany: async (args: any) => {
+          calls.push(["inboxSubmission.updateMany", args]);
+          const submission = submissions.find(
+            (item) =>
+              item.id === args.where.id &&
+              item.status === args.where.status,
+          );
+          if (!submission) return { count: 0 };
+          Object.assign(submission, args.data);
+          return { count: 1 };
+        },
       },
       asset: {
+        findFirst: async (args: any) => {
+          calls.push(["asset.findFirst", args]);
+          return submissions
+            .flatMap((submission) => submission.assets)
+            .find(
+              (asset) =>
+                asset.id === args.where.id &&
+                asset.inboxSubmissionId === args.where.inboxSubmissionId &&
+                asset.type === args.where.type &&
+                asset.size === args.where.size,
+            ) ?? null;
+        },
+        findMany: async (args: any) => {
+          calls.push(["asset.findMany", args]);
+          return submissions
+            .filter(
+              (submission) =>
+                submission.id === args.where.inboxSubmissionId,
+            )
+            .flatMap((submission) => submission.assets)
+            .filter(
+              (asset) => !args.where.type || asset.type === args.where.type,
+            )
+            .filter(
+              (asset) =>
+                args.where.size?.not !== null || asset.size !== null,
+            );
+        },
         updateMany: async (args: any) => {
           calls.push(["asset.updateMany", args]);
           for (const submission of submissions) {
@@ -261,22 +347,47 @@ function createServiceMock(remainingUses = 3) {
         file: any,
         owner: any,
         container: any,
+        trackIncomplete = false,
       ) => {
-        calls.push(["asset.createFile", data, chunk, file, owner, container]);
+        calls.push([
+          "asset.createFile",
+          data,
+          chunk,
+          file,
+          owner,
+          container,
+          trackIncomplete,
+        ]);
         const submission = submissions.find((item) => item.id === container.id);
-        const asset = {
-          id: file.id ?? `asset-file-${submission.assets.length + 1}`,
-          type: "FILE",
-          name: file.name,
-          inboxSubmissionId: container.id,
-        };
-        if (chunk.index === chunk.total - 1) {
-          submission.assets.push(asset);
+        const assetId = file.id ?? `asset-file-${submission.assets.length + 1}`;
+        fileChunkSizes[assetId] =
+          (fileChunkSizes[assetId] ?? 0) + Buffer.byteLength(data);
+        let asset = submission.assets.find((item: any) => item.id === assetId);
+        if (!asset) {
+          asset = {
+            id: assetId,
+            type: "FILE",
+            name: file.name,
+            size: trackIncomplete && chunk.index !== chunk.total - 1
+              ? null
+              : String(fileChunkSizes[assetId]),
+            inboxSubmissionId: container.id,
+          };
+          if (trackIncomplete || chunk.index === chunk.total - 1) {
+            submission.assets.push(asset);
+          }
+        } else if (chunk.index === chunk.total - 1) {
+          asset.size = String(fileChunkSizes[assetId]);
         }
         return asset;
       },
       remove: async (asset: any) => {
         calls.push(["asset.remove", asset]);
+        for (const submission of submissions) {
+          submission.assets = submission.assets.filter(
+            (item: any) => item.id !== asset.id,
+          );
+        }
       },
     },
     config: {
@@ -284,6 +395,7 @@ function createServiceMock(remainingUses = 3) {
         calls.push(["config.get", key]);
         if (key === "general.appUrl") return "https://share.example";
         if (key === "s3.enabled") return false;
+        if (key === "share.chunkSize") return 3;
         return undefined;
       },
     },
@@ -533,6 +645,7 @@ test("addSubmissionFile verifies the inbox token and stores file chunks on the p
       { id: "asset-file-1", name: "proposal.pdf" },
       undefined,
       { id: "submission-1", kind: "INBOX_SUBMISSION" },
+      false,
     ],
   );
 });
@@ -571,6 +684,113 @@ test("one-time inbox accepts file chunks for its claimed submission, but no new 
   );
 });
 
+test("modern inbox submission stays out of review until every file is uploaded and completed", async () => {
+  const mocks = createServiceMock(1, "1000", 1);
+  const service = createInboxService(mocks);
+  const submission = await service.createSubmission("token-1", {
+    fileCount: 1,
+  });
+
+  assert.equal(submission.status, InboxSubmissionStatus.UPLOADING);
+  assert.equal((await service.listSubmissions("inbox-1", "user-1")).length, 2);
+  await assert.rejects(
+    () => service.completeSubmission("token-1", submission.id),
+    BadRequestException,
+  );
+
+  await service.addSubmissionFile(
+    "token-1",
+    submission.id,
+    "file-data",
+    { index: 0, total: 1 },
+    { name: "proposal.txt" },
+  );
+  const completed = await service.completeSubmission("token-1", submission.id);
+  assert.equal(completed.status, InboxSubmissionStatus.PENDING);
+  assert.equal((await service.listSubmissions("inbox-1", "user-1")).length, 3);
+  await assert.rejects(
+    () =>
+      service.addSubmissionFile(
+        "token-1",
+        submission.id,
+        "extra",
+        { index: 0, total: 1 },
+        { name: "extra.txt" },
+      ),
+    NotFoundException,
+  );
+});
+
+test("canceling an unfinished submission restores its one-time use", async () => {
+  const mocks = createServiceMock(1);
+  const service = createInboxService(mocks);
+  const submission = await service.createSubmission("token-1", {
+    fileCount: 1,
+  });
+
+  await service.cancelSubmission("token-1", submission.id);
+  await service.cancelSubmission("token-1", submission.id);
+  const replacement = await service.createSubmission("token-1", {
+    fileCount: 1,
+  });
+  assert.equal(replacement.status, InboxSubmissionStatus.UPLOADING);
+  assert.equal(
+    mocks.calls.filter(
+      (call) =>
+        call[0] === "reverseShare.update" &&
+        call[1].data.remainingUses?.increment === 1,
+    ).length,
+    1,
+  );
+});
+
+test("inbox file count and stored file size limits are enforced by the service", async () => {
+  const mocks = createServiceMock(2, "4", 1);
+  const service = createInboxService(mocks);
+  await assert.rejects(
+    () => service.createSubmission("token-1", { fileCount: 2 }),
+    BadRequestException,
+  );
+  const submission = await service.createSubmission("token-1", {
+    fileCount: 1,
+  });
+  await assert.rejects(
+    () =>
+      service.addSubmissionFile(
+        "token-1",
+        submission.id,
+        "too-large",
+        { index: 0, total: 1 },
+        { name: "large.txt" },
+      ),
+    BadRequestException,
+  );
+  const firstChunk = await service.addSubmissionFile(
+    "token-1",
+    submission.id,
+    "abc",
+    { index: 0, total: 2 },
+    { name: "large.txt" },
+  );
+  await assert.rejects(
+    () =>
+      service.addSubmissionFile(
+        "token-1",
+        submission.id,
+        "def",
+        { index: 1, total: 2 },
+        { id: firstChunk.id, name: "large.txt" },
+      ),
+    BadRequestException,
+  );
+  assert.equal(
+    mocks.calls.filter((call) => call[0] === "asset.createFile").length,
+    1,
+  );
+  await service.cancelSubmission("token-1", submission.id);
+  assert.ok(mocks.calls.some((call) => call[0] === "asset.remove"));
+});
+
 test("listSubmissions only returns submissions for an inbox owned by the user", async () => {
   const mocks = createServiceMock();
   const service = createInboxService(mocks);
@@ -592,6 +812,15 @@ test("listSubmissions only returns submissions for an inbox owned by the user", 
       where: { id: "inbox-1", creatorId: "user-1" },
       include: {
         submissions: {
+          where: {
+            status: {
+              in: [
+                InboxSubmissionStatus.PENDING,
+                InboxSubmissionStatus.ACCEPTED,
+                InboxSubmissionStatus.REJECTED,
+              ],
+            },
+          },
           include: { assets: true },
           orderBy: { createdAt: "desc" },
         },

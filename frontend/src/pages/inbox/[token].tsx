@@ -6,6 +6,7 @@ import showErrorModal from "../../components/share/showErrorModal";
 import useTranslate from "../../hooks/useTranslate.hook";
 import useStaticRouteParam from "../../hooks/staticRouteParam.hook";
 import inboxService from "../../services/inbox.service";
+import { byteToHumanSizeString } from "../../utils/fileSize.util";
 import Upload from "../upload";
 
 export const getStaticPaths: GetStaticPaths = async () => ({
@@ -23,6 +24,7 @@ const InboxUpload = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   const [maxShareSize, setMaxShareSize] = useState(0);
+  const [maxFileCount, setMaxFileCount] = useState(10);
   const [simplified, setSimplified] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -33,6 +35,7 @@ const InboxUpload = () => {
       .setInbox(inboxToken)
       .then((inbox) => {
         setMaxShareSize(parseInt(inbox.maxShareSize));
+        setMaxFileCount(inbox.maxFileCount ?? 10);
         setSimplified(inbox.simplified);
         setName(inbox.name ?? "");
         setDescription(inbox.description ?? "");
@@ -61,12 +64,19 @@ const InboxUpload = () => {
         <Text c="dimmed" size="sm">
           {t("inbox.submit.reviewNotice")}
         </Text>
+        <Text c="dimmed" size="sm">
+          {t("inbox.submit.limits", {
+            count: maxFileCount,
+            size: byteToHumanSizeString(maxShareSize),
+          })}
+        </Text>
       </Stack>
       <Upload
         inboxToken={inboxToken}
         inboxName={name}
         isReverseShare
         maxShareSize={maxShareSize}
+        maxFileCount={maxFileCount}
         simplified={simplified}
       />
     </>

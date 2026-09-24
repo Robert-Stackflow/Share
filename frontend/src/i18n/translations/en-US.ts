@@ -417,6 +417,7 @@ export default {
   "content.value": "Content",
   "content.detected": "Detected as {type}; review before adding",
   "content.error.size": "File exceeds the {max} limit",
+  "content.error.fileCount": "Up to {max} files per submission",
   "content.error.empty": "Enter content before adding",
   "content.error.link": "Enter one valid http or https URL",
   "content.error.clipboard": "Clipboard access failed. Use the paste shortcut instead.",
@@ -502,6 +503,7 @@ export default {
   "account.reverseShares.modal.expiration.year-plural": "Years",
 
   "account.reverseShares.modal.max-size.label": "Max size per submission",
+  "account.reverseShares.modal.max-files.label": "Maximum files per submission",
   "account.reverseShares.modal.mode.label": "Submission mode",
   "account.reverseShares.modal.mode.ongoing": "Ongoing collection",
   "account.reverseShares.modal.mode.once": "One submission",
@@ -715,6 +717,10 @@ export default {
   "inbox.submit.contentDescription":
     "Check the files, text, and links before submitting them.",
   "inbox.submit.receiptTitle": "Submission received",
+  "inbox.submit.failed": "Submission did not finish. Adjust the content and try again.",
+  "inbox.submit.cancelFailed": "Could not release this unfinished submission. Retry or keep its ID.",
+  "inbox.submit.retryCancel": "Retry cancellation",
+  "inbox.submit.limits": "Up to {count} files and {size} total per submission",
   "inbox.submit.receipt":
     "Your content is waiting for review. Receipt ID: {id}",
   "inbox.submit.reviewNotice":

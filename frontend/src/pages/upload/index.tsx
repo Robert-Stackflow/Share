@@ -1,4 +1,4 @@
-import { Alert, Stack } from "@mantine/core";
+import { Alert, Button, Stack } from "@mantine/core";
 import { useModals } from "@mantine/modals";
 import { cleanNotifications } from "@mantine/notifications";
 import { AxiosError } from "axios";
@@ -31,12 +31,14 @@ let createdSubmission: InboxSubmission;
 
 const Upload = ({
   maxShareSize,
+  maxFileCount,
   isReverseShare = false,
   inboxToken,
   inboxName,
   simplified,
 }: {
   maxShareSize?: number;
+  maxFileCount?: number;
   isReverseShare: boolean;
   inboxToken?: string;
   inboxName?: string;
@@ -51,6 +53,59 @@ const Upload = ({
   const [isUploading, setisUploading] = useState(false);
   const [resetSignal, setResetSignal] = useState(0);
   const [receiptId, setReceiptId] = useState<string | null>(null);
+  const [unfinishedSubmissionId, setUnfinishedSubmissionId] = useState<
+    string | null
+  >(null);
+
+  const pendingStorageKey = inboxToken ? `inbox-pending:${inboxToken}` : "";
+  const rememberSubmission = (id: string) => {
+    try {
+      sessionStorage.setItem(pendingStorageKey, id);
+    } catch {
+      // The submission can still be finished or cancelled in this tab.
+    }
+  };
+  const forgetSubmission = () => {
+    try {
+      sessionStorage.removeItem(pendingStorageKey);
+    } catch {
+      // Session storage can be unavailable in private browsing modes.
+    }
+    setUnfinishedSubmissionId(null);
+  };
+  const cancelUnfinishedSubmission = async (id: string) => {
+    try {
+      await inboxService.cancelSubmission(inboxToken!, id);
+      forgetSubmission();
+      return true;
+    } catch {
+      setUnfinishedSubmissionId(id);
+      return false;
+    }
+  };
+  const completeInboxSubmission = async (id: string) => {
+    try {
+      return await inboxService.completeSubmission(inboxToken!, id);
+    } catch (error) {
+      if (
+        error instanceof AxiosError &&
+        (!error.response || error.response.status >= 500)
+      ) {
+        return inboxService.completeSubmission(inboxToken!, id);
+      }
+      throw error;
+    }
+  };
+
+  useEffect(() => {
+    if (!inboxToken) return;
+    try {
+      const previous = sessionStorage.getItem(`inbox-pending:${inboxToken}`);
+      if (previous) void cancelUnfinishedSubmission(previous);
+    } catch {
+      // No saved submission to recover.
+    }
+  }, [inboxToken]);
 
   useConfirmLeave({
     message: t("upload.notify.confirm-leave"),
@@ -77,7 +132,9 @@ const Upload = ({
           message: [share.name, share.description].filter(Boolean).join("\n\n"),
           assets: pendingAssets,
           hasFiles: files.length > 0,
+          fileCount: files.length,
         });
+        rememberSubmission(createdSubmission.id);
       } else {
         const totalSize = files.reduce((acc, file) => acc + file.size, 0);
         createdShare = await shareService.create(
@@ -97,11 +154,19 @@ const Upload = ({
 
     if (files.length === 0) {
       if (isInboxUpload) {
-        setisUploading(false);
-        toast.success(t("inbox.submission.created"));
-        setReceiptId(createdSubmission.id);
-        setFiles([]);
-        setResetSignal((value) => value + 1);
+        try {
+          await completeInboxSubmission(createdSubmission.id);
+          setisUploading(false);
+          toast.success(t("inbox.submission.created"));
+          setReceiptId(createdSubmission.id);
+          forgetSubmission();
+          setFiles([]);
+          setResetSignal((value) => value + 1);
+        } catch (error) {
+          await cancelUnfinishedSubmission(createdSubmission.id);
+          toast.axiosError(error);
+          setisUploading(false);
+        }
         return;
       }
 
@@ -128,6 +193,7 @@ const Upload = ({
       // Limit the number of concurrent uploads to 3
       promiseLimit(async () => {
         let fileId: string | undefined;
+        let failures = 0;
 
         const setFileProgress = (progress: number) => {
           setFiles((files) =>
@@ -175,6 +241,7 @@ const Upload = ({
                   chunks,
                 );
             fileId = response.id;
+            failures = 0;
 
             setFileProgress(((chunkIndex + 1) / chunks) * 100);
           } catch (e) {
@@ -182,23 +249,59 @@ const Upload = ({
               e instanceof AxiosError &&
               e.response?.data.error == "unexpected_chunk_index"
             ) {
+              failures += 1;
+              if (failures >= 3) throw e;
               // Retry with the expected chunk index
               chunkIndex = e.response!.data!.expectedChunkIndex - 1;
               continue;
-            } else {
-              setFileProgress(-1);
-              // Retry after 5 seconds
-              await new Promise((resolve) => setTimeout(resolve, 5000));
-              chunkIndex = -1;
-
-              continue;
             }
+            setFileProgress(-1);
+            failures += 1;
+            if (
+              (e instanceof AxiosError &&
+                e.response?.status &&
+                e.response.status >= 400 &&
+                e.response.status < 500) ||
+              failures >= 3
+            ) {
+              throw e;
+            }
+            await new Promise((resolve) => setTimeout(resolve, 5000));
+            chunkIndex -= 1;
           }
         }
       }),
     );
 
-    Promise.all(fileUploadPromises);
+    if (isInboxUpload) {
+      const outcomes = await Promise.allSettled(fileUploadPromises);
+      if (outcomes.some((outcome) => outcome.status === "rejected")) {
+        await cancelUnfinishedSubmission(createdSubmission.id);
+        toast.error(t("inbox.submit.failed"));
+        setisUploading(false);
+        setFiles([]);
+        return;
+      }
+      try {
+        await completeInboxSubmission(createdSubmission.id);
+        toast.success(t("inbox.submission.created"));
+        setReceiptId(createdSubmission.id);
+        forgetSubmission();
+        setFiles([]);
+        setResetSignal((value) => value + 1);
+      } catch (error) {
+        await cancelUnfinishedSubmission(createdSubmission.id);
+        toast.axiosError(error);
+        setFiles([]);
+      } finally {
+        setisUploading(false);
+      }
+    } else {
+      void Promise.all(fileUploadPromises).catch(() => {
+        toast.error(t("upload.notify.generic-error"));
+        setisUploading(false);
+      });
+    }
   };
 
   const showCreateUploadModalCallback = (items: PendingContent[]) => {
@@ -266,19 +369,11 @@ const Upload = ({
 
     // Complete share
     if (
+      !isInboxUpload &&
       files.length > 0 &&
       files.every((file) => file.uploadingProgress >= 100) &&
       fileErrorCount == 0
     ) {
-      if (isInboxUpload) {
-        setisUploading(false);
-        toast.success(t("inbox.submission.created"));
-        setReceiptId(createdSubmission.id);
-        setFiles([]);
-        setResetSignal((value) => value + 1);
-        return;
-      }
-
       shareService
         .completeShare(createdShare.id)
         .then((share) => {
@@ -315,6 +410,22 @@ const Upload = ({
           {t("inbox.submit.receipt", { id: receiptId })}
         </Alert>
       )}
+      {isInboxUpload && unfinishedSubmissionId && (
+        <Alert color="red" mb="md" title={t("inbox.submit.cancelFailed")}>
+          <Stack gap="xs">
+            <span>{unfinishedSubmissionId}</span>
+            <Button
+              size="xs"
+              variant="light"
+              onClick={() =>
+                void cancelUnfinishedSubmission(unfinishedSubmissionId)
+              }
+            >
+              {t("inbox.submit.retryCancel")}
+            </Button>
+          </Stack>
+        </Alert>
+      )}
       <ContentIntake
         target={
           isInboxUpload
@@ -325,7 +436,10 @@ const Upload = ({
           isInboxUpload ? "inbox.submit.review" : "content.continue",
         )}
         maxSize={maxShareSize}
-        disabled={isUploading || modals.modals.length > 0}
+        maxFiles={maxFileCount}
+        disabled={
+          isUploading || !!unfinishedSubmissionId || modals.modals.length > 0
+        }
         resetSignal={resetSignal}
         onSubmit={(items) => {
           showCreateUploadModalCallback(items);
