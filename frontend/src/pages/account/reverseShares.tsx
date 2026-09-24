@@ -49,6 +49,7 @@ import { Room } from "../../types/room.type";
 import { MyReverseShare } from "../../types/share.type";
 import { byteToHumanSizeString } from "../../utils/fileSize.util";
 import toast from "../../utils/toast.util";
+import classes from "./reverseShares.module.css";
 
 type PendingSubmissionRow = {
   inbox: MyReverseShare;
@@ -233,7 +234,11 @@ const MyShares = () => {
             <FormattedMessage id="account.reverseShares.title" />
           </Title>
           <HoverTip label={t("account.reverseShares.description")}>
-            <ActionIcon color="gray" variant="subtle">
+            <ActionIcon
+              aria-label={t("account.reverseShares.description")}
+              color="gray"
+              variant="subtle"
+            >
               <Info />
             </ActionIcon>
           </HoverTip>
@@ -284,7 +289,9 @@ const MyShares = () => {
                   <FormattedMessage id="account.reverseShares.submissions.empty" />
                 </Text>
               ) : (
-                <Table className={tableClasses.table}>
+                <Table
+                  className={`${tableClasses.table} ${classes.responsiveTable}`}
+                >
                   <thead>
                     <tr>
                       <th>
@@ -311,7 +318,12 @@ const MyShares = () => {
                               t("account.reverseShares.table.unnamed")}
                           </Text>
                         </td>
-                        <td className={tableClasses.valueCell}>
+                        <td
+                          className={tableClasses.valueCell}
+                          data-label={t(
+                            "account.reverseShares.submissions.message",
+                          )}
+                        >
                           {submission.message ? (
                             <Text size="sm" lineClamp={2}>
                               {submission.message}
@@ -322,7 +334,12 @@ const MyShares = () => {
                             </Text>
                           )}
                         </td>
-                        <td className={tableClasses.valueCell}>
+                        <td
+                          className={tableClasses.valueCell}
+                          data-label={t(
+                            "account.reverseShares.submissions.assets",
+                          )}
+                        >
                           <Stack gap={4}>
                             {submission.assets.map((asset) => (
                               <Group
@@ -339,7 +356,13 @@ const MyShares = () => {
                             ))}
                           </Stack>
                         </td>
-                        <td>{moment(submission.createdAt).format("LLL")}</td>
+                        <td
+                          data-label={t(
+                            "account.reverseShares.submissions.submittedAt",
+                          )}
+                        >
+                          {moment(submission.createdAt).format("LLL")}
+                        </td>
                         <td className={tableClasses.actionCell}>
                           <Group justify="flex-end" gap={6} wrap="nowrap">
                             <Menu withinPortal position="bottom-end">
@@ -414,7 +437,9 @@ const MyShares = () => {
           </Box>
 
           <Box className={tableClasses.tablePanel}>
-            <Table className={tableClasses.table}>
+            <Table
+              className={`${tableClasses.table} ${classes.responsiveTable}`}
+            >
               <thead>
                 <tr>
                   <th>
@@ -525,13 +550,15 @@ const MyShares = () => {
                         </Accordion>
                       )}
                     </td>
-                    <td>{reverseShare.remainingUses}</td>
-                    <td>
+                    <td data-label={t("account.reverseShares.table.remaining")}>
+                      {reverseShare.remainingUses}
+                    </td>
+                    <td data-label={t("account.reverseShares.table.max-size")}>
                       {byteToHumanSizeString(
                         parseInt(reverseShare.maxShareSize),
                       )}
                     </td>
-                    <td>
+                    <td data-label={t("account.reverseShares.table.expires")}>
                       {moment(reverseShare.shareExpiration).format("LLL")}
                     </td>
                     <td className={tableClasses.actionCell}>
@@ -542,6 +569,7 @@ const MyShares = () => {
                       >
                         <HoverTip label={t("common.button.copy-link")}>
                           <ActionIcon
+                            aria-label={t("common.button.copy-link")}
                             color="gray"
                             disabled={getInboxStatus(reverseShare) !== "active"}
                             variant="subtle"
@@ -567,6 +595,7 @@ const MyShares = () => {
                         </HoverTip>
                         <HoverTip label={t("common.button.delete")}>
                           <ActionIcon
+                            aria-label={t("common.button.delete")}
                             color="red"
                             variant="subtle"
                             size={25}

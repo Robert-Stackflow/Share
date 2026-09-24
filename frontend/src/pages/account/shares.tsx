@@ -29,6 +29,7 @@ import useTranslate from "../../hooks/useTranslate.hook";
 import shareService from "../../services/share.service";
 import { MyShare } from "../../types/share.type";
 import toast from "../../utils/toast.util";
+import classes from "./shares.module.css";
 
 const MyShares = () => {
   const modals = useModals();
@@ -81,7 +82,7 @@ const MyShares = () => {
         </Center>
       ) : (
         <Box className={tableClasses.tablePanel}>
-          <Table className={tableClasses.table}>
+          <Table className={`${tableClasses.table} ${classes.responsiveTable}`}>
             <thead>
               <tr>
                 <th>
@@ -116,8 +117,10 @@ const MyShares = () => {
                       )}
                     </Group>
                   </td>
-                  <td>{share.name || "—"}</td>
-                  <td>
+                  <td data-label={t("account.shares.table.name")}>
+                    {share.name || "—"}
+                  </td>
+                  <td data-label={t("account.shares.table.status")}>
                     <Badge
                       color={getStatus(share) === "active" ? "green" : "gray"}
                       variant="light"
@@ -125,7 +128,7 @@ const MyShares = () => {
                       {t(`account.shares.status.${getStatus(share)}`)}
                     </Badge>
                   </td>
-                  <td>
+                  <td data-label={t("account.shares.table.visitors")}>
                     {share.security?.maxViews ? (
                       <FormattedMessage
                         id="account.shares.table.visitor-count"
@@ -138,7 +141,7 @@ const MyShares = () => {
                       share.views
                     )}
                   </td>
-                  <td>
+                  <td data-label={t("account.shares.table.expiresAt")}>
                     {moment(
                       share.effectiveExpiration ?? share.expiration,
                     ).unix() === 0 ? (
@@ -157,6 +160,7 @@ const MyShares = () => {
                     >
                       <HoverTip label={t("account.shares.button.edit")}>
                         <ActionIcon
+                          aria-label={t("account.shares.button.edit")}
                           color="gray"
                           component={Link}
                           href={`/share/${share.id}/edit`}
@@ -168,6 +172,7 @@ const MyShares = () => {
                       </HoverTip>
                       <HoverTip label={t("common.button.info")}>
                         <ActionIcon
+                          aria-label={t("common.button.info")}
                           color="gray"
                           variant="subtle"
                           size={25}
@@ -195,6 +200,7 @@ const MyShares = () => {
                       </HoverTip>
                       <HoverTip label={t("common.button.copy-link")}>
                         <ActionIcon
+                          aria-label={t("common.button.copy-link")}
                           color="gray"
                           disabled={getStatus(share) !== "active"}
                           variant="subtle"
@@ -220,6 +226,7 @@ const MyShares = () => {
                       </HoverTip>
                       <HoverTip label={t("common.button.delete")}>
                         <ActionIcon
+                          aria-label={t("common.button.delete")}
                           color="red"
                           variant="subtle"
                           size={25}

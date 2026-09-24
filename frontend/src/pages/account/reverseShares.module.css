@@ -1,0 +1,60 @@
+@media (max-width: 48em) {
+  .responsiveTable {
+    display: block;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .responsiveTable :global(thead) {
+    display: none;
+  }
+
+  .responsiveTable :global(tbody) {
+    display: block;
+  }
+
+  .responsiveTable :global(tr) {
+    display: grid;
+    gap: 9px;
+    padding: var(--mantine-spacing-md);
+  }
+
+  .responsiveTable :global(tr + tr) {
+    border-top: 1px solid light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
+  }
+
+  .responsiveTable :global(td) {
+    align-items: baseline;
+    border: 0;
+    display: flex;
+    gap: var(--mantine-spacing-sm);
+    justify-content: space-between;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    padding: 0;
+    width: 100%;
+  }
+
+  .responsiveTable :global(td)::before {
+    color: var(--mantine-color-dimmed);
+    content: attr(data-label);
+    flex: 0 0 76px;
+    font-size: var(--mantine-font-size-xs);
+  }
+
+  .responsiveTable :global(td:first-child)::before,
+  .responsiveTable :global(td:last-child)::before {
+    display: none;
+  }
+
+  .responsiveTable :global(td:first-child) {
+    display: block;
+  }
+
+  .responsiveTable :global(td:last-child) {
+    border-top: 1px solid light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
+    justify-content: flex-end;
+    min-width: 0;
+    padding-top: var(--mantine-spacing-xs);
+  }
+}
