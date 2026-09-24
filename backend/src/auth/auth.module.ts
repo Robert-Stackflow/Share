@@ -8,6 +8,9 @@ import { JwtStrategy } from "./strategy/jwt.strategy";
 import { LdapService } from "./ldap.service";
 import { UserModule } from "../user/user.module";
 import { OAuthModule } from "../oauth/oauth.module";
+import { ActivityModule } from "../activity/activity.module";
+import { PasskeyController } from "./passkey.controller";
+import { PasskeyService } from "./passkey.service";
 
 @Module({
   imports: [
@@ -17,9 +20,16 @@ import { OAuthModule } from "../oauth/oauth.module";
     EmailModule,
     forwardRef(() => OAuthModule),
     UserModule,
+    ActivityModule,
   ],
-  controllers: [AuthController],
-  providers: [AuthService, AuthTotpService, JwtStrategy, LdapService],
+  controllers: [AuthController, PasskeyController],
+  providers: [
+    AuthService,
+    AuthTotpService,
+    JwtStrategy,
+    LdapService,
+    PasskeyService,
+  ],
   exports: [AuthService],
 })
 export class AuthModule {}

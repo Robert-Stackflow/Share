@@ -123,10 +123,18 @@ export class AuthService {
     throw new UnauthorizedException(this.i18n.t("auth.wrongCredentials"));
   }
 
-  async generateToken(user: User, oauth?: { idToken?: string }) {
+  async generateToken(
+    user: User,
+    oauth?: { idToken?: string },
+    passkeyVerified = false,
+  ) {
     // TODO: Make all old loginTokens invalid when a new one is created
     // Check if the user has TOTP enabled
-    if (user.totpVerified && !(oauth && this.config.get("oauth.ignoreTotp"))) {
+    if (
+      user.totpVerified &&
+      !passkeyVerified &&
+      !(oauth && this.config.get("oauth.ignoreTotp"))
+    ) {
       const loginToken = await this.createLoginToken(user.id);
 
       return { loginToken };

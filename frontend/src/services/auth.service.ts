@@ -1,6 +1,10 @@
 import { getCookie } from "cookies-next";
 import * as jose from "jose";
 import api from "./api.service";
+import type {
+  AuthenticationResponseJSON,
+  RegistrationResponseJSON,
+} from "@simplewebauthn/browser";
 
 const signIn = async (emailOrUsername: string, password: string) => {
   const emailOrUsernameBody = emailOrUsername.includes("@")
@@ -96,6 +100,25 @@ const getOAuthStatus = () => {
   return api.get("/oauth/status");
 };
 
+const getPasskeys = () => api.get("/auth/passkeys");
+const getPasskeyRegistrationOptions = () =>
+  api.post("/auth/passkeys/register/options");
+const registerPasskey = (
+  challengeId: string,
+  response: RegistrationResponseJSON,
+  name: string,
+) =>
+  api.post("/auth/passkeys/register/verify", { challengeId, response, name });
+const getPasskeyLoginOptions = () => api.post("/auth/passkeys/login/options");
+const signInWithPasskey = (
+  challengeId: string,
+  response: AuthenticationResponseJSON,
+) => api.post("/auth/passkeys/login/verify", { challengeId, response });
+const renamePasskey = (id: string, name: string) =>
+  api.patch(`/auth/passkeys/${encodeURIComponent(id)}`, { name });
+const removePasskey = (id: string) =>
+  api.delete(`/auth/passkeys/${encodeURIComponent(id)}`);
+
 export default {
   signIn,
   signInTotp,
@@ -110,4 +133,11 @@ export default {
   disableTOTP,
   getAvailableOAuth,
   getOAuthStatus,
+  getPasskeys,
+  getPasskeyRegistrationOptions,
+  registerPasskey,
+  getPasskeyLoginOptions,
+  signInWithPasskey,
+  renamePasskey,
+  removePasskey,
 };

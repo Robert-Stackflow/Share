@@ -58,6 +58,8 @@ model User {
   shortLinks    ShortLink[]
   assetTags     AssetTag[]
   activityEvents ActivityEvent[]
+  passkeys PasskeyCredential[]
+  passkeyChallenges PasskeyChallenge[]
   refreshTokens RefreshToken[]
   loginTokens   LoginToken[]
   reverseShares ReverseShare[]
@@ -81,6 +83,37 @@ model RefreshToken {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   oauthIDToken  String? // prefixed with the ID of the issuing OAuth provider, separated by a colon
+}
+
+model PasskeyCredential {
+  id          String    @id
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  publicKey   String
+  counter     Int       @default(0)
+  transports  String?
+  deviceType  String?
+  backedUp    Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  lastUsedAt  DateTime?
+
+  @@index([userId, createdAt])
+}
+
+model PasskeyChallenge {
+  id             String   @id @default(uuid())
+  challenge      String
+  purpose        String
+  userId         String?
+  user           User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  refreshTokenId String?
+  expiresAt      DateTime
+  used           Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  @@index([userId, purpose, expiresAt])
+  @@index([expiresAt])
 }
 
 model LoginToken {
