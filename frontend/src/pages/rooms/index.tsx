@@ -1,4 +1,5 @@
 import {
+  ArrowLeft,
   ExternalLink,
   Globe,
   KeyRound,
@@ -345,7 +346,7 @@ export default function RoomsPage() {
           <FormattedMessage id="room.rooms.create" />
         </Button>
       </Group>
-      <div className={classes.shell}>
+      <div className={`${classes.shell} ${selection ? classes.selectedShell : ""}`}>
         <aside className={classes.sidebar}>
           <SegmentedControl
             fullWidth
@@ -428,6 +429,14 @@ export default function RoomsPage() {
               wrap="nowrap"
             >
               <Group gap="xs" wrap="nowrap">
+                <ActionIcon
+                  aria-label={t("common.button.go-back")}
+                  className={classes.mobileBack}
+                  onClick={() => setSelection(null)}
+                  variant="subtle"
+                >
+                  <ArrowLeft />
+                </ActionIcon>
                 <Badge color={selection.kind === "owned" ? "blue" : "gray"}>
                   {t(
                     selection.kind === "owned"

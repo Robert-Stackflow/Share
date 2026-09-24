@@ -9,9 +9,8 @@ import {
   Text,
   Title,
 } from "@mantine/core";
-import moment from "moment";
 import { ReactNode, useEffect, useRef, useState } from "react";
-import { FormattedMessage } from "react-intl";
+import { FormattedMessage, useIntl } from "react-intl";
 import useTranslate from "../../hooks/useTranslate.hook";
 import { Asset, AssetType } from "../../types/asset.type";
 import {
@@ -58,6 +57,7 @@ const RoomConversationPanel = ({
   title,
 }: RoomConversationPanelProps) => {
   const t = useTranslate();
+  const intl = useIntl();
   const roomConversationMessages = sortAssetsByCreatedAtDesc(assets)
     .slice()
     .reverse();
@@ -196,7 +196,13 @@ const RoomConversationPanel = ({
                           {t(`room.asset.type.${asset.type.toLowerCase()}`)}
                         </Badge>
                         <Text c="dimmed" size="xs">
-                          {moment(asset.createdAt).format("LLL")}
+                          {intl.formatDate(asset.createdAt, {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                            hour: "numeric",
+                            minute: "2-digit",
+                          })}
                         </Text>
                       </Group>
                       {renderActions(asset)}
