@@ -1,12 +1,11 @@
-import { Button, Group } from "@mantine/core";
+import { Stack } from "@mantine/core";
 import { useModals } from "@mantine/modals";
 import { cleanNotifications } from "@mantine/notifications";
 import { AxiosError } from "axios";
 import pLimit from "p-limit";
 import { useEffect, useRef, useState } from "react";
-import { FormattedMessage } from "react-intl";
 import Meta from "../../components/Meta";
-import Dropzone from "../../components/upload/Dropzone";
+import ContentIntake, { PendingContent } from "../../components/content/ContentIntake";
 import FileList from "../../components/upload/FileList";
 import showCompletedUploadModal from "../../components/upload/modals/showCompletedUploadModal";
 import showCreateUploadModal from "../../components/upload/modals/showCreateUploadModal";
@@ -45,6 +44,7 @@ const Upload = ({
   const config = useConfig();
   const [files, setFiles] = useState<FileUpload[]>([]);
   const [isUploading, setisUploading] = useState(false);
+  const [resetSignal, setResetSignal] = useState(0);
 
   useConfirmLeave({
     message: t("upload.notify.confirm-leave"),
@@ -54,7 +54,6 @@ const Upload = ({
   const chunkSize = useRef(parseInt(config.get("share.chunkSize")));
 
   maxShareSize ??= parseInt(config.get("share.maxSize"));
-  const autoOpenCreateUploadModal = config.get("share.autoOpenShareModal");
   const isInboxUpload = !!inboxToken;
 
   const uploadFiles = async (
@@ -63,6 +62,7 @@ const Upload = ({
     pendingAssets: CreateAsset[] = [],
   ) => {
     setisUploading(true);
+    setFiles(files);
 
     try {
       if (isInboxUpload) {
@@ -93,6 +93,7 @@ const Upload = ({
         setisUploading(false);
         toast.success(t("inbox.submission.created"));
         setFiles([]);
+        setResetSignal((value) => value + 1);
         return;
       }
 
@@ -105,6 +106,7 @@ const Upload = ({
             config.get("general.appUrl"),
             config.get("general.appUrl", true),
           );
+          setResetSignal((value) => value + 1);
         })
         .catch(() => {
           setisUploading(false);
@@ -190,7 +192,16 @@ const Upload = ({
     Promise.all(fileUploadPromises);
   };
 
-  const showCreateUploadModalCallback = (files: FileUpload[]) => {
+  const showCreateUploadModalCallback = (items: PendingContent[]) => {
+    const selectedFiles = items
+      .filter((item): item is Extract<PendingContent, { type: "FILE" }> => item.type === "FILE")
+      .map((item) => Object.assign(item.file, { uploadingProgress: 0 }) as FileUpload);
+    const initialAssets: CreateAsset[] = items.flatMap((item) => {
+      if (item.type === "FILE") return [];
+      return [item.type === "TEXT"
+        ? { type: "TEXT" as const, content: item.value }
+        : { type: "LINK" as const, url: item.value.trim() }];
+    });
     showCreateUploadModal(
       modals,
       {
@@ -208,66 +219,11 @@ const Upload = ({
         shareIdLength: config.get("share.shareIdLength"),
         simplified,
       },
-      files,
+      selectedFiles,
+      initialAssets,
       uploadFiles,
     );
   };
-
-  const handleDropzoneFilesChanged = (files: FileUpload[]) => {
-    if (autoOpenCreateUploadModal) {
-      setFiles(files);
-      showCreateUploadModalCallback(files);
-    } else {
-      setFiles((oldArr) => [...oldArr, ...files]);
-    }
-  };
-
-  useEffect(() => {
-    const handlePaste = (e: ClipboardEvent) => {
-      if (modals.modals.length > 0) {
-        return;
-      }
-
-      const clipboardData = e.clipboardData;
-
-      if (!clipboardData) {
-        return;
-      }
-
-      if (clipboardData?.getData("text/plain")) {
-        const pastedText = clipboardData.getData("text/plain");
-        if (!pastedText) {
-          return;
-        }
-
-        // Create a sanitised file name from the pasted text
-        const safeName = pastedText
-          .substring(0, 50)
-          .replace(/[^a-zA-Z0-9 ]/g, "")
-          .trim();
-        const fileName = `${safeName || "clipboard_paste"}.txt`;
-
-        const file = new File([pastedText], fileName, {
-          type: "text/plain",
-        });
-        const fileUpload = file as FileUpload;
-        fileUpload.uploadingProgress = 0;
-
-        if (autoOpenCreateUploadModal) {
-          setFiles([fileUpload]);
-          showCreateUploadModalCallback([fileUpload]);
-        } else {
-          setFiles((oldArr) => [...oldArr, fileUpload]);
-        }
-      }
-    };
-
-    window.addEventListener("paste", handlePaste);
-
-    return () => {
-      window.removeEventListener("paste", handlePaste);
-    };
-  }, [autoOpenCreateUploadModal, modals.modals.length]);
 
   useEffect(() => {
     // Check if there are any files that failed to upload
@@ -301,6 +257,7 @@ const Upload = ({
         setisUploading(false);
         toast.success(t("inbox.submission.created"));
         setFiles([]);
+        setResetSignal((value) => value + 1);
         return;
       }
 
@@ -314,6 +271,7 @@ const Upload = ({
             config.get("general.appUrl", true),
           );
           setFiles([]);
+          setResetSignal((value) => value + 1);
         })
         .catch(() => toast.error(t("upload.notify.generic-error")));
     }
@@ -322,31 +280,16 @@ const Upload = ({
   return (
     <>
       <Meta title={t("upload.title")} />
-      <Group justify="flex-end" mb={20}>
-        <Button
-          loading={isUploading}
-          disabled={files.length <= 0}
-          onClick={() => showCreateUploadModalCallback(files)}
-        >
-          <FormattedMessage
-            id={
-              isInboxUpload ? "upload.modal.inbox.submit" : "common.button.share"
-            }
-          />
-        </Button>
-      </Group>
-      <Dropzone
-        title={
-          !autoOpenCreateUploadModal && files.length > 0
-            ? t("share.edit.append-upload")
-            : undefined
-        }
-        maxShareSize={maxShareSize}
-        onFilesChanged={handleDropzoneFilesChanged}
-        isUploading={isUploading}
+      <ContentIntake
+        target={t(isInboxUpload ? "content.target.inbox" : "content.target.upload")}
+        buttonLabel={t("content.continue")}
+        maxSize={maxShareSize}
+        disabled={isUploading || modals.modals.length > 0}
+        resetSignal={resetSignal}
+        onSubmit={(items) => { showCreateUploadModalCallback(items); return false; }}
       />
-      {files.length > 0 && (
-        <FileList<FileUpload> files={files} setFiles={setFiles} />
+      {isUploading && files.length > 0 && (
+        <Stack mt="md"><FileList<FileUpload> files={files} setFiles={setFiles} /></Stack>
       )}
     </>
   );

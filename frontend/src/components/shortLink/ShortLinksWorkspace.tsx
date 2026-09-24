@@ -19,7 +19,7 @@ import { useClipboard, useDisclosure } from "@mantine/hooks";
 import { useModals } from "@mantine/modals";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   TbCopy,
   TbExternalLink,
@@ -45,6 +45,15 @@ import AccessControlForm from "../access/AccessControlForm";
 import toast from "../../utils/toast.util";
 import classes from "./ShortLinksWorkspace.module.css";
 
+const isWebUrl = (value: string) => {
+  try {
+    const url = new URL(value.trim());
+    return !/\s/.test(value.trim()) && ["http:", "https:"].includes(url.protocol);
+  } catch {
+    return false;
+  }
+};
+
 const ShortLinksWorkspace = () => {
   const t = useTranslate();
   const clipboard = useClipboard();
@@ -54,6 +63,8 @@ const ShortLinksWorkspace = () => {
   const [isCreateOpen, { open: openCreate, close: closeCreate }] =
     useDisclosure(false);
   const [isCreating, setIsCreating] = useState(false);
+  const [targetDraft, setTargetDraft] = useState("");
+  const internalDrag = useRef(false);
   const [accessControl, setAccessControl] = useState<AccessControl>({});
   const form = useForm({
     initialValues: {
@@ -76,6 +87,58 @@ const ShortLinksWorkspace = () => {
   useEffect(() => {
     loadLinks();
   }, []);
+
+  useEffect(() => {
+    const onDragStart = () => { internalDrag.current = true; };
+    const onDragEnd = () => { internalDrag.current = false; };
+    const onPaste = (event: ClipboardEvent) => {
+      if (isCreateOpen || event.target instanceof HTMLElement &&
+        (event.target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(event.target.tagName))) return;
+      const value = event.clipboardData?.getData("text/plain") ?? "";
+      if (!isWebUrl(value)) return;
+      event.preventDefault();
+      form.setFieldValue("targetType", "URL");
+      form.setFieldValue("targetUrl", value.trim());
+      openCreate();
+    };
+    const onDragOver = (event: DragEvent) => {
+      if (internalDrag.current) return;
+      if (Array.from(event.dataTransfer?.types ?? []).some((type) => ["Files", "text/plain", "text/uri-list"].includes(type))) event.preventDefault();
+    };
+    const onDrop = (event: DragEvent) => {
+      if (internalDrag.current) return;
+      const value = event.dataTransfer?.getData("text/uri-list") || event.dataTransfer?.getData("text/plain") || "";
+      if (!value && !event.dataTransfer?.files.length) return;
+      event.preventDefault();
+      if (isCreateOpen) return;
+      if (!isWebUrl(value)) {
+        toast.error(t("account.shortLinks.error.drop-url"));
+        return;
+      }
+      form.setFieldValue("targetType", "URL");
+      form.setFieldValue("targetUrl", value.trim());
+      openCreate();
+    };
+    document.addEventListener("dragstart", onDragStart);
+    document.addEventListener("dragend", onDragEnd);
+    window.addEventListener("paste", onPaste);
+    window.addEventListener("dragover", onDragOver);
+    window.addEventListener("drop", onDrop);
+    return () => {
+      document.removeEventListener("dragstart", onDragStart);
+      document.removeEventListener("dragend", onDragEnd);
+      window.removeEventListener("paste", onPaste);
+      window.removeEventListener("dragover", onDragOver);
+      window.removeEventListener("drop", onDrop);
+    };
+  }, [isCreateOpen, form, openCreate, t]);
+
+  const prepareTarget = () => {
+    if (!isWebUrl(targetDraft)) return;
+    form.setFieldValue("targetType", "URL");
+    form.setFieldValue("targetUrl", targetDraft.trim());
+    openCreate();
+  };
 
   const createShortLink = form.onSubmit((values) => {
     setIsCreating(true);
@@ -175,6 +238,20 @@ const ShortLinksWorkspace = () => {
             <FormattedMessage id="account.shortLinks.create" />
           </Button>
         </Group>
+      </Group>
+
+      <Group gap="sm" mb="lg" align="flex-end">
+        <TextInput
+          aria-label={t("account.shortLinks.quick-url")}
+          placeholder={t("account.shortLinks.quick-url")}
+          value={targetDraft}
+          onChange={(event) => setTargetDraft(event.currentTarget.value)}
+          onKeyDown={(event) => { if (event.key === "Enter") prepareTarget(); }}
+          style={{ flex: "1 1 260px" }}
+        />
+        <Button variant="light" disabled={!isWebUrl(targetDraft)} onClick={prepareTarget}>
+          {t("account.shortLinks.quick-next")}
+        </Button>
       </Group>
 
       <Modal

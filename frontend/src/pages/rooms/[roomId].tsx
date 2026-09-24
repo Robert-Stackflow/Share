@@ -16,7 +16,7 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { TbKey, TbLock, TbWorld } from "react-icons/tb";
 import { FormattedMessage } from "react-intl";
-import AssetComposer from "../../components/asset/AssetComposer";
+import AssetContentComposer from "../../components/content/AssetContentComposer";
 import RoomConversationPanel from "../../components/room/RoomConversationPanel";
 import CenterLoader from "../../components/core/CenterLoader";
 import Meta from "../../components/Meta";
@@ -198,8 +198,9 @@ const RoomPage = () => {
           }
           composer={
             isLoggedIn ? (
-              <AssetComposer
-                variant="chat"
+              <AssetContentComposer
+                target={room.name || room.roomId}
+                buttonLabel={t("room.asset.create")}
                 onCreate={addAsset}
                 onFilesUploaded={addFiles}
                 uploadFile={uploadFile}

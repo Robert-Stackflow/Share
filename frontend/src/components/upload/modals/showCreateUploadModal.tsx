@@ -74,6 +74,7 @@ const showCreateUploadModal = (
     simplified: boolean;
   },
   files: FileUpload[],
+  initialAssets: CreateAsset[],
   uploadCallback: UploadCallback,
 ) => {
   const t = translateOutsideContext();
@@ -87,6 +88,7 @@ const showCreateUploadModal = (
         <SimplifiedCreateUploadModalModal
           options={options}
           files={files}
+          initialAssets={initialAssets}
           uploadCallback={uploadCallback}
         />
       ),
@@ -101,6 +103,7 @@ const showCreateUploadModal = (
       <CreateUploadModalBody
         options={options}
         files={files}
+        initialAssets={initialAssets}
         uploadCallback={uploadCallback}
       />
     ),
@@ -137,9 +140,11 @@ const generateAvailableLink = async (
 const CreateUploadModalBody = ({
   uploadCallback,
   files,
+  initialAssets,
   options,
 }: {
   files: FileUpload[];
+  initialAssets: CreateAsset[];
   uploadCallback: UploadCallback;
   options: {
     isUserSignedIn: boolean;
@@ -161,10 +166,14 @@ const CreateUploadModalBody = ({
 
   const [showNotSignedInAlert, setShowNotSignedInAlert] = useState(true);
   const [activeContentTab, setActiveContentTab] = useState<string | null>(
-    "files",
+    files.length > 0 ? "files" : initialAssets[0]?.type.toLowerCase() ?? "files",
   );
-  const [pendingTextAssets, setPendingTextAssets] = useState<string[]>([]);
-  const [pendingLinkAssets, setPendingLinkAssets] = useState<string[]>([]);
+  const [pendingTextAssets, setPendingTextAssets] = useState<string[]>(
+    initialAssets.filter((asset) => asset.type === "TEXT").map((asset) => asset.content),
+  );
+  const [pendingLinkAssets, setPendingLinkAssets] = useState<string[]>(
+    initialAssets.filter((asset) => asset.type === "LINK").map((asset) => asset.url),
+  );
   const [accessControl, setAccessControl] = useState<AccessControl>({});
 
   const validationSchema = yup.object().shape({
@@ -838,9 +847,11 @@ const CreateUploadModalBody = ({
 const SimplifiedCreateUploadModalModal = ({
   uploadCallback,
   files,
+  initialAssets,
   options,
 }: {
   files: FileUpload[];
+  initialAssets: CreateAsset[];
   uploadCallback: UploadCallback;
   options: {
     isUserSignedIn: boolean;
@@ -898,7 +909,7 @@ const SimplifiedCreateUploadModalModal = ({
         },
       },
       files,
-      [],
+      initialAssets,
     );
     modals.closeAll();
   });

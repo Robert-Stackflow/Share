@@ -1,8 +1,8 @@
 import {
+  Button,
   Center,
   Group,
   Select,
-  Space,
   Stack,
   Switch,
   Text,
@@ -15,7 +15,7 @@ import { TbSearch } from "react-icons/tb";
 import { FormattedMessage } from "react-intl";
 import Meta from "../../components/Meta";
 import AssetActionMenu from "../../components/asset/AssetActionMenu";
-import AssetComposer from "../../components/asset/AssetComposer";
+import AssetContentComposer from "../../components/content/AssetContentComposer";
 import AssetTable from "../../components/asset/AssetTable";
 import CenterLoader from "../../components/core/CenterLoader";
 import useTranslate from "../../hooks/useTranslate.hook";
@@ -78,6 +78,17 @@ const Assets = () => {
   }, []);
 
   if (!assets) return <CenterLoader />;
+  const hasActiveFilter = Boolean(search || typeFilter || sourceFilter || favoriteOnly || tagFilter);
+  const showFilters = assets.length > 0 || hasActiveFilter;
+
+  const clearFilters = () => {
+    setSearch("");
+    setTypeFilter(null);
+    setSourceFilter(null);
+    setFavoriteOnly(false);
+    setTagFilter(null);
+    setSort("createdAt_desc");
+  };
 
   return (
     <>
@@ -87,8 +98,9 @@ const Assets = () => {
       </Title>
 
       <Stack gap="sm" mb="xl">
-        <AssetComposer
-          variant="chat"
+        <AssetContentComposer
+          target={t("account.assets.title")}
+          buttonLabel={t("content.save-library")}
           onCreate={async (asset) => {
             const created = await assetService.create(asset as CreateAsset);
             setAssets((current) => [created, ...(current ?? [])]);
@@ -104,7 +116,7 @@ const Assets = () => {
         />
       </Stack>
 
-      <Group gap="sm" align="flex-end" wrap="wrap" mb="md">
+      {showFilters && <Group gap="sm" align="flex-end" wrap="wrap" mb="md">
         <TextInput
           leftSection={<TbSearch />}
           placeholder={t("account.assets.filter.search")}
@@ -180,7 +192,7 @@ const Assets = () => {
           checked={favoriteOnly}
           onChange={(event) => setFavoriteOnly(event.currentTarget.checked)}
         />
-      </Group>
+      </Group>}
 
       <AssetTable
         assets={assets}
@@ -194,12 +206,12 @@ const Assets = () => {
           <Center style={{ height: "45vh" }}>
             <Stack align="center" gap={10}>
               <Title order={3}>
-                <FormattedMessage id="account.assets.title.empty" />
+                <FormattedMessage id={hasActiveFilter ? "account.assets.title.noResults" : "account.assets.title.empty"} />
               </Title>
               <Text>
-                <FormattedMessage id="account.assets.description.empty" />
+                <FormattedMessage id={hasActiveFilter ? "account.assets.description.noResults" : "account.assets.description.empty"} />
               </Text>
-              <Space h={5} />
+              {hasActiveFilter && <Button variant="light" onClick={clearFilters}>{t("account.assets.filter.clear")}</Button>}
             </Stack>
           </Center>
         }

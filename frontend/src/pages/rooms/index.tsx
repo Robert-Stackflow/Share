@@ -32,7 +32,7 @@ import {
 } from "react-icons/tb";
 import { FormattedMessage } from "react-intl";
 import AccessControlForm from "../../components/access/AccessControlForm";
-import AssetComposer from "../../components/asset/AssetComposer";
+import AssetContentComposer from "../../components/content/AssetContentComposer";
 import RoomConversationPanel from "../../components/room/RoomConversationPanel";
 import CenterLoader from "../../components/core/CenterLoader";
 import Meta from "../../components/Meta";
@@ -532,8 +532,9 @@ export default function RoomsPage() {
               key={`${selection?.kind}:${active.id}`}
               assets={active.assets}
               composer={
-                <AssetComposer
-                  variant="chat"
+                <AssetContentComposer
+                  target={active.visibility === "PRIVATE" ? t("room.private.title") : active.name || active.roomId}
+                  buttonLabel={t("room.asset.create")}
                   onCreate={addAsset}
                   onFilesUploaded={addFiles}
                   uploadFile={(chunk, file, index, total) =>

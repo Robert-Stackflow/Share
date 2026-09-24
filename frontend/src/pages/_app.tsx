@@ -35,6 +35,8 @@ import userPreferences from "../utils/userPreferences.util";
 import { cookieColorSchemeManager } from "../utils/colorSchemeManager.util";
 import Footer from "../components/footer/Footer";
 import { getDefaultConfig } from "../utils/defaultConfig.util";
+import CenterLoader from "../components/core/CenterLoader";
+import englishMessages from "../i18n/translations/en-US";
 
 const excludeDefaultLayoutRoutes = ["/admin/config/[category]"];
 const availableMantineColors = [
@@ -131,7 +133,8 @@ function App({ Component, pageProps }: AppProps) {
     getDefaultConfig(),
   );
   const [language, setLanguage] = useState(DEFAULT_LOCALE);
-  const [messages, setMessages] = useState<Messages>({});
+  const [messages, setMessages] = useState<Messages>(englishMessages);
+  const [localeReady, setLocaleReady] = useState(false);
   const getStringConfigValue = (key: string, fallback = ""): string => {
     const config = configVariables?.find((item) => item.key === key);
     return (config?.value ?? config?.defaultValue ?? fallback).trim();
@@ -241,11 +244,15 @@ function App({ Component, pageProps }: AppProps) {
         if (!active) return;
         setLanguage(supportedLanguage);
         setMessages(loaded);
+        setLocaleReady(true);
         moment.locale(supportedLanguage.toLowerCase());
       },
-    ).catch(async () => {
-      const loaded = await i18nUtil.loadMessages(DEFAULT_LOCALE);
-      if (active) setMessages(loaded);
+    ).catch(() => {
+      if (active) {
+        setLanguage(DEFAULT_LOCALE);
+        setMessages(englishMessages);
+        setLocaleReady(true);
+      }
     });
 
     return () => {
@@ -317,7 +324,9 @@ function App({ Component, pageProps }: AppProps) {
                   },
                 }}
               >
-                {excludeDefaultLayoutRoutes.includes(route) ? (
+                {!localeReady ? (
+                  <CenterLoader />
+                ) : excludeDefaultLayoutRoutes.includes(route) ? (
                   <Component {...pageProps} />
                 ) : (
                   <Stack justify="space-between" mih="100vh">
