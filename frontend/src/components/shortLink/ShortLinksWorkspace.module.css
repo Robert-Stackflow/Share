@@ -19,6 +19,58 @@
   min-width: 0;
 }
 
+.codeCell {
+  min-width: 0;
+}
+
+.codeCell :global(a) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mobileMeta {
+  display: none;
+}
+
+.rowActionCell {
+  min-width: 160px;
+  width: 160px;
+}
+
+@media (max-width: 48em) {
+  .shortLinkTable {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .shortLinkTable :global(th),
+  .shortLinkTable :global(td) {
+    padding: 12px 10px;
+  }
+
+  .secondaryColumn,
+  .statusColumn {
+    display: none;
+  }
+
+  .mobileMeta {
+    display: grid;
+    gap: 4px;
+    margin-top: 6px;
+    min-width: 0;
+  }
+
+  .mobileMeta :global(.mantine-Badge-root) {
+    justify-self: start;
+  }
+
+  .rowActionCell {
+    min-width: 132px;
+    width: 132px;
+  }
+}
+
 .statsHeaderPanel {
   background: var(--mantine-color-body);
   border: 1px solid light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));

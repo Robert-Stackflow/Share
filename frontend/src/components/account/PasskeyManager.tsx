@@ -1,4 +1,3 @@
-import { startRegistration } from "@simplewebauthn/browser";
 import { Button, Group, Stack, Text, TextInput } from "@mantine/core";
 import { KeyRound, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -38,6 +37,7 @@ const PasskeyManager = () => {
     setBusy(true);
     try {
       const { data } = await authService.getPasskeyRegistrationOptions();
+      const { startRegistration } = await import("@simplewebauthn/browser");
       const response = await startRegistration({ optionsJSON: data.options });
       await authService.registerPasskey(
         data.challengeId,
