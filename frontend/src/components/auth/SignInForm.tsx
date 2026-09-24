@@ -1,4 +1,5 @@
-import { Info } from "lucide-react";
+import { Info, KeyRound } from "lucide-react";
+import { startAuthentication } from "@simplewebauthn/browser";
 import {
   Anchor,
   Button,
@@ -26,6 +27,7 @@ import authService from "../../services/auth.service";
 import { getOAuthIcon, getOAuthUrl } from "../../utils/oauth.util";
 import { safeRedirectPath } from "../../utils/router.util";
 import toast from "../../utils/toast.util";
+import { showPasskeyError } from "../../utils/passkey.util";
 import classes from "./SignInForm.module.css";
 
 const SignInForm = ({ redirectPath }: { redirectPath: string }) => {
@@ -37,6 +39,28 @@ const SignInForm = ({ redirectPath }: { redirectPath: string }) => {
   const [oauthProviders, setOauthProviders] = useState<string[] | null>(null);
   const [isRedirectingToOauthProvider, setIsRedirectingToOauthProvider] =
     useState(false);
+  const [passkeyBusy, setPasskeyBusy] = useState(false);
+
+  const signInWithPasskey = async () => {
+    if (!window.PublicKeyCredential) {
+      toast.error(t("passkey.unsupported"));
+      return;
+    }
+    setPasskeyBusy(true);
+    try {
+      const { data } = await authService.getPasskeyLoginOptions();
+      const assertion = await startAuthentication({
+        optionsJSON: data.options,
+      });
+      await authService.signInWithPasskey(data.challengeId, assertion);
+      await refreshUser();
+      await router.replace(safeRedirectPath(redirectPath));
+    } catch (error) {
+      showPasskeyError(error, t);
+    } finally {
+      setPasskeyBusy(false);
+    }
+  };
 
   const validationSchema = yup.object().shape({
     emailOrUsername: yup.string().required(t("common.error.field-required")),
@@ -152,6 +176,16 @@ const SignInForm = ({ redirectPath }: { redirectPath: string }) => {
             </Button>
           </form>
         )}
+        <Button
+          fullWidth
+          mt="md"
+          variant="light"
+          leftSection={<KeyRound size={16} />}
+          loading={passkeyBusy}
+          onClick={() => void signInWithPasskey()}
+        >
+          {t("passkey.signIn")}
+        </Button>
         {oauthProviders.length > 0 && (
           <Stack mt={config.get("oauth.disablePassword") ? undefined : "xl"}>
             {config.get("oauth.disablePassword") ? (

@@ -14,6 +14,7 @@ const withPWA = require("next-pwa")({
 });
 
 module.exports = withPWA({
+  distDir: process.env.NODE_ENV === "development" ? ".next-dev" : ".next",
   eslint: {
     // Lint is run as a separate CI step. Running lint and TypeScript together
     // doubles peak memory during a production image build.

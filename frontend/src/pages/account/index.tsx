@@ -1,4 +1,4 @@
-import { ShieldCheck } from "lucide-react";
+import { KeyRound, ShieldCheck } from "lucide-react";
 import {
   Badge,
   Button,
@@ -19,6 +19,7 @@ import { FormattedMessage } from "react-intl";
 import * as yup from "yup";
 import Meta from "../../components/Meta";
 import LanguagePicker from "../../components/account/LanguagePicker";
+import PasskeyManager from "../../components/account/PasskeyManager";
 import ThemeSwitcher from "../../components/account/ThemeSwitcher";
 import showEnableTotpModal from "../../components/account/showEnableTotpModal";
 import useConfig from "../../hooks/config.hook";
@@ -302,7 +303,14 @@ const Account = () => {
             <Tabs.Tab value="totp" leftSection={<ShieldCheck size={14} />}>
               TOTP
             </Tabs.Tab>
+            <Tabs.Tab value="passkeys" leftSection={<KeyRound size={14} />}>
+              {t("passkey.title")}
+            </Tabs.Tab>
           </Tabs.List>
+
+          <Tabs.Panel value="passkeys" pt="xs">
+            <PasskeyManager />
+          </Tabs.Panel>
 
           <Tabs.Panel value="totp" pt="xs">
             {user?.totpVerified ? (
