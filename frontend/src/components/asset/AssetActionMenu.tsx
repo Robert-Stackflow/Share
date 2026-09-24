@@ -6,6 +6,7 @@ import {
   Files,
   Link2,
   Library,
+  Pencil,
   Send,
   Share,
   Star,
@@ -79,6 +80,8 @@ const AssetActionMenu = ({
   const [isLoadingRooms, setIsLoadingRooms] = useState(false);
   const [isTagsModalOpen, setIsTagsModalOpen] = useState(false);
   const [tagValues, setTagValues] = useState<string[]>([]);
+  const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
+  const [nameDraft, setNameDraft] = useState("");
 
   const roomOptions = useMemo(
     () =>
@@ -183,6 +186,23 @@ const AssetActionMenu = ({
     setIsTagsModalOpen(true);
   };
 
+  const openRename = () => {
+    setNameDraft(asset.name || "");
+    setIsRenameModalOpen(true);
+  };
+
+  const saveName = () =>
+    runAction("rename", async () => {
+      const updated = await assetService.update(asset.id, {
+        name: nameDraft.trim(),
+      });
+      onAssetUpdated?.(updated);
+      setIsRenameModalOpen(false);
+      toast.success(t("account.assets.notify.renamed"));
+    });
+
+  const canSaveName = asset.type !== "FILE" || Boolean(nameDraft.trim());
+
   const saveTags = () =>
     runAction("tags", async () => {
       const updated = await assetService.update(asset.id, { tags: tagValues });
@@ -237,7 +257,7 @@ const AssetActionMenu = ({
             aria-label={t("account.assets.action.more")}
             color="gray"
             variant="subtle"
-            size={28}
+            size={36}
           >
             <EllipsisVertical />
           </ActionIcon>
@@ -277,6 +297,13 @@ const AssetActionMenu = ({
           {(canUseLibraryActions || canDelete) && <Menu.Divider />}
           {canUseLibraryActions && (
             <>
+              <Menu.Item
+                disabled={isBusy}
+                leftSection={<Pencil />}
+                onClick={openRename}
+              >
+                {t("account.assets.action.rename")}
+              </Menu.Item>
               <Menu.Item
                 disabled={isBusy}
                 leftSection={
@@ -366,6 +393,44 @@ const AssetActionMenu = ({
         onDownloadFile={downloadFile}
         allowFileDownload={canDownloadFile}
       />
+
+      <Modal
+        opened={isRenameModalOpen}
+        onClose={() => setIsRenameModalOpen(false)}
+        title={t("account.assets.rename.title")}
+      >
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (canSaveName) void saveName();
+          }}
+        >
+          <Stack>
+            <TextInput
+              autoFocus
+              label={t("account.assets.rename.name")}
+              maxLength={120}
+              onChange={(event) => setNameDraft(event.currentTarget.value)}
+              value={nameDraft}
+            />
+            <Group justify="flex-end">
+              <Button
+                variant="subtle"
+                onClick={() => setIsRenameModalOpen(false)}
+              >
+                {t("common.button.cancel")}
+              </Button>
+              <Button
+                disabled={!canSaveName}
+                loading={busyAction === "rename"}
+                type="submit"
+              >
+                {t("common.button.save")}
+              </Button>
+            </Group>
+          </Stack>
+        </form>
+      </Modal>
 
       <Modal
         opened={isSendModalOpen}
