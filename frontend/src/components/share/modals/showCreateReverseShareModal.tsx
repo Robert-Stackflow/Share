@@ -3,16 +3,18 @@ import {
   Button,
   Group,
   NumberInput,
+  SegmentedControl,
   Select,
   SimpleGrid,
   Stack,
   Switch,
   Text,
+  Textarea,
+  TextInput,
 } from "@mantine/core";
 import { useForm, yupResolver } from "@mantine/form";
 import { useModals } from "@mantine/modals";
 import { ModalsContextProps } from "@mantine/modals/lib/context";
-import { getCookie, setCookie } from "cookies-next";
 import moment from "moment";
 import { FormattedMessage } from "react-intl";
 import * as yup from "yup";
@@ -22,11 +24,6 @@ import useTranslate, {
 import { useState } from "react";
 import inboxService from "../../../services/inbox.service";
 import { Timespan } from "../../../types/timespan.type";
-import {
-  AccessControl,
-  toAccessControlPayload,
-} from "../../../types/accessControl.type";
-import AccessControlForm from "../../access/AccessControlForm";
 import { getExpirationPreview } from "../../../utils/date.util";
 import toast from "../../../utils/toast.util";
 import modalClasses from "../../core/ModalForm.module.css";
@@ -35,7 +32,6 @@ import showCompletedReverseShareModal from "./showCompletedReverseShareModal";
 
 const showCreateReverseShareModal = (
   modals: ModalsContextProps,
-  showSendEmailNotificationOption: boolean,
   maxExpiration: Timespan,
   defaultExpiration: Timespan,
   appUrl: string,
@@ -50,7 +46,6 @@ const showCreateReverseShareModal = (
     size: "lg",
     children: (
       <Body
-        showSendEmailNotificationOption={showSendEmailNotificationOption}
         getReverseShares={getReverseShares}
         maxExpiration={maxExpiration}
         defaultExpiration={defaultExpiration}
@@ -63,14 +58,12 @@ const showCreateReverseShareModal = (
 
 const Body = ({
   getReverseShares,
-  showSendEmailNotificationOption,
   maxExpiration,
   defaultExpiration,
   appUrl,
   defaultAppUrl,
 }: {
   getReverseShares: () => void;
-  showSendEmailNotificationOption: boolean;
   maxExpiration: Timespan;
   defaultExpiration: Timespan;
   appUrl: string;
@@ -78,7 +71,7 @@ const Body = ({
 }) => {
   const modals = useModals();
   const t = useTranslate();
-  const [accessControl, setAccessControl] = useState<AccessControl>({});
+  const [submissionMode, setSubmissionMode] = useState("ongoing");
 
   const defaultTimespan = defaultExpiration
     ? defaultExpiration
@@ -86,16 +79,23 @@ const Body = ({
 
   const form = useForm({
     initialValues: {
+      name: "",
+      description: "",
       maxShareSize: 104857600,
-      maxUseCount: 1,
-      sendEmailNotification: false,
+      maxUseCount: 10,
       expiration_num: defaultTimespan.value,
       expiration_unit: `-${defaultTimespan.unit}` as string,
-      simplified: !!(getCookie("reverse-share.simplified") ?? false),
-      publicAccess: !!(getCookie("reverse-share.public-access") ?? true),
+      simplified: false,
+      publicAccess: false,
     },
     validate: yupResolver(
       yup.object().shape({
+        name: yup
+          .string()
+          .trim()
+          .max(120)
+          .required(t("common.error.field-required")),
+        description: yup.string().max(1000),
         maxUseCount: yup
           .number()
           .typeError(t("common.error.invalid-number"))
@@ -107,10 +107,6 @@ const Body = ({
   });
 
   const onSubmit = form.onSubmit(async (values) => {
-    // remember simplified and publicAccess in cookies
-    setCookie("reverse-share.simplified", values.simplified);
-    setCookie("reverse-share.public-access", values.publicAccess);
-
     const expirationDate = moment().add(
       form.values.expiration_num,
       form.values.expiration_unit.replace(
@@ -137,13 +133,14 @@ const Body = ({
 
     inboxService
       .create({
+        name: values.name.trim(),
+        description: values.description.trim() || undefined,
         shareExpiration: values.expiration_num + values.expiration_unit,
         maxShareSize: String(values.maxShareSize),
-        maxUseCount: values.maxUseCount,
-        sendEmailNotification: values.sendEmailNotification,
+        maxUseCount: submissionMode === "once" ? 1 : values.maxUseCount,
+        sendEmailNotification: false,
         simplified: values.simplified,
         publicAccess: values.publicAccess,
-        accessControl: toAccessControlPayload(accessControl),
       })
       .then(({ link }) => {
         modals.closeAll();
@@ -155,6 +152,31 @@ const Body = ({
   return (
     <form onSubmit={onSubmit}>
       <Stack align="stretch" className={modalClasses.modalStack}>
+        <section className={modalClasses.section}>
+          <div className={modalClasses.sectionHeader}>
+            <Text className={modalClasses.sectionTitle}>
+              {t("account.reverseShares.modal.details")}
+            </Text>
+          </div>
+          <Stack gap="sm">
+            <TextInput
+              label={t("account.reverseShares.modal.name")}
+              maxLength={120}
+              required
+              variant="filled"
+              {...form.getInputProps("name")}
+            />
+            <Textarea
+              autosize
+              label={t("account.reverseShares.modal.description")}
+              maxLength={1000}
+              maxRows={4}
+              minRows={2}
+              variant="filled"
+              {...form.getInputProps("description")}
+            />
+          </Stack>
+        </section>
         <section className={modalClasses.section}>
           <div className={modalClasses.sectionHeader}>
             <Text className={modalClasses.sectionTitle}>
@@ -245,15 +267,34 @@ const Body = ({
               value={form.values.maxShareSize}
               onChange={(number) => form.setFieldValue("maxShareSize", number)}
             />
-            <NumberInput
-              decimalScale={0}
-              description={t("account.reverseShares.modal.max-use.description")}
-              label={t("account.reverseShares.modal.max-use.label")}
-              max={1000}
-              min={1}
-              variant="filled"
-              {...form.getInputProps("maxUseCount")}
+            <SegmentedControl
+              aria-label={t("account.reverseShares.modal.mode.label")}
+              data={[
+                {
+                  label: t("account.reverseShares.modal.mode.ongoing"),
+                  value: "ongoing",
+                },
+                {
+                  label: t("account.reverseShares.modal.mode.once"),
+                  value: "once",
+                },
+              ]}
+              onChange={setSubmissionMode}
+              value={submissionMode}
             />
+            {submissionMode === "ongoing" && (
+              <NumberInput
+                decimalScale={0}
+                description={t(
+                  "account.reverseShares.modal.max-use.description",
+                )}
+                label={t("account.reverseShares.modal.max-use.label")}
+                max={1000}
+                min={1}
+                variant="filled"
+                {...form.getInputProps("maxUseCount")}
+              />
+            )}
           </Stack>
         </section>
 
@@ -264,18 +305,9 @@ const Body = ({
             </Text>
           </div>
           <div className={modalClasses.switchList}>
-            {showSendEmailNotificationOption && (
-              <Switch
-                className={modalClasses.switchRow}
-                description={t(
-                  "account.reverseShares.modal.send-email.description",
-                )}
-                label={t("account.reverseShares.modal.send-email")}
-                {...form.getInputProps("sendEmailNotification", {
-                  type: "checkbox",
-                })}
-              />
-            )}
+            <Text size="sm" c="dimmed">
+              {t("account.reverseShares.modal.reviewNotice")}
+            </Text>
             <Switch
               className={modalClasses.switchRow}
               description={t(
@@ -295,11 +327,6 @@ const Body = ({
               {...form.getInputProps("publicAccess", {
                 type: "checkbox",
               })}
-            />
-            <AccessControlForm
-              value={accessControl}
-              onChange={setAccessControl}
-              fields={["maxViews", "allowDownload", "oneTime"]}
             />
           </div>
         </section>

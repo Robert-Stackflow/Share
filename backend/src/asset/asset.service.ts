@@ -299,6 +299,30 @@ export class AssetService {
     return clone;
   }
 
+  async saveToLibrary(assetId: string, owner: User) {
+    const asset = await this.prisma.asset.findFirst({
+      where: {
+        id: assetId,
+        OR: [
+          { room: { is: { ownerId: owner.id } } },
+          { share: { is: { creatorId: owner.id } } },
+        ],
+      },
+    });
+    if (!asset) throw new NotFoundException("Asset not found");
+
+    const saved = await this.cloneAsset(asset, owner, {
+      source: asset.source,
+    });
+    this.recordActivity({
+      actorId: owner.id,
+      action: "asset.save",
+      targetId: saved.id,
+      metadata: { type: saved.type, savedFrom: assetId },
+    });
+    return saved;
+  }
+
   async createShareFromAsset(assetId: string, owner: User) {
     const sourceAsset = await this.getOwned(assetId, owner.id);
     const share = await this.prisma.share.create({

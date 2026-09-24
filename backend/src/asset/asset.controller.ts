@@ -156,6 +156,11 @@ export class AssetController {
     return this.assetService.cloneOwned(id, user);
   }
 
+  @Post(":id/save-to-library")
+  async saveToLibrary(@Param("id") id: string, @GetUser() user: User) {
+    return this.assetService.saveToLibrary(id, user);
+  }
+
   @Post(":id/share")
   async share(@Param("id") id: string, @GetUser() user: User) {
     return this.assetService.createShareFromAsset(id, user);

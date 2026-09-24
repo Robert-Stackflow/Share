@@ -125,7 +125,8 @@ test("header menu buttons and account tables use the calm shared styling", () =>
   const myShares = read("pages/account/shares.tsx");
   const dataTableCss = read("components/core/DataTable.module.css");
 
-  assert.match(shareMenu, /classes\.iconLink/);
+  assert.match(shareMenu, /classes\.link/);
+  assert.match(shareMenu, /navbar\.contentAndSharing/);
   assert.match(avatar, /classes\.iconLink/);
   assert.match(headerCss, /\.iconLink/);
   assert.doesNotMatch(shareMenu, /<ActionIcon>/);
@@ -300,7 +301,7 @@ test("inbox uploads create pending submissions instead of shares", () => {
   assert.match(uploadPage, /hasFiles:\s*files\.length > 0/);
   assert.match(uploadPage, /inbox\.submission\.created/);
   assert.match(uploadPage, /shareService\.create/);
-  assert.match(uploadPage, /shareService\.completeShare/);
+  assert.match(uploadPage, /shareService\s*\.completeShare/);
 
   assert.match(createUpload, /isInbox\?:\s*boolean/);
   assert.match(createUpload, /options\.isInbox/);

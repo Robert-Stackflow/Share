@@ -21,7 +21,9 @@ export const getStaticPaths: GetStaticPaths = async () => ({
   paths: [{ params: { shareId: "_" } }],
   fallback: false,
 });
-export const getStaticProps: GetStaticProps = async () => ({ props: { shareId: "_" } });
+export const getStaticProps: GetStaticProps = async () => ({
+  props: { shareId: "_" },
+});
 
 const Share = () => {
   const shareId = useStaticRouteParam("shareId", 1);
@@ -169,6 +171,7 @@ const Share = () => {
                   deleteSuccessMessage={t("share.asset.notify.deleted")}
                   onDelete={(asset) => removeShareAsset(asset)}
                   showLibraryActions={false}
+                  showSaveToLibrary
                 />
               )}
             />

@@ -556,6 +556,7 @@ export default function RoomsPage() {
                 roomService.downloadFileUrl(active.roomId, asset.id)
               }
               onDelete={selection?.kind === "owned" ? removeAsset : undefined}
+              canSaveToLibrary={selection?.kind === "owned"}
               scrollToLatestSignal={scrollSignal}
               subtitle={
                 active.visibility === "PRIVATE" ? undefined : active.roomId

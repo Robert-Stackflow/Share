@@ -70,6 +70,10 @@ const clone = async (id: string): Promise<Asset> => {
   return mapAsset((await api.post(`assets/${id}/clone`)).data);
 };
 
+const saveToLibrary = async (id: string): Promise<Asset> => {
+  return mapAsset((await api.post(`assets/${id}/save-to-library`)).data);
+};
+
 const createShare = async (id: string): Promise<AssetShareResult> => {
   return (await api.post(`assets/${id}/share`)).data;
 };
@@ -120,6 +124,7 @@ export default {
   remove,
   update,
   clone,
+  saveToLibrary,
   createShare,
   createShortLink,
   sendToRoom,

@@ -81,7 +81,7 @@ const showCreateUploadModal = (
 
   if (options.simplified) {
     return modals.openModal({
-      title: t("upload.modal.title"),
+      title: t(options.isInbox ? "inbox.submit.review" : "upload.modal.title"),
       centered: true,
       size: "lg",
       children: (
@@ -96,7 +96,7 @@ const showCreateUploadModal = (
   }
 
   return modals.openModal({
-    title: t("upload.modal.title"),
+    title: t(options.isInbox ? "inbox.submit.review" : "upload.modal.title"),
     centered: true,
     size: 760,
     children: (
@@ -411,7 +411,11 @@ const CreateUploadModalBody = ({
                     {t("upload.modal.content.title")}
                   </Text>
                   <Text className={modalClasses.sectionDescription}>
-                    {t("upload.modal.content.description")}
+                    {t(
+                      options.isInbox
+                        ? "inbox.submit.contentDescription"
+                        : "upload.modal.content.description",
+                    )}
                   </Text>
                 </div>
                 <Badge

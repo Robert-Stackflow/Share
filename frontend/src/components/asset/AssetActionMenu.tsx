@@ -5,6 +5,7 @@ import {
   Eye,
   Files,
   Link2,
+  Library,
   Send,
   Share,
   Star,
@@ -48,6 +49,7 @@ type AssetActionMenuProps = {
   onTagsUpdated?: () => void;
   readOnly?: boolean;
   showLibraryActions?: boolean;
+  showSaveToLibrary?: boolean;
 };
 
 const AssetActionMenu = ({
@@ -63,6 +65,7 @@ const AssetActionMenu = ({
   onTagsUpdated,
   readOnly = false,
   showLibraryActions = !readOnly,
+  showSaveToLibrary = false,
 }: AssetActionMenuProps) => {
   const clipboard = useClipboard();
   const modals = useModals();
@@ -257,6 +260,20 @@ const AssetActionMenu = ({
               {t("common.button.download")}
             </Menu.Item>
           )}
+          {showSaveToLibrary && (
+            <Menu.Item
+              disabled={isBusy}
+              leftSection={<Library />}
+              onClick={() =>
+                runAction("save-to-library", async () => {
+                  await assetService.saveToLibrary(asset.id);
+                  toast.success(t("account.assets.notify.savedToLibrary"));
+                })
+              }
+            >
+              {t("account.assets.action.saveToLibrary")}
+            </Menu.Item>
+          )}
           {(canUseLibraryActions || canDelete) && <Menu.Divider />}
           {canUseLibraryActions && (
             <>
@@ -298,7 +315,7 @@ const AssetActionMenu = ({
                       asset.id,
                     );
                     copyValue(
-                      `${window.location.origin}/l/${shortLink.code}`,
+                      `${window.location.origin}/s/${shortLink.code}`,
                       t("account.assets.action.createShortLink"),
                     );
                     toast.success(t("account.assets.notify.shortLinkCreated"));

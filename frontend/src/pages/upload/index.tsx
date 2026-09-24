@@ -1,11 +1,14 @@
-import { Stack } from "@mantine/core";
+import { Alert, Stack } from "@mantine/core";
 import { useModals } from "@mantine/modals";
 import { cleanNotifications } from "@mantine/notifications";
 import { AxiosError } from "axios";
+import { CircleCheck } from "lucide-react";
 import pLimit from "p-limit";
 import { useEffect, useRef, useState } from "react";
 import Meta from "../../components/Meta";
-import ContentIntake, { PendingContent } from "../../components/content/ContentIntake";
+import ContentIntake, {
+  PendingContent,
+} from "../../components/content/ContentIntake";
 import FileList from "../../components/upload/FileList";
 import showCompletedUploadModal from "../../components/upload/modals/showCompletedUploadModal";
 import showCreateUploadModal from "../../components/upload/modals/showCreateUploadModal";
@@ -30,11 +33,13 @@ const Upload = ({
   maxShareSize,
   isReverseShare = false,
   inboxToken,
+  inboxName,
   simplified,
 }: {
   maxShareSize?: number;
   isReverseShare: boolean;
   inboxToken?: string;
+  inboxName?: string;
   simplified: boolean;
 }) => {
   const modals = useModals();
@@ -45,6 +50,7 @@ const Upload = ({
   const [files, setFiles] = useState<FileUpload[]>([]);
   const [isUploading, setisUploading] = useState(false);
   const [resetSignal, setResetSignal] = useState(0);
+  const [receiptId, setReceiptId] = useState<string | null>(null);
 
   useConfirmLeave({
     message: t("upload.notify.confirm-leave"),
@@ -62,6 +68,7 @@ const Upload = ({
     pendingAssets: CreateAsset[] = [],
   ) => {
     setisUploading(true);
+    setReceiptId(null);
     setFiles(files);
 
     try {
@@ -92,12 +99,14 @@ const Upload = ({
       if (isInboxUpload) {
         setisUploading(false);
         toast.success(t("inbox.submission.created"));
+        setReceiptId(createdSubmission.id);
         setFiles([]);
         setResetSignal((value) => value + 1);
         return;
       }
 
-      shareService.completeShare(createdShare.id)
+      shareService
+        .completeShare(createdShare.id)
         .then((share) => {
           setisUploading(false);
           showCompletedUploadModal(
@@ -194,13 +203,21 @@ const Upload = ({
 
   const showCreateUploadModalCallback = (items: PendingContent[]) => {
     const selectedFiles = items
-      .filter((item): item is Extract<PendingContent, { type: "FILE" }> => item.type === "FILE")
-      .map((item) => Object.assign(item.file, { uploadingProgress: 0 }) as FileUpload);
+      .filter(
+        (item): item is Extract<PendingContent, { type: "FILE" }> =>
+          item.type === "FILE",
+      )
+      .map(
+        (item) =>
+          Object.assign(item.file, { uploadingProgress: 0 }) as FileUpload,
+      );
     const initialAssets: CreateAsset[] = items.flatMap((item) => {
       if (item.type === "FILE") return [];
-      return [item.type === "TEXT"
-        ? { type: "TEXT" as const, content: item.value }
-        : { type: "LINK" as const, url: item.value.trim() }];
+      return [
+        item.type === "TEXT"
+          ? { type: "TEXT" as const, content: item.value }
+          : { type: "LINK" as const, url: item.value.trim() },
+      ];
     });
     showCreateUploadModal(
       modals,
@@ -256,12 +273,14 @@ const Upload = ({
       if (isInboxUpload) {
         setisUploading(false);
         toast.success(t("inbox.submission.created"));
+        setReceiptId(createdSubmission.id);
         setFiles([]);
         setResetSignal((value) => value + 1);
         return;
       }
 
-      shareService.completeShare(createdShare.id)
+      shareService
+        .completeShare(createdShare.id)
         .then((share) => {
           setisUploading(false);
           showCompletedUploadModal(
@@ -279,17 +298,44 @@ const Upload = ({
 
   return (
     <>
-      <Meta title={t("upload.title")} />
+      <Meta
+        title={
+          isInboxUpload
+            ? inboxName || t("inbox.submit.title")
+            : t("upload.title")
+        }
+      />
+      {isInboxUpload && receiptId && (
+        <Alert
+          color="green"
+          icon={<CircleCheck size={16} />}
+          mb="md"
+          title={t("inbox.submit.receiptTitle")}
+        >
+          {t("inbox.submit.receipt", { id: receiptId })}
+        </Alert>
+      )}
       <ContentIntake
-        target={t(isInboxUpload ? "content.target.inbox" : "content.target.upload")}
-        buttonLabel={t("content.continue")}
+        target={
+          isInboxUpload
+            ? inboxName || t("content.target.inbox")
+            : t("content.target.upload")
+        }
+        buttonLabel={t(
+          isInboxUpload ? "inbox.submit.review" : "content.continue",
+        )}
         maxSize={maxShareSize}
         disabled={isUploading || modals.modals.length > 0}
         resetSignal={resetSignal}
-        onSubmit={(items) => { showCreateUploadModalCallback(items); return false; }}
+        onSubmit={(items) => {
+          showCreateUploadModalCallback(items);
+          return false;
+        }}
       />
       {isUploading && files.length > 0 && (
-        <Stack mt="md"><FileList<FileUpload> files={files} setFiles={setFiles} /></Stack>
+        <Stack mt="md">
+          <FileList<FileUpload> files={files} setFiles={setFiles} />
+        </Stack>
       )}
     </>
   );

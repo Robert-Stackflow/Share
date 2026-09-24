@@ -5,8 +5,9 @@ export default {
   "navbar.signin": "Sign in",
   "navbar.home": "Home",
   "navbar.signup": "Sign up",
+  "navbar.contentAndSharing": "Content & sharing",
 
-  "navbar.links.shares": "My shares",
+  "navbar.links.shares": "Independent shares",
   "navbar.links.assets": "My assets",
   "navbar.links.shortLinks": "Short links",
   "navbar.links.reverse": "Inboxes",
@@ -149,9 +150,10 @@ export default {
   // END /account
 
   // /account/shares
-  "account.shares.title": "My shares",
-  "account.shares.title.empty": "It's empty here 👀",
-  "account.shares.description.empty": "You don't have any shares.",
+  "account.shares.title": "Independent shares",
+  "account.shares.title.empty": "No independent shares yet",
+  "account.shares.description.empty":
+    "Create one by uploading content or from your asset library.",
   "account.shares.button.create": "Create one",
 
   "account.shares.info.title": "Share informations",
@@ -221,12 +223,14 @@ export default {
   "account.assets.notify.shareCreated": "Share created",
   "account.assets.notify.shortLinkCreated": "Short link created",
   "account.assets.notify.sentToRoom": "Asset sent to room",
+  "account.assets.notify.savedToLibrary": "Saved to your asset library",
   "account.assets.action.more": "Asset actions",
   "account.assets.action.preview": "Preview",
   "account.assets.action.copy": "Copy content or link",
   "account.assets.action.createShare": "Create share",
   "account.assets.action.createShortLink": "Create short link",
   "account.assets.action.sendToRoom": "Send to room",
+  "account.assets.action.saveToLibrary": "Save to asset library",
   "account.assets.action.clone": "Copy asset",
   "account.assets.preview.title": "Preview asset",
   "account.assets.preview.file.unsupported":
@@ -270,6 +274,7 @@ export default {
   "account.activity.action.asset.create": "Created asset",
   "account.activity.action.asset.delete": "Deleted asset",
   "account.activity.action.asset.clone": "Copied asset",
+  "account.activity.action.asset.save": "Saved asset to library",
   "account.activity.action.share.create": "Created share",
   "account.activity.action.share.complete": "Completed share",
   "account.activity.action.share.delete": "Deleted share",
@@ -442,12 +447,15 @@ export default {
   "account.reverseShares.description":
     "Inboxes let external users submit files, text, and links for your review.",
 
-  "account.reverseShares.title.empty": "It's empty here 👀",
+  "account.reverseShares.title.empty": "No inboxes yet",
   "account.reverseShares.description.empty":
-    "You don't have any inboxes.",
+    "Create an inbox link to receive content for review.",
 
   // showCreateReverseShareModal.tsx
   "account.reverseShares.modal.title": "Create inbox",
+  "account.reverseShares.modal.details": "Inbox details",
+  "account.reverseShares.modal.name": "Inbox name",
+  "account.reverseShares.modal.description": "Instructions for submitters",
   "account.reverseShares.modal.expiration.label": "Expiration",
   "account.reverseShares.modal.expiration.minute-singular": "Minute",
   "account.reverseShares.modal.expiration.minute-plural": "Minutes",
@@ -462,7 +470,12 @@ export default {
   "account.reverseShares.modal.expiration.year-singular": "Year",
   "account.reverseShares.modal.expiration.year-plural": "Years",
 
-  "account.reverseShares.modal.max-size.label": "Max share size",
+  "account.reverseShares.modal.max-size.label": "Max size per submission",
+  "account.reverseShares.modal.mode.label": "Submission mode",
+  "account.reverseShares.modal.mode.ongoing": "Ongoing collection",
+  "account.reverseShares.modal.mode.once": "One submission",
+  "account.reverseShares.modal.reviewNotice":
+    "Submissions wait for your review and remain private while pending.",
 
   "account.reverseShares.modal.send-email": "Send email notifications",
   "account.reverseShares.modal.send-email.description":
@@ -470,40 +483,43 @@ export default {
 
   "account.reverseShares.modal.simplified": "Simple mode",
   "account.reverseShares.modal.simplified.description":
-    "Make it easy for the person uploading the file to share it with you. They will only be able to customize the name and description of the share.",
+    "Show a shorter form to people submitting content.",
 
-  "account.reverseShares.modal.public-access": "Public access",
+  "account.reverseShares.modal.public-access":
+    "Allow public links after approval",
   "account.reverseShares.modal.public-access.description":
-    "Make the shares created with this reverse share public. If disabled, only you and the share creator will have access to view it.",
+    "Applies only when you accept a submission as a share.",
 
   "account.reverseShares.modal.max-use.label": "Max uses",
   "account.reverseShares.modal.max-use.description":
-    "The maximum amount of times this URL can be used to create a share.",
+    "Each submission uses one of these slots.",
   "account.reverseShare.never-expires": "This inbox will never expire.",
   "account.reverseShare.expires-on":
     "This inbox will expire on {expiration}.",
 
-  "account.reverseShares.table.no-shares": "No shares created yet",
+  "account.reverseShares.table.unnamed": "Unnamed inbox",
+  "account.reverseShares.table.no-shares": "No accepted shares",
   "account.reverseShares.table.count.singular": "share",
   "account.reverseShares.table.count.plural": "shares",
-  "account.reverseShares.table.shares": "Shares",
+  "account.reverseShares.table.shares": "Inbox",
   "account.reverseShares.table.remaining": "Remaining uses",
-  "account.reverseShares.table.max-size": "Max share size",
+  "account.reverseShares.table.max-size": "Max size per submission",
   "account.reverseShares.table.expires": "Expires at",
 
   "account.reverseShares.submissions.pending": "Pending submissions",
   "account.reverseShares.submissions.empty": "No pending submissions.",
   "account.reverseShares.submissions.assets": "Assets",
   "account.reverseShares.submissions.message": "Message",
+  "account.reverseShares.submissions.submittedAt": "Submitted at",
   "account.reverseShares.submissions.noMessage": "No message",
-  "account.reverseShares.submissions.acceptAssets": "Receive assets",
-  "account.reverseShares.submissions.acceptShare": "Receive as share",
+  "account.reverseShares.submissions.acceptAssets": "Save to library",
+  "account.reverseShares.submissions.acceptShare": "Create share",
   "account.reverseShares.submissions.reject": "Reject",
   "account.reverseShares.submissions.reject.title": "Reject submission",
   "account.reverseShares.submissions.reject.description":
     "Reject this submission and delete its uploaded assets?",
   "account.reverseShares.submissions.notify.acceptedAssets":
-    "Submission received into your assets",
+    "Submission saved to your library",
   "account.reverseShares.submissions.notify.acceptedShare":
     "Submission received as a share",
   "account.reverseShares.submissions.notify.rejected": "Submission rejected",
@@ -654,6 +670,15 @@ export default {
   "upload.modal.content.link.invalid": "Enter a valid URL with protocol.",
   "upload.modal.inbox.submit": "Submit",
   "inbox.submission.created": "Submission received",
+  "inbox.submit.title": "Submit to inbox",
+  "inbox.submit.review": "Review submission",
+  "inbox.submit.contentDescription":
+    "Check the files, text, and links before submitting them.",
+  "inbox.submit.receiptTitle": "Submission received",
+  "inbox.submit.receipt":
+    "Your content is waiting for review. Receipt ID: {id}",
+  "inbox.submit.reviewNotice":
+    "Your content will be reviewed before the inbox owner makes it available.",
   "upload.modal.details.title": "Details",
   "upload.modal.details.name.placeholder": "Name",
   "upload.modal.details.description.placeholder":

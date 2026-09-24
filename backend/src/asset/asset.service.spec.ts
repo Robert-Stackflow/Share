@@ -79,6 +79,9 @@ function createStorageMock() {
       remove: async (assetId: string) => {
         calls.push(["remove", assetId]);
       },
+      copy: async (sourceId: string, targetId: string) => {
+        calls.push(["copy", sourceId, targetId]);
+      },
     },
   };
 }
@@ -579,4 +582,50 @@ test("getDownloadStream rejects provided non-file assets", async () => {
       } as any),
     BadRequestException,
   );
+});
+
+test("saveToLibrary copies an owned room file into the private library", async () => {
+  const { prisma, created } = createPrismaMock();
+  const { calls, storage } = createStorageMock();
+  const source = {
+    id: fileId,
+    type: "FILE",
+    name: "note.txt",
+    size: "11",
+    mimeType: "text/plain",
+    storage: "LOCAL",
+    source: "ROOM",
+  };
+  (prisma.asset as any).findFirst = async ({ where }: any) => {
+    assert.deepEqual(where, {
+      id: fileId,
+      OR: [
+        { room: { is: { ownerId: "user-1" } } },
+        { share: { is: { creatorId: "user-1" } } },
+      ],
+    });
+    return source;
+  };
+  const service = new AssetService(prisma as any, storage as any);
+
+  const saved = await service.saveToLibrary(fileId, user as any);
+
+  assert.equal(saved.ownerId, "user-1");
+  assert.equal(saved.source, "ROOM");
+  assert.equal(created[0].room, undefined);
+  assert.equal(created[0].share, undefined);
+  assert.deepEqual(calls, [["copy", fileId, created[0].id]]);
+});
+
+test("saveToLibrary rejects an asset outside owned rooms and shares", async () => {
+  const { prisma } = createPrismaMock();
+  const { calls, storage } = createStorageMock();
+  (prisma.asset as any).findFirst = async () => null;
+  const service = new AssetService(prisma as any, storage as any);
+
+  await assert.rejects(
+    () => service.saveToLibrary(fileId, user as any),
+    NotFoundException,
+  );
+  assert.deepEqual(calls, []);
 });

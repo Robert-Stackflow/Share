@@ -143,6 +143,9 @@ model ReverseShare {
   id        String   @id @default(uuid())
   createdAt DateTime @default(now())
 
+  name        String?
+  description String?
+
   token                 String   @unique @default(uuid())
   shareExpiration       DateTime
   maxShareSize          String

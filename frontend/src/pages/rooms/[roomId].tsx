@@ -211,6 +211,7 @@ const RoomPage = () => {
             roomService.downloadFileUrl(roomKey, asset.id)
           }
           onDelete={isOwner ? deleteAsset : undefined}
+          canSaveToLibrary={isOwner}
           subtitle={room.roomId}
           title={room.name || room.roomId}
           empty={

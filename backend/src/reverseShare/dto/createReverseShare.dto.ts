@@ -3,6 +3,7 @@ import {
   IsBoolean,
   IsOptional,
   IsString,
+  MaxLength,
   Max,
   Min,
   ValidateNested,
@@ -10,6 +11,16 @@ import {
 import { AccessControlDTO } from "src/accessPolicy/dto/accessControl.dto";
 
 export class CreateReverseShareDTO {
+  @IsOptional()
+  @IsString()
+  @MaxLength(120)
+  name?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(1000)
+  description?: string;
+
   @IsBoolean()
   sendEmailNotification: boolean;
 

@@ -1,4 +1,4 @@
-import { LoadingOverlay } from "@mantine/core";
+import { LoadingOverlay, Stack, Text, Title } from "@mantine/core";
 import { useModals } from "@mantine/modals";
 import { GetStaticPaths, GetStaticProps } from "next";
 import { useEffect, useState } from "react";
@@ -12,7 +12,9 @@ export const getStaticPaths: GetStaticPaths = async () => ({
   paths: [{ params: { token: "_" } }],
   fallback: false,
 });
-export const getStaticProps: GetStaticProps = async () => ({ props: { inboxToken: "_" } });
+export const getStaticProps: GetStaticProps = async () => ({
+  props: { inboxToken: "_" },
+});
 
 const InboxUpload = () => {
   const inboxToken = useStaticRouteParam("token", 1);
@@ -22,6 +24,8 @@ const InboxUpload = () => {
 
   const [maxShareSize, setMaxShareSize] = useState(0);
   const [simplified, setSimplified] = useState(false);
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
 
   useEffect(() => {
     if (!inboxToken) return;
@@ -30,6 +34,8 @@ const InboxUpload = () => {
       .then((inbox) => {
         setMaxShareSize(parseInt(inbox.maxShareSize));
         setSimplified(inbox.simplified);
+        setName(inbox.name ?? "");
+        setDescription(inbox.description ?? "");
         setIsLoading(false);
       })
       .catch(() => {
@@ -46,12 +52,24 @@ const InboxUpload = () => {
   if (!inboxToken || isLoading) return <LoadingOverlay visible />;
 
   return (
-    <Upload
-      inboxToken={inboxToken}
-      isReverseShare
-      maxShareSize={maxShareSize}
-      simplified={simplified}
-    />
+    <>
+      <Stack gap="xs" maw={1080} mx="auto" mb="lg">
+        <Title order={3}>{name || t("inbox.submit.title")}</Title>
+        {description && (
+          <Text style={{ whiteSpace: "pre-wrap" }}>{description}</Text>
+        )}
+        <Text c="dimmed" size="sm">
+          {t("inbox.submit.reviewNotice")}
+        </Text>
+      </Stack>
+      <Upload
+        inboxToken={inboxToken}
+        inboxName={name}
+        isReverseShare
+        maxShareSize={maxShareSize}
+        simplified={simplified}
+      />
+    </>
   );
 };
 

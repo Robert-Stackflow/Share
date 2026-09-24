@@ -3,6 +3,8 @@ import { Asset } from "./asset.type";
 import { AccessControl } from "./accessControl.type";
 
 export type CreateInbox = {
+  name?: string;
+  description?: string;
   shareExpiration: string;
   maxShareSize: string;
   maxUseCount: number;
@@ -16,6 +18,8 @@ export type Inbox = MyReverseShare;
 
 export type PublicInbox = {
   id: string;
+  name?: string;
+  description?: string;
   maxShareSize: string;
   shareExpiration: Date;
   token: string;

@@ -37,6 +37,7 @@ type RoomConversationPanelProps = {
   getFileDownloadUrl?: (asset: Asset) => string;
   hideHeader?: boolean;
   onDelete?: (asset: Asset) => Promise<void>;
+  canSaveToLibrary?: boolean;
   scrollToLatestSignal?: number;
   subtitle?: ReactNode;
   title: ReactNode;
@@ -51,6 +52,7 @@ const RoomConversationPanel = ({
   getFileDownloadUrl,
   hideHeader = false,
   onDelete,
+  canSaveToLibrary = false,
   scrollToLatestSignal,
   subtitle,
   title,
@@ -135,6 +137,7 @@ const RoomConversationPanel = ({
         downloadUrl={getFileDownloadUrl?.(asset)}
         onDelete={onDelete}
         showLibraryActions={false}
+        showSaveToLibrary={canSaveToLibrary}
       />
     </Group>
   );

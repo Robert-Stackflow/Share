@@ -182,7 +182,6 @@ const MyShares = () => {
           onClick={() =>
             showCreateReverseShareModal(
               modals,
-              config.get("smtp.enabled"),
               config.get("share.maxExpiration"),
               config.get("share.defaultExpiration"),
               appUrl,
@@ -238,7 +237,7 @@ const MyShares = () => {
                         <FormattedMessage id="account.reverseShares.submissions.assets" />
                       </th>
                       <th>
-                        <FormattedMessage id="account.reverseShares.table.expires" />
+                        <FormattedMessage id="account.reverseShares.submissions.submittedAt" />
                       </th>
                       <th className={tableClasses.actionCell}></th>
                     </tr>
@@ -248,7 +247,8 @@ const MyShares = () => {
                       <tr className={tableClasses.tableRow} key={submission.id}>
                         <td className={tableClasses.valueCell}>
                           <Text size="sm" truncate>
-                            {inbox.token}
+                            {inbox.name ||
+                              t("account.reverseShares.table.unnamed")}
                           </Text>
                         </td>
                         <td className={tableClasses.valueCell}>
@@ -357,6 +357,15 @@ const MyShares = () => {
                 {reverseShares.map((reverseShare) => (
                   <tr className={tableClasses.tableRow} key={reverseShare.id}>
                     <td className={tableClasses.valueCell}>
+                      <Text fw={600} size="sm">
+                        {reverseShare.name ||
+                          t("account.reverseShares.table.unnamed")}
+                      </Text>
+                      {reverseShare.description && (
+                        <Text c="dimmed" lineClamp={2} size="xs">
+                          {reverseShare.description}
+                        </Text>
+                      )}
                       {reverseShare.shares.length == 0 ? (
                         <Text c="dimmed" size="sm">
                           <FormattedMessage id="account.reverseShares.table.no-shares" />

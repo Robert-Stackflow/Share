@@ -1,34 +1,24 @@
-import { Link2, Package, RotateCcw } from "lucide-react";
-import { ActionIcon, Menu } from "@mantine/core";
+import { ChevronDown, Inbox, Link2, Package } from "lucide-react";
+import { Group, Menu, UnstyledButton } from "@mantine/core";
 import Link from "next/link";
 import { FormattedMessage } from "react-intl";
 import useTranslate from "../../hooks/useTranslate.hook";
 import classes from "./Header.module.css";
 
-const NavbarShareMneu = () => {
+const NavbarShareMenu = () => {
   const t = useTranslate();
 
   return (
     <Menu position="bottom-start" withinPortal>
       <Menu.Target>
-        <ActionIcon
-          aria-label={t("common.button.shares")}
-          className={classes.iconLink}
-          color="gray"
-          title={t("common.button.shares")}
-          variant="subtle"
-        >
-          <Link2 />
-        </ActionIcon>
+        <UnstyledButton className={classes.link}>
+          <Group gap={6} wrap="nowrap">
+            <span>{t("navbar.contentAndSharing")}</span>
+            <ChevronDown size={14} />
+          </Group>
+        </UnstyledButton>
       </Menu.Target>
       <Menu.Dropdown>
-        <Menu.Item
-          component={Link}
-          href="/account/shares"
-          leftSection={<Link2 />}
-        >
-          <FormattedMessage id="navbar.links.shares" />
-        </Menu.Item>
         <Menu.Item
           component={Link}
           href="/account/assets"
@@ -38,8 +28,15 @@ const NavbarShareMneu = () => {
         </Menu.Item>
         <Menu.Item
           component={Link}
+          href="/account/shares"
+          leftSection={<Link2 />}
+        >
+          <FormattedMessage id="navbar.links.shares" />
+        </Menu.Item>
+        <Menu.Item
+          component={Link}
           href="/account/reverseShares"
-          leftSection={<RotateCcw />}
+          leftSection={<Inbox />}
         >
           <FormattedMessage id="navbar.links.reverse" />
         </Menu.Item>
@@ -48,4 +45,4 @@ const NavbarShareMneu = () => {
   );
 };
 
-export default NavbarShareMneu;
+export default NavbarShareMenu;

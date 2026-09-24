@@ -107,7 +107,7 @@ const Header = () => {
           label: t("navbar.links.shortLinks"),
         },
         {
-          label: t("common.button.shares"),
+          label: t("navbar.contentAndSharing"),
         },
         {
           label: t("common.button.profile"),
@@ -198,7 +198,7 @@ const Header = () => {
 
   const renderMobileEntry = (link: NavLink) => {
     const isSharesEntry =
-      mobileMenuView === "root" && link.label === t("common.button.shares");
+      mobileMenuView === "root" && link.label === t("navbar.contentAndSharing");
     const isProfileEntry =
       mobileMenuView === "root" && link.label === t("common.button.profile");
 
