@@ -22,6 +22,9 @@ export default {
   "passkey.recentLogin": "管理通行密钥需要最近 10 分钟内完成登录；如提示身份已过期，请重新登录。",
   // Navbar
   "navbar.upload": "上传",
+  "navbar.menu.open": "打开菜单",
+  "navbar.menu.close": "关闭菜单",
+  "navbar.menu.back": "返回主菜单",
   "navbar.rooms": "房间",
   "navbar.signin": "登录",
   "navbar.home": "首页",

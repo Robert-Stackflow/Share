@@ -22,6 +22,9 @@ export default {
   "passkey.recentLogin": "To add or change passkeys, sign in again if your last sign-in was more than 10 minutes ago.",
   // Navbar
   "navbar.upload": "Upload",
+  "navbar.menu.open": "Open menu",
+  "navbar.menu.close": "Close menu",
+  "navbar.menu.back": "Back to main menu",
   "navbar.rooms": "Rooms",
   "navbar.signin": "Sign in",
   "navbar.home": "Home",
