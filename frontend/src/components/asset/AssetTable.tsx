@@ -2,6 +2,7 @@ import { FileIcon, FileText, Link2 } from "lucide-react";
 import { Anchor, Box, Group, Skeleton, Table, Text } from "@mantine/core";
 import moment from "moment";
 import { ReactNode } from "react";
+import { useIntl } from "react-intl";
 import useTranslate from "../../hooks/useTranslate.hook";
 import { Asset, AssetType } from "../../types/asset.type";
 import { byteToHumanSizeString } from "../../utils/fileSize.util";
@@ -117,6 +118,7 @@ const AssetTable = ({
   textLineClamp = 2,
   typeLabelPrefix = "account.assets.type",
 }: AssetTableProps) => {
+  const intl = useIntl();
   const hasActions = Boolean(renderActions);
 
   if (!isLoading && assets.length === 0 && empty) {
@@ -177,7 +179,13 @@ const AssetTable = ({
                         />
                       )}
                       {column === "createdAt" &&
-                        moment(asset.createdAt).format("LLL")}
+                        intl.formatDate(asset.createdAt, {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                          hour: "numeric",
+                          minute: "2-digit",
+                        })}
                       {column === "size" && getAssetSizeLabel(asset)}
                     </td>
                   ))}
@@ -227,7 +235,11 @@ const AssetTable = ({
                     )}
                   </Group>
                   <Text size="xs" c="dimmed" mt="xs">
-                    {moment(asset.createdAt).format("ll")}
+                    {intl.formatDate(asset.createdAt, {
+                      year: "numeric",
+                      month: "short",
+                      day: "numeric",
+                    })}
                     {asset.size && ` · ${getAssetSizeLabel(asset)}`}
                   </Text>
                 </div>

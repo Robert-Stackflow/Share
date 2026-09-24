@@ -124,3 +124,9 @@
     padding: var(--mantine-spacing-md);
   }
 }
+
+@media (max-width: 48em) {
+  .roomConversationPanel {
+    min-height: 0;
+  }
+}
