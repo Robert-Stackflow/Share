@@ -14,7 +14,7 @@ const createInbox = {
   publicAccess: true,
 };
 
-function createServiceMock() {
+function createServiceMock(remainingUses = 3) {
   const calls: any[] = [];
   const reverseShares = [
     {
@@ -22,7 +22,7 @@ function createServiceMock() {
       token: "token-1",
       creatorId: "user-1",
       shareExpiration: new Date(Date.now() + 60_000),
-      remainingUses: 3,
+      remainingUses,
       maxShareSize: "1000",
       sendEmailNotification: false,
       simplified: false,
@@ -80,7 +80,12 @@ function createServiceMock() {
       },
       isValid: async (token: string) => {
         calls.push(["reverseShare.isValid", token]);
-        return token === "token-1";
+        const inbox = reverseShares.find((item) => item.token === token);
+        return Boolean(
+          inbox &&
+            inbox.remainingUses > 0 &&
+            inbox.shareExpiration > new Date(),
+        );
       },
       getByToken: async (token: string) => {
         calls.push(["reverseShare.getByToken", token]);
@@ -91,6 +96,10 @@ function createServiceMock() {
       },
     },
     prisma: {
+      async $transaction(action: (transaction: any) => Promise<any>) {
+        calls.push(["prisma.$transaction"]);
+        return action(this);
+      },
       reverseShare: {
         findFirst: async (args: any) => {
           calls.push(["reverseShare.findFirst", args]);
@@ -131,6 +140,19 @@ function createServiceMock() {
             inbox.remainingUses -= args.data.remainingUses.decrement;
           }
           return inbox;
+        },
+        updateMany: async (args: any) => {
+          calls.push(["reverseShare.updateMany", args]);
+          const inbox = reverseShares.find((item) => item.id === args.where.id);
+          if (
+            !inbox ||
+            inbox.remainingUses <= args.where.remainingUses.gt ||
+            inbox.shareExpiration <= args.where.shareExpiration.gt
+          ) {
+            return { count: 0 };
+          }
+          inbox.remainingUses -= args.data.remainingUses.decrement;
+          return { count: 1 };
         },
       },
       inboxSubmission: {
@@ -452,7 +474,7 @@ test("createSubmission stores pending assets and decrements inbox uses", async (
   assert.ok(
     mocks.calls.some(
       (call) =>
-        call[0] === "reverseShare.update" &&
+        call[0] === "reverseShare.updateMany" &&
         call[1].where.id === "inbox-1" &&
         call[1].data.remainingUses.decrement === 1,
     ),
@@ -483,7 +505,7 @@ test("createSubmission allows file-backed submissions before chunks are uploaded
   assert.ok(
     mocks.calls.some(
       (call) =>
-        call[0] === "reverseShare.update" &&
+        call[0] === "reverseShare.updateMany" &&
         call[1].data.remainingUses.decrement === 1,
     ),
   );
@@ -512,6 +534,40 @@ test("addSubmissionFile verifies the inbox token and stores file chunks on the p
       undefined,
       { id: "submission-1", kind: "INBOX_SUBMISSION" },
     ],
+  );
+});
+
+test("one-time inbox accepts file chunks for its claimed submission, but no new submission", async () => {
+  const mocks = createServiceMock(1);
+  const service = createInboxService(mocks);
+
+  const submission = await service.createSubmission("token-1", {
+    hasFiles: true,
+  });
+  assert.equal(submission.status, InboxSubmissionStatus.PENDING);
+
+  const file = await service.addSubmissionFile(
+    "token-1",
+    submission.id,
+    "chunk-data",
+    { index: 0, total: 1 },
+    { name: "proposal.pdf" },
+  );
+  assert.equal(file.name, "proposal.pdf");
+  await assert.rejects(
+    () => service.createSubmission("token-1", { hasFiles: true }),
+    NotFoundException,
+  );
+  await assert.rejects(
+    () =>
+      service.addSubmissionFile(
+        "wrong-token",
+        submission.id,
+        "chunk-data",
+        { index: 0, total: 1 },
+        { name: "proposal.pdf" },
+      ),
+    NotFoundException,
   );
 });
 
