@@ -119,12 +119,26 @@ export class InboxService {
       );
     }
 
-    const submission = await this.prisma.inboxSubmission.create({
-      data: {
-        message: data.message,
-        reverseShare: { connect: { id: inbox.id } },
-      },
-      include: { assets: true },
+    const submission = await this.prisma.$transaction(async (transaction) => {
+      const claimed = await transaction.reverseShare.updateMany({
+        where: {
+          id: inbox.id,
+          remainingUses: { gt: 0 },
+          shareExpiration: { gt: new Date() },
+        },
+        data: { remainingUses: { decrement: 1 } },
+      });
+      if (claimed.count !== 1) {
+        throw new NotFoundException(this.i18n.t("reverseShare.notFound"));
+      }
+
+      return transaction.inboxSubmission.create({
+        data: {
+          message: data.message,
+          reverseShare: { connect: { id: inbox.id } },
+        },
+        include: { assets: true },
+      });
     });
 
     const createdAssets = [];
@@ -133,11 +147,6 @@ export class InboxService {
         await this.createSubmissionAsset(submission.id, asset),
       );
     }
-
-    await this.prisma.reverseShare.update({
-      where: { id: inbox.id },
-      data: { remainingUses: { decrement: 1 } },
-    });
 
     this.recordActivity({
       actorId: null,
@@ -157,7 +166,12 @@ export class InboxService {
     chunk: { index: number; total: number },
     file: { id?: string; name: string },
   ) {
-    const inbox = await this.getValidInboxByToken(token);
+    // The quota is claimed when a submission starts. Its file chunks must still
+    // be accepted when that claim uses the inbox's final available submission.
+    const inbox = await this.reverseShareService.getByToken(token);
+    if (!inbox) {
+      throw new NotFoundException(this.i18n.t("reverseShare.notFound"));
+    }
     const submission = await this.prisma.inboxSubmission.findFirst({
       where: {
         id: submissionId,
