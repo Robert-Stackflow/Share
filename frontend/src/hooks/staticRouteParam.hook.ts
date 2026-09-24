@@ -21,7 +21,7 @@ export default function useStaticRouteParam(name: string, segment: number) {
     }
     const pathValue = window.location.pathname.split("/").filter(Boolean)[segment];
     setValue(pathValue && pathValue !== "_" ? decodeURIComponent(pathValue) : undefined);
-  }, [initial, segment]);
+  }, [initial, segment, router.asPath]);
 
   return value ?? "";
 }
