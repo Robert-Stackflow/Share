@@ -327,6 +327,7 @@ export default {
   "account.shortLinks.stats.noVisits": "还没有访问记录。",
   "account.shortLinks.stats.byDay": "按天访问",
   "account.shortLinks.stats.byReferer": "访问来源",
+  "account.shortLinks.stats.direct": "直接访问",
   "account.shortLinks.stats.byUserAgent": "用户代理",
   "account.shortLinks.stats.recent": "最近访问",
   "account.shortLinks.stats.visitTime": "时间",

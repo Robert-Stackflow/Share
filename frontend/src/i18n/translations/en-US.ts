@@ -364,6 +364,7 @@ export default {
   "account.shortLinks.stats.noVisits": "No visits recorded yet.",
   "account.shortLinks.stats.byDay": "Visits by day",
   "account.shortLinks.stats.byReferer": "Traffic sources",
+  "account.shortLinks.stats.direct": "Direct visit",
   "account.shortLinks.stats.byUserAgent": "User agents",
   "account.shortLinks.stats.recent": "Recent visits",
   "account.shortLinks.stats.visitTime": "Time",
