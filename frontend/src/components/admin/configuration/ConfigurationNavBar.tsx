@@ -32,10 +32,12 @@ export const categories = [
 const ConfigurationNavBar = ({
   categoryId,
   setIsMobileNavBarOpened,
+  onCategoryChange,
 }: {
   categoryId: string;
   isMobileNavBarOpened: boolean;
   setIsMobileNavBarOpened: Dispatch<SetStateAction<boolean>>;
+  onCategoryChange: (category: string) => void;
 }) => {
   return (
     <Box
@@ -52,15 +54,28 @@ const ConfigurationNavBar = ({
           {categories.map((category) => (
             <Box
               p="xs"
-              component={Link}
-              onClick={() => setIsMobileNavBarOpened(false)}
+              component="a"
+              onClick={(event) => {
+                if (
+                  event.button !== 0 ||
+                  event.metaKey ||
+                  event.ctrlKey ||
+                  event.shiftKey ||
+                  event.altKey
+                ) {
+                  return;
+                }
+                event.preventDefault();
+                onCategoryChange(category.name.toLowerCase());
+                setIsMobileNavBarOpened(false);
+              }}
               className={
                 categoryId == category.name.toLowerCase()
                   ? classes.activeLink
                   : undefined
               }
               key={category.name}
-              href={`/admin/config/${category.name.toLowerCase()}`}
+              href={`/admin/config/${category.name.toLowerCase()}/`}
             >
               <Group>
                 <ThemeIcon
