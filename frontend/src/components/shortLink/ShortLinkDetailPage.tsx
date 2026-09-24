@@ -35,7 +35,7 @@ import { useModals } from "@mantine/modals";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { ReactNode, useEffect, useMemo, useState } from "react";
-import { FormattedMessage } from "react-intl";
+import { FormattedMessage, useIntl } from "react-intl";
 import Meta from "../../components/Meta";
 import CenterLoader from "../../components/core/CenterLoader";
 import tableClasses from "../../components/core/DataTable.module.css";
@@ -61,10 +61,18 @@ import InternalTargetPicker from "./InternalTargetPicker";
 import { getShortLinkStatus } from "./shortLinkStatus";
 import { isValidTarget } from "./shortLinkTarget";
 
-const formatDateTime = (value?: Date | string | null) => {
+const formatDateTime = (value: Date | string | null | undefined, locale: string) => {
   if (!value) return "-";
   const date = new Date(value);
-  return Number.isNaN(date.valueOf()) ? "-" : date.toLocaleString();
+  return Number.isNaN(date.valueOf())
+    ? "-"
+    : new Intl.DateTimeFormat(locale, {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+      }).format(date);
 };
 
 const KpiCard = ({
@@ -120,7 +128,6 @@ const VisitTrendChart = ({
   return (
     <section className={`${classes.analyticsPanel} ${classes.trendPanel}`}>
       <PanelHeader
-        subtitle={buckets.length > 0 ? `${buckets.length} days` : emptyLabel}
         title={title}
       />
       {buckets.length === 0 ? (
@@ -163,12 +170,12 @@ const DistributionPanel = ({
   emptyLabel: string;
   className?: string;
 }) => {
+  const t = useTranslate();
   const maxVisits = Math.max(...buckets.map((bucket) => bucket.visits), 1);
 
   return (
     <section className={`${classes.analyticsPanel} ${className ?? ""}`}>
       <PanelHeader
-        subtitle={buckets.length > 0 ? `${buckets.length} groups` : emptyLabel}
         title={title}
       />
       {buckets.length === 0 ? (
@@ -179,7 +186,9 @@ const DistributionPanel = ({
             <div className={classes.distributionRow} key={bucket.label}>
               <Group gap="xs" justify="space-between" wrap="nowrap">
                 <Text className={classes.distributionLabel} lineClamp={2}>
-                  {bucket.label || "-"}
+                  {bucket.label === "Direct"
+                    ? t("account.shortLinks.stats.direct")
+                    : bucket.label || "-"}
                 </Text>
                 <Text fw={700} size="sm">
                   {bucket.visits}
@@ -207,10 +216,10 @@ const RecentVisitsTable = ({
 }: {
   visits: ShortLinkStats["recentVisits"];
   emptyLabel: string;
-}) => (
-  <section className={classes.recentVisitsPanel}>
+}) => {
+  const { locale } = useIntl();
+  return <section className={classes.recentVisitsPanel}>
     <PanelHeader
-      subtitle={`${visits.length} records`}
       title={<FormattedMessage id="account.shortLinks.stats.recent" />}
     />
     {visits.length === 0 ? (
@@ -237,7 +246,7 @@ const RecentVisitsTable = ({
             {visits.map((visit) => (
               <Table.Tr className={tableClasses.tableRow} key={visit.id}>
                 <Table.Td>
-                  <Text size="sm">{formatDateTime(visit.createdAt)}</Text>
+                  <Text size="sm">{formatDateTime(visit.createdAt, locale)}</Text>
                 </Table.Td>
                 <Table.Td>
                   <Text c="dimmed" lineClamp={2} size="sm">
@@ -255,11 +264,12 @@ const RecentVisitsTable = ({
         </Table>
       </div>
     )}
-  </section>
-);
+  </section>;
+};
 
 const ShortLinkDetailPage = () => {
   const t = useTranslate();
+  const { locale } = useIntl();
   const router = useRouter();
   const clipboard = useClipboard();
   const modals = useModals();
@@ -658,7 +668,7 @@ const ShortLinkDetailPage = () => {
           <KpiCard
             icon={<Clock />}
             label={t("account.shortLinks.stats.lastVisit")}
-            value={formatDateTime(stats.lastVisitedAt)}
+            value={formatDateTime(stats.lastVisitedAt, locale)}
           />
           <KpiCard
             icon={<Globe />}
