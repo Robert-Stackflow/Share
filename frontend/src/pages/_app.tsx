@@ -247,11 +247,13 @@ function App({ Component, pageProps }: AppProps) {
         setLocaleReady(true);
         moment.locale(supportedLanguage.toLowerCase());
       },
-    ).catch(() => {
+    ).catch((error) => {
       if (active) {
+        console.error("Failed to initialize app translations:", error);
         setLanguage(DEFAULT_LOCALE);
         setMessages(englishMessages);
         setLocaleReady(true);
+        moment.locale(DEFAULT_LOCALE.toLowerCase());
       }
     });
 
