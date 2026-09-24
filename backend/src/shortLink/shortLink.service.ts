@@ -1,12 +1,14 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Inject,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from "@nestjs/common";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from "cache-manager";
-import { ShortLinkTargetType, User } from "@prisma/client";
+import { AccessPolicy, ShortLinkTargetType, User } from "@prisma/client";
 import * as crypto from "crypto";
 import { customAlphabet } from "nanoid";
 import { AccessControlDTO } from "src/accessPolicy/dto/accessControl.dto";
@@ -93,10 +95,16 @@ export class ShortLinkService {
     });
 
     if (data.accessControl) {
-      await this.accessPolicyService?.upsertForRelation(
-        { shortLinkId: link.id },
-        data.accessControl,
-      );
+      try {
+        if (!this.accessPolicyService) throw new InternalServerErrorException("Access policy service unavailable");
+        await this.accessPolicyService.upsertForRelation(
+          { shortLinkId: link.id },
+          data.accessControl,
+        );
+      } catch (error) {
+        await this.prisma.shortLink.delete({ where: { id: link.id } });
+        throw error;
+      }
     }
 
     await this.cache.set(this.targetCacheKey(code), targetUrl);
@@ -113,15 +121,61 @@ export class ShortLinkService {
   }
 
   async listByOwner(ownerId: string) {
-    return this.prisma.shortLink.findMany({
+    const links = await this.prisma.shortLink.findMany({
       where: { ownerId },
+      include: { accessPolicy: true },
       orderBy: { createdAt: "desc" },
     });
+    return links.map(({ accessPolicy, ...link }) => ({
+      ...link,
+      accessControl: this.publicPolicy(accessPolicy),
+    }));
   }
 
-  async recordVisit(code: string, visit: VisitInput) {
-    const link = await this.prisma.shortLink.findFirst({ where: { code } });
+  async getAccessStatus(code: string) {
+    const link = await this.prisma.shortLink.findFirst({
+      where: { code },
+      include: { accessPolicy: true },
+    });
+    if (!link) throw new NotFoundException("Short link not found");
+    const policy = link.accessPolicy;
+    const limit = policy?.oneTime ? 1 : policy?.maxViews;
+    return {
+      title: link.title,
+      status: !link.isActive ? "disabled"
+        : policy?.expiresAt && new Date() > policy.expiresAt ? "expired"
+        : limit != null && policy.views >= limit ? "limit" : "active",
+      requiresPassword: Boolean(policy?.passwordHash),
+      requiresSignIn: policy?.allowAnonymous === false,
+    };
+  }
+
+  async recordVisit(
+    code: string,
+    visit: VisitInput,
+    access: { password?: string; userId?: string | null } = {},
+  ) {
+    const link = await this.prisma.shortLink.findFirst({
+      where: { code },
+      include: { accessPolicy: true },
+    });
     if (!link?.isActive) throw new NotFoundException("Short link not found");
+
+    if (link.accessPolicy) {
+      if (!this.accessPolicyService) throw new InternalServerErrorException("Access policy service unavailable");
+      this.accessPolicyService.assertAllowed(link.accessPolicy, { userId: access.userId });
+      await this.accessPolicyService.verifyPassword(link.accessPolicy, access.password);
+      const limit = link.accessPolicy.oneTime ? 1 : link.accessPolicy.maxViews;
+      if (limit != null) {
+        const result = await this.prisma.accessPolicy.updateMany({
+          where: { id: link.accessPolicy.id, views: { lt: limit } },
+          data: { views: { increment: 1 } },
+        });
+        if (result.count !== 1) throw new ForbiddenException("Access limit exceeded");
+      } else {
+        await this.accessPolicyService.recordView(link.accessPolicy);
+      }
+    }
 
     const cachedTarget = await this.cache.get<string>(this.targetCacheKey(code));
     const targetUrl = cachedTarget || link.targetUrl;
@@ -154,6 +208,18 @@ export class ShortLinkService {
     });
 
     return targetUrl;
+  }
+
+  private publicPolicy(policy?: AccessPolicy | null) {
+    if (!policy) return null;
+    return {
+      passwordProtected: Boolean(policy.passwordHash),
+      expiresAt: policy.expiresAt,
+      maxViews: policy.maxViews,
+      views: policy.views,
+      allowAnonymous: policy.allowAnonymous,
+      oneTime: policy.oneTime,
+    };
   }
 
   async getStats(code: string, ownerId: string) {

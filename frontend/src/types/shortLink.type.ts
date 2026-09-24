@@ -13,6 +13,10 @@ export type ShortLink = {
   isActive: boolean;
   visits: number;
   ownerId?: string;
+  accessControl?: (Omit<AccessControl, "password" | "allowDownload"> & {
+    passwordProtected: boolean;
+    views: number;
+  }) | null;
 };
 
 export type CreateShortLink = {

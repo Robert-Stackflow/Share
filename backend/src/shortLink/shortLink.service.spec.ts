@@ -1,4 +1,4 @@
-import { BadRequestException, NotFoundException } from "@nestjs/common";
+import { BadRequestException, ForbiddenException, NotFoundException } from "@nestjs/common";
 import { strict as assert } from "node:assert";
 import { test } from "node:test";
 import { ShortLinkService } from "./shortLink.service";
@@ -94,6 +94,15 @@ function createPrismaMock(records: { links?: any[]; visits?: any[] } = {}) {
             result = result.slice(0, args.take);
           }
           return result;
+        },
+      },
+      accessPolicy: {
+        updateMany: async (args: any) => {
+          calls.push(["accessPolicy.updateMany", args]);
+          const policy = links.map((link) => link.accessPolicy).find((item) => item?.id === args.where.id);
+          if (!policy || policy.views >= args.where.views.lt) return { count: 0 };
+          policy.views += args.data.views.increment;
+          return { count: 1 };
         },
       },
     },
@@ -327,6 +336,55 @@ test("recordVisit rejects missing and inactive links", async () => {
     () => service.recordVisit("off", { ip: "203.0.113.2" }),
     NotFoundException,
   );
+});
+
+test("create removes the new link if its access policy cannot be saved", async () => {
+  const { prisma, links } = createPrismaMock();
+  const { cache } = createCacheMock();
+  const service = new ShortLinkService(prisma as any, cache as any, config as any, undefined, {
+    upsertForRelation: async () => { throw new Error("policy write failed"); },
+  } as any);
+  await assert.rejects(() => service.create({ targetType: "URL", targetUrl: "https://example.com", accessControl: { password: "secret" } }, user as any));
+  assert.equal(links.length, 0);
+});
+
+test("protected short links verify passwords before counting and enforce one-time access", async () => {
+  const policy = { id: "policy-1", passwordHash: "hashed", views: 0, oneTime: true, maxViews: null, allowAnonymous: true, expiresAt: null };
+  const { prisma, visits } = createPrismaMock({ links: [{ id: "short-link-1", code: "locked", targetUrl: "https://example.com", isActive: true, visits: 0, accessPolicy: policy }] });
+  const { cache } = createCacheMock();
+  const accessPolicy = {
+    assertAllowed: () => undefined,
+    verifyPassword: async (_policy: any, password?: string) => {
+      if (password !== "secret") throw new ForbiddenException("Invalid password");
+    },
+    recordView: async () => undefined,
+  };
+  const service = new ShortLinkService(prisma as any, cache as any, config as any, undefined, accessPolicy as any);
+
+  await assert.rejects(() => service.recordVisit("locked", {}, { password: "wrong" }), ForbiddenException);
+  assert.equal(policy.views, 0);
+  assert.equal(visits.length, 0);
+  assert.equal(await service.recordVisit("locked", {}, { password: "secret" }), "https://example.com");
+  assert.equal(policy.views, 1);
+  await assert.rejects(() => service.recordVisit("locked", {}, { password: "secret" }), ForbiddenException);
+  assert.equal(visits.length, 1);
+});
+
+test("short link status reports expiry and sign-in requirements without revealing its target or password hash", async () => {
+  const policy = { id: "policy-2", passwordHash: "hidden-hash", views: 0, oneTime: false, maxViews: 2, allowAnonymous: false, expiresAt: new Date("2020-01-01") };
+  const { prisma } = createPrismaMock({ links: [{ id: "short-link-2", code: "expired", targetUrl: "https://private.example", isActive: true, ownerId: "user-1", visits: 0, accessPolicy: policy }] });
+  const { cache } = createCacheMock();
+  const service = new ShortLinkService(prisma as any, cache as any, config as any);
+
+  assert.deepEqual(await service.getAccessStatus("expired"), {
+    title: undefined,
+    status: "expired",
+    requiresPassword: true,
+    requiresSignIn: true,
+  });
+  const [owned] = await service.listByOwner("user-1");
+  assert.equal(owned.accessControl.passwordProtected, true);
+  assert.equal(JSON.stringify(owned).includes("hidden-hash"), false);
 });
 
 test("getStats returns total visits, aggregate buckets, unique visitors, and recent visit details for the owner", async () => {

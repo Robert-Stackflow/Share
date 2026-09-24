@@ -323,7 +323,9 @@ const ShortLinksWorkspace = () => {
               <AccessControlForm
                 value={accessControl}
                 onChange={setAccessControl}
+                fields={["password", "expiresAt", "maxViews", "allowAnonymous", "oneTime"]}
               />
+              <Text size="xs" c="dimmed">{t("account.shortLinks.access-scope")}</Text>
             </section>
 
             <Group className={modalClasses.footer}>

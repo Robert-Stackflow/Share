@@ -41,6 +41,7 @@ import CenterLoader from "../../components/core/CenterLoader";
 import tableClasses from "../../components/core/DataTable.module.css";
 import { HoverTip } from "../../components/core/HoverTip";
 import modalClasses from "../../components/core/ModalForm.module.css";
+import AccessControlForm from "../access/AccessControlForm";
 import useTranslate from "../../hooks/useTranslate.hook";
 import useStaticRouteParam from "../../hooks/staticRouteParam.hook";
 import shortLinkService from "../../services/shortLink.service";
@@ -51,6 +52,7 @@ import {
   ShortLinkTargetType,
 } from "../../types/shortLink.type";
 import toast from "../../utils/toast.util";
+import { AccessControl, toAccessControlPayload } from "../../types/accessControl.type";
 import classes from "./ShortLinksWorkspace.module.css";
 
 const formatDateTime = (value?: Date | string | null) => {
@@ -261,6 +263,8 @@ const ShortLinkDetailPage = () => {
     useDisclosure(false);
   const [isLoading, setLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [accessControl, setAccessControl] = useState<AccessControl>({});
+  const [removePassword, setRemovePassword] = useState(false);
   const editForm = useForm({
     initialValues: {
       targetType: "URL" as ShortLinkTargetType,
@@ -281,6 +285,15 @@ const ShortLinkDetailPage = () => {
     link: ShortLink | undefined,
     linkStats: ShortLinkStats,
   ) => {
+    setAccessControl({
+      expiresAt: link?.accessControl?.expiresAt
+        ? new Date(link.accessControl.expiresAt).toISOString().slice(0, 16)
+        : undefined,
+      maxViews: link?.accessControl?.maxViews,
+      allowAnonymous: link?.accessControl?.allowAnonymous,
+      oneTime: link?.accessControl?.oneTime,
+    });
+    setRemovePassword(false);
     editForm.setValues({
       targetType: link?.targetType ?? linkStats.targetType,
       targetUrl: link?.targetUrl ?? linkStats.targetUrl,
@@ -321,12 +334,17 @@ const ShortLinkDetailPage = () => {
         targetUrl: values.targetUrl,
         title: values.title.trim() || undefined,
         isActive: values.isActive,
+        accessControl: {
+          ...toAccessControlPayload(accessControl),
+          ...(removePassword ? { password: "" } : {}),
+        },
       })
       .then((updated) => {
-        setShortLink(updated);
-        return shortLinkService.stats(updated.code).then((nextStats) => {
+        return Promise.all([shortLinkService.list(), shortLinkService.stats(updated.code)]).then(([links, nextStats]) => {
+          const refreshed = links.find((link) => link.code === updated.code);
+          setShortLink(refreshed);
           setStats(nextStats);
-          applyLinkToForm(updated, nextStats);
+          applyLinkToForm(refreshed, nextStats);
         });
       })
       .then(() => {
@@ -459,6 +477,23 @@ const ShortLinkDetailPage = () => {
                   />
                 </Group>
               </Radio.Group>
+            </section>
+
+            <section className={modalClasses.section}>
+              <AccessControlForm
+                value={accessControl}
+                onChange={setAccessControl}
+                fields={["password", "expiresAt", "maxViews", "allowAnonymous", "oneTime"]}
+              />
+              {shortLink?.accessControl?.passwordProtected && (
+                <Stack gap="xs" mt="sm">
+                  <Text size="sm">{t("account.shortLinks.password-active")}</Text>
+                  <Button type="button" variant="light" color={removePassword ? "gray" : "red"} onClick={() => setRemovePassword((current) => !current)}>
+                    {t(removePassword ? "account.shortLinks.keep-password" : "account.shortLinks.remove-password")}
+                  </Button>
+                </Stack>
+              )}
+              <Text size="xs" c="dimmed" mt="sm">{t("account.shortLinks.access-scope")}</Text>
             </section>
 
             <Group className={modalClasses.footer}>

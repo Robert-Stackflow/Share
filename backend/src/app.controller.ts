@@ -45,6 +45,7 @@ export class AppController {
     const publicRoutes = [
       "/share/*",
       "/s/*",
+      "/short-link-access",
       "/rooms/*",
       "/inbox/*",
       "/upload/*",
