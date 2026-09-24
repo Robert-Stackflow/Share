@@ -1,8 +1,7 @@
+import { Check, Copy, ExternalLink, QrCode } from "lucide-react";
 import { ActionIcon, TextInput, Tooltip } from "@mantine/core";
 import { useClipboard } from "@mantine/hooks";
 import { useRef, useState } from "react";
-import { IoOpenOutline } from "react-icons/io5";
-import { TbCheck, TbCopy, TbQrcode } from "react-icons/tb";
 import useTranslate from "../../hooks/useTranslate.hook";
 import toast from "../../utils/toast.util";
 
@@ -56,7 +55,7 @@ function CopyTextField(props: { link: string; toggleQR?: () => void }) {
               size="sm"
               variant="subtle"
             >
-              <IoOpenOutline />
+              <ExternalLink />
             </ActionIcon>
           </Tooltip>
 
@@ -74,7 +73,7 @@ function CopyTextField(props: { link: string; toggleQR?: () => void }) {
                   variant="subtle"
                   onClick={copyLink}
                 >
-                  {checkState ? <TbCheck /> : <TbCopy />}
+                  {checkState ? <Check /> : <Copy />}
                 </ActionIcon>
               </Tooltip>
 
@@ -90,7 +89,7 @@ function CopyTextField(props: { link: string; toggleQR?: () => void }) {
                   variant="subtle"
                   onClick={props.toggleQR}
                 >
-                  <TbQrcode />
+                  <QrCode />
                 </ActionIcon>
               </Tooltip>
             </>

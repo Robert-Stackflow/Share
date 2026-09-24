@@ -1,3 +1,4 @@
+import { Captions, FileIcon, Link2, Plus, Send } from "lucide-react";
 import {
   Button,
   Group,
@@ -10,7 +11,6 @@ import { useForm } from "@mantine/form";
 import { AxiosError } from "axios";
 import pLimit from "p-limit";
 import { useMemo, useState } from "react";
-import { TbFile, TbLink, TbPlus, TbSend, TbTextCaption } from "react-icons/tb";
 import { FormattedMessage } from "react-intl";
 import useConfig from "../../hooks/config.hook";
 import useTranslate from "../../hooks/useTranslate.hook";
@@ -191,14 +191,14 @@ const AssetComposer = ({
             type="submit"
             leftSection={
               assetType === "FILE" ? (
-                <TbFile />
+                <FileIcon />
               ) : assetType === "TEXT" ? (
-                <TbTextCaption />
+                <Captions />
               ) : (
-                <TbLink />
+                <Link2 />
               )
             }
-            rightSection={variant === "chat" ? <TbSend /> : <TbPlus />}
+            rightSection={variant === "chat" ? <Send /> : <Plus />}
             loading={isSubmitting}
             disabled={isEmpty}
           >

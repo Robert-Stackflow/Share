@@ -1,6 +1,6 @@
+import { Check, KeyRound, Pencil, Trash2 } from "lucide-react";
 import { ActionIcon, Badge, Box, Group, Skeleton, Table } from "@mantine/core";
 import { useModals } from "@mantine/modals";
-import { TbCheck, TbEdit, TbKey, TbTrash } from "react-icons/tb";
 import User from "../../../types/user.type";
 import showChangeUserPasswordModal from "./showChangeUserPasswordModal";
 import showUpdateUserModal from "./showUpdateUserModal";
@@ -52,7 +52,7 @@ const ManageUserTable = ({
                     ) : null}
                   </td>
                   <td>{user.email}</td>
-                  <td>{user.isAdmin && <TbCheck />}</td>
+                  <td>{user.isAdmin && <Check />}</td>
                   <td className={tableClasses.actionCell}>
                     <Group
                       className={tableClasses.actions}
@@ -70,7 +70,7 @@ const ManageUserTable = ({
                               showUpdateUserModal(modals, user, getUsers)
                             }
                           >
-                            <TbEdit />
+                            <Pencil />
                           </ActionIcon>
                         </HoverTip>
                       )}
@@ -89,7 +89,7 @@ const ManageUserTable = ({
                               )
                             }
                           >
-                            <TbKey />
+                            <KeyRound />
                           </ActionIcon>
                         </HoverTip>
                       )}
@@ -101,7 +101,7 @@ const ManageUserTable = ({
                           size={25}
                           onClick={() => deleteUser(user)}
                         >
-                          <TbTrash />
+                          <Trash2 />
                         </ActionIcon>
                       </HoverTip>
                     </Group>

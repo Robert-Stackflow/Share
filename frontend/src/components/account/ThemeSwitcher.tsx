@@ -1,3 +1,4 @@
+import { Laptop, Moon, Sun } from "lucide-react";
 import {
   Box,
   Center,
@@ -7,7 +8,6 @@ import {
   useMantineColorScheme,
 } from "@mantine/core";
 import { useState } from "react";
-import { TbDeviceLaptop, TbMoon, TbSun } from "react-icons/tb";
 import { FormattedMessage } from "react-intl";
 import userPreferences from "../../utils/userPreferences.util";
 
@@ -31,7 +31,7 @@ const ThemeSwitcher = () => {
           {
             label: (
               <Center>
-                <TbMoon size={16} />
+                <Moon size={16} />
                 <Box ml={10}>
                   <FormattedMessage id="account.theme.dark" />
                 </Box>
@@ -42,7 +42,7 @@ const ThemeSwitcher = () => {
           {
             label: (
               <Center>
-                <TbSun size={16} />
+                <Sun size={16} />
                 <Box ml={10}>
                   <FormattedMessage id="account.theme.light" />
                 </Box>
@@ -53,7 +53,7 @@ const ThemeSwitcher = () => {
           {
             label: (
               <Center>
-                <TbDeviceLaptop size={16} />
+                <Laptop size={16} />
                 <Box ml={10}>
                   <FormattedMessage id="account.theme.system" />
                 </Box>

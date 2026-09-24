@@ -1,3 +1,4 @@
+import { Clipboard, Download, Eye, Link2 } from "lucide-react";
 import {
   ActionIcon,
   Box,
@@ -10,7 +11,6 @@ import {
 import { useClipboard } from "@mantine/hooks";
 import { useModals } from "@mantine/modals";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import { TbDownload, TbEye, TbLink, TbClipboard } from "react-icons/tb";
 import { FormattedMessage } from "react-intl";
 import useConfig from "../../hooks/config.hook";
 import useTranslate from "../../hooks/useTranslate.hook";
@@ -147,7 +147,7 @@ const FileList = ({
                                 });
                             }}
                           >
-                            <TbClipboard />
+                            <Clipboard />
                           </ActionIcon>
                         </HoverTip>
                       )}
@@ -161,7 +161,7 @@ const FileList = ({
                               showFilePreviewModal(share.id, file, modals)
                             }
                           >
-                            <TbEye />
+                            <Eye />
                           </ActionIcon>
                         </HoverTip>
                       )}
@@ -173,7 +173,7 @@ const FileList = ({
                             size={25}
                             onClick={() => copyFileLink(file)}
                           >
-                            <TbLink />
+                            <Link2 />
                           </ActionIcon>
                         </HoverTip>
                       )}
@@ -191,7 +191,7 @@ const FileList = ({
                             );
                           }}
                         >
-                          <TbDownload />
+                          <Download />
                         </ActionIcon>
                       </HoverTip>
                     </Group>

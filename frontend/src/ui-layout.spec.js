@@ -153,7 +153,7 @@ test("asset rows use a unified action menu and preview dialog", () => {
   const zh = read("i18n/translations/zh-CN.ts");
 
   assert.match(assetsPage, /AssetActionMenu/);
-  assert.doesNotMatch(assetsPage, /TbDownload/);
+  assert.doesNotMatch(assetsPage, /<Download\b/);
   assert.match(actionMenu, /<Menu/);
   assert.match(actionMenu, /AssetPreviewDialog/);
   assert.match(actionMenu, /assetService\.createShare/);
@@ -388,7 +388,7 @@ test("admin user passwords are changed from a dedicated row action dialog", () =
   const zh = read("i18n/translations/zh-CN.ts");
 
   assert.match(userTable, /showChangeUserPasswordModal/);
-  assert.match(userTable, /TbKey/);
+  assert.match(userTable, /<KeyRound\b/);
   assert.match(
     userTable,
     /showChangeUserPasswordModal\(\s*modals,\s*user,\s*getUsers,\s*\)/,
@@ -445,7 +445,7 @@ test("share and short link dialogs use the shared flat modal form styling", () =
   assert.match(createUpload, /color="gray"/);
   assert.doesNotMatch(createUpload, /Accordion/);
   assert.doesNotMatch(createUpload, /variant="separated"/);
-  assert.doesNotMatch(createUpload, /leftSection=\{<TbRefresh/);
+  assert.doesNotMatch(createUpload, /leftSection=\{<RefreshCw/);
 });
 
 test("create share dialog treats files text and links as first-class content tabs", () => {

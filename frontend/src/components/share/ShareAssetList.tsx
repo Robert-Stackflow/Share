@@ -1,8 +1,8 @@
+import { Clipboard, Download, Eye, Link2 } from "lucide-react";
 import { ActionIcon, Group } from "@mantine/core";
 import { useClipboard } from "@mantine/hooks";
 import { useModals } from "@mantine/modals";
 import { useMemo, useState } from "react";
-import { TbClipboard, TbDownload, TbEye, TbLink } from "react-icons/tb";
 import { FormattedMessage } from "react-intl";
 import AssetTable, { getAssetSortValue } from "../asset/AssetTable";
 import api from "../../services/api.service";
@@ -129,7 +129,7 @@ const ShareAssetList = ({
                 size={25}
                 onClick={() => copyTextAsset(asset)}
               >
-                <TbClipboard />
+                <Clipboard />
               </ActionIcon>
             </HoverTip>
           )}
@@ -143,7 +143,7 @@ const ShareAssetList = ({
                 size={25}
                 onClick={() => copyLinkAsset(asset)}
               >
-                <TbClipboard />
+                <Clipboard />
               </ActionIcon>
             </HoverTip>
           )}
@@ -159,7 +159,7 @@ const ShareAssetList = ({
                   size={25}
                   onClick={() => readTextFile(asset)}
                 >
-                  <TbClipboard />
+                  <Clipboard />
                 </ActionIcon>
               </HoverTip>
             )}
@@ -181,7 +181,7 @@ const ShareAssetList = ({
                     )
                   }
                 >
-                  <TbEye />
+                  <Eye />
                 </ActionIcon>
               </HoverTip>
             )}
@@ -195,7 +195,7 @@ const ShareAssetList = ({
                 size={25}
                 onClick={() => copyFileLink(asset)}
               >
-                <TbLink />
+                <Link2 />
               </ActionIcon>
             </HoverTip>
           )}
@@ -217,7 +217,7 @@ const ShareAssetList = ({
                   }
                 }}
               >
-                <TbDownload />
+                <Download />
               </ActionIcon>
             </HoverTip>
           )}

@@ -1,7 +1,7 @@
+import { Upload } from "lucide-react";
 import { Box, FileInput, Group, Stack, Text, Title } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
 import { Dispatch, SetStateAction } from "react";
-import { TbUpload } from "react-icons/tb";
 import { FormattedMessage } from "react-intl";
 import useTranslate from "../../../hooks/useTranslate.hook";
 
@@ -34,7 +34,7 @@ const LogoConfigInput = ({
         <Box style={{ width: isMobile ? "100%" : "50%" }}>
           <FileInput
             clearable
-            leftSection={<TbUpload size={14} />}
+            leftSection={<Upload size={14} />}
             value={logo}
             onChange={(v) => setLogo(v)}
             accept=".png"
@@ -56,7 +56,7 @@ const LogoConfigInput = ({
         <Box style={{ width: isMobile ? "100%" : "50%" }}>
           <FileInput
             clearable
-            leftSection={<TbUpload size={14} />}
+            leftSection={<Upload size={14} />}
             value={darkLogo}
             onChange={(v) => setDarkLogo(v)}
             accept=".png"

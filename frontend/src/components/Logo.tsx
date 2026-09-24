@@ -17,7 +17,7 @@ const Logo = ({ height, width }: { height: number; width: number }) => {
   return (
     <img
       src={logoSrc}
-      alt="logo"
+      alt="Share"
       height={height}
       width={width}
       onError={() => {

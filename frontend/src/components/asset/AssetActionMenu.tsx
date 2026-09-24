@@ -1,4 +1,17 @@
 import {
+  Copy,
+  Download,
+  EllipsisVertical,
+  Eye,
+  Files,
+  Link2,
+  Send,
+  Share,
+  Star,
+  Tag,
+  Trash2,
+} from "lucide-react";
+import {
   ActionIcon,
   Button,
   Group,
@@ -14,20 +27,6 @@ import { useClipboard } from "@mantine/hooks";
 import { useModals } from "@mantine/modals";
 import { useRouter } from "next/router";
 import { ReactNode, useMemo, useState } from "react";
-import {
-  TbCopy,
-  TbDotsVertical,
-  TbDownload,
-  TbEye,
-  TbFiles,
-  TbLink,
-  TbSend,
-  TbShare,
-  TbStar,
-  TbStarFilled,
-  TbTag,
-  TbTrash,
-} from "react-icons/tb";
 import useTranslate from "../../hooks/useTranslate.hook";
 import assetService from "../../services/asset.service";
 import roomService from "../../services/room.service";
@@ -237,24 +236,24 @@ const AssetActionMenu = ({
             variant="subtle"
             size={28}
           >
-            <TbDotsVertical />
+            <EllipsisVertical />
           </ActionIcon>
         </Menu.Target>
         <Menu.Dropdown>
           <Menu.Item
-            leftSection={<TbEye />}
+            leftSection={<Eye />}
             onClick={() => setIsPreviewOpen(true)}
           >
             {t("account.assets.action.preview")}
           </Menu.Item>
           <Menu.Item
-            leftSection={asset.type === "FILE" ? <TbLink /> : <TbCopy />}
+            leftSection={asset.type === "FILE" ? <Link2 /> : <Copy />}
             onClick={() => copyValue(getCopyValue())}
           >
             {t("account.assets.action.copy")}
           </Menu.Item>
           {canDownloadFile && (
-            <Menu.Item leftSection={<TbDownload />} onClick={downloadFile}>
+            <Menu.Item leftSection={<Download />} onClick={downloadFile}>
               {t("common.button.download")}
             </Menu.Item>
           )}
@@ -263,21 +262,23 @@ const AssetActionMenu = ({
             <>
               <Menu.Item
                 disabled={isBusy}
-                leftSection={asset.favorite ? <TbStarFilled /> : <TbStar />}
+                leftSection={
+                  asset.favorite ? <Star fill="currentColor" /> : <Star />
+                }
                 onClick={toggleFavorite}
               >
                 {t("account.assets.action.favorite")}
               </Menu.Item>
               <Menu.Item
                 disabled={isBusy}
-                leftSection={<TbTag />}
+                leftSection={<Tag />}
                 onClick={openManageTags}
               >
                 {t("account.assets.action.manageTags")}
               </Menu.Item>
               <Menu.Item
                 disabled={isBusy}
-                leftSection={<TbShare />}
+                leftSection={<Share />}
                 onClick={() =>
                   runAction("share", async () => {
                     const result = await assetService.createShare(asset.id);
@@ -290,7 +291,7 @@ const AssetActionMenu = ({
               </Menu.Item>
               <Menu.Item
                 disabled={isBusy}
-                    leftSection={<TbLink />}
+                leftSection={<Link2 />}
                 onClick={() =>
                   runAction("short-link", async () => {
                     const shortLink = await assetService.createShortLink(
@@ -308,14 +309,14 @@ const AssetActionMenu = ({
               </Menu.Item>
               <Menu.Item
                 disabled={isBusy}
-                leftSection={<TbSend />}
+                leftSection={<Send />}
                 onClick={openSendToRoom}
               >
                 {t("account.assets.action.sendToRoom")}
               </Menu.Item>
               <Menu.Item
                 disabled={isBusy}
-                leftSection={<TbFiles />}
+                leftSection={<Files />}
                 onClick={() =>
                   runAction("clone", async () => {
                     const clonedAsset = await assetService.clone(asset.id);
@@ -331,7 +332,7 @@ const AssetActionMenu = ({
           {canDelete && (
             <Menu.Item
               color="red"
-              leftSection={<TbTrash />}
+              leftSection={<Trash2 />}
               onClick={deleteAsset}
             >
               {t("common.button.delete")}

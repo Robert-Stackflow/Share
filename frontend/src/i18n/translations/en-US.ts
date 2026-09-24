@@ -199,7 +199,6 @@ export default {
   "shortLinkAccess.password": "Password",
   "shortLinkAccess.open": "Open link",
   "shortLinkAccess.denied": "Access could not be verified. Check the password or access rules and try again.",
-  "account.shortLinks.access-scope": "These rules apply when opening the short link. Access to the destination follows its own rules.",
   "account.shortLinks.remove-password": "Remove current password when saving",
   "account.shortLinks.keep-password": "Keep current password",
   "account.shortLinks.password-active": "A password is currently required. Leave the field empty to keep it, or enter a new one.",
@@ -290,8 +289,6 @@ export default {
 
   // /account/short-links
   "account.shortLinks.title": "Short links",
-  "account.shortLinks.subtitle":
-    "Create reusable links for uploads, rooms, and internal paths.",
   "account.shortLinks.count": "links",
   "account.shortLinks.create.title": "Create short link",
   "account.shortLinks.create": "Create link",

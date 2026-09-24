@@ -1,3 +1,4 @@
+import { Clipboard, FileIcon, Plus, Trash2, Upload } from "lucide-react";
 import {
   ActionIcon,
   Alert,
@@ -13,7 +14,6 @@ import {
   TextInput,
 } from "@mantine/core";
 import { useEffect, useRef, useState } from "react";
-import { TbClipboard, TbFile, TbPlus, TbTrash, TbUpload } from "react-icons/tb";
 import useTranslate from "../../hooks/useTranslate.hook";
 import { byteToHumanSizeString } from "../../utils/fileSize.util";
 import classes from "./ContentIntake.module.css";
@@ -33,11 +33,15 @@ const isSingleUrl = (value: string) => {
     return false;
   }
 };
-const itemError = (item: PendingContent, t: (id: string, values?: Record<string, string>) => string) => {
+const itemError = (
+  item: PendingContent,
+  t: (id: string, values?: Record<string, string>) => string,
+) => {
   if (item.error) return item.error;
   if (item.type === "FILE") return "";
   if (!item.value.trim()) return t("content.error.empty");
-  if (item.type === "LINK" && !isSingleUrl(item.value)) return t("content.error.link");
+  if (item.type === "LINK" && !isSingleUrl(item.value))
+    return t("content.error.link");
   return "";
 };
 
@@ -60,12 +64,16 @@ export default function ContentIntake({
   maxSize: number;
   disabled?: boolean;
   resetSignal?: number;
-  onSubmit: (items: PendingContent[]) => Promise<boolean | string[] | void> | boolean | string[] | void;
+  onSubmit: (
+    items: PendingContent[],
+  ) => Promise<boolean | string[] | void> | boolean | string[] | void;
 }) {
   const t = useTranslate();
   const [items, setItems] = useState<PendingContent[]>([]);
   const [draft, setDraft] = useState("");
-  const [draftOverride, setDraftOverride] = useState<"TEXT" | "LINK" | null>(null);
+  const [draftOverride, setDraftOverride] = useState<"TEXT" | "LINK" | null>(
+    null,
+  );
   const [dragging, setDragging] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -75,7 +83,9 @@ export default function ContentIntake({
   const internalDrag = useRef(false);
 
   useEffect(() => {
-    setPasteShortcut(/Mac|iPhone|iPad/.test(navigator.platform) ? "⌘V" : "Ctrl+V");
+    setPasteShortcut(
+      /Mac|iPhone|iPad/.test(navigator.platform) ? "⌘V" : "Ctrl+V",
+    );
   }, []);
 
   useEffect(() => {
@@ -89,14 +99,16 @@ export default function ContentIntake({
   const addFiles = (files: File[]) => {
     setItems((previous) => {
       const currentSize = previous.reduce(
-        (sum, item) => sum + (item.type === "FILE" && !item.error ? item.file.size : 0),
+        (sum, item) =>
+          sum + (item.type === "FILE" && !item.error ? item.file.size : 0),
         0,
       );
       let acceptedSize = currentSize;
       return [
         ...previous,
         ...files.map((file): PendingContent => {
-          const tooLarge = file.size > maxSize || acceptedSize + file.size > maxSize;
+          const tooLarge =
+            file.size > maxSize || acceptedSize + file.size > maxSize;
           if (!tooLarge) acceptedSize += file.size;
           return {
             id: newId(),
@@ -203,9 +215,15 @@ export default function ContentIntake({
   }, [disabled, dragging, maxSize, t]);
 
   const draftItem: PendingContent | null = draft.trim()
-    ? { id: "draft", type: draftOverride ?? (isSingleUrl(draft) ? "LINK" : "TEXT"), value: draft }
+    ? {
+        id: "draft",
+        type: draftOverride ?? (isSingleUrl(draft) ? "LINK" : "TEXT"),
+        value: draft,
+      }
     : null;
-  const validCount = items.filter((item) => !itemError(item, t)).length + Number(Boolean(draftItem && !itemError(draftItem, t)));
+  const validCount =
+    items.filter((item) => !itemError(item, t)).length +
+    Number(Boolean(draftItem && !itemError(draftItem, t)));
 
   const pasteFromClipboard = async () => {
     try {
@@ -213,10 +231,18 @@ export default function ContentIntake({
         const entries = await navigator.clipboard.read();
         const files: File[] = [];
         for (const entry of entries) {
-          const imageType = entry.types.find((type) => type.startsWith("image/"));
+          const imageType = entry.types.find((type) =>
+            type.startsWith("image/"),
+          );
           if (imageType) {
             const blob = await entry.getType(imageType);
-            files.push(new File([blob], `pasted-image-${Date.now()}.${imageType.split("/")[1] || "png"}`, { type: imageType }));
+            files.push(
+              new File(
+                [blob],
+                `pasted-image-${Date.now()}.${imageType.split("/")[1] || "png"}`,
+                { type: imageType },
+              ),
+            );
           } else if (entry.types.includes("text/plain")) {
             addText(await (await entry.getType("text/plain")).text());
           }
@@ -232,13 +258,18 @@ export default function ContentIntake({
 
   const submit = async () => {
     if (submitting || disabled || validCount === 0) return;
-    const pending = [...items.filter((item) => !itemError(item, t)), ...(draftItem && !itemError(draftItem, t) ? [draftItem] : [])];
+    const pending = [
+      ...items.filter((item) => !itemError(item, t)),
+      ...(draftItem && !itemError(draftItem, t) ? [draftItem] : []),
+    ];
     setSubmitting(true);
     setError("");
     try {
       const completed = await onSubmit(pending);
       if (completed === true || Array.isArray(completed)) {
-        const ids = new Set(completed === true ? pending.map((item) => item.id) : completed);
+        const ids = new Set(
+          completed === true ? pending.map((item) => item.id) : completed,
+        );
         setItems((current) => current.filter((item) => !ids.has(item.id)));
         if (ids.has("draft")) {
           setDraft("");
@@ -256,15 +287,21 @@ export default function ContentIntake({
     <div className={classes.container}>
       {dragging && (
         <div className={classes.overlay} aria-hidden="true">
-          <TbUpload size={36} />
+          <Upload size={36} />
           <Text fw={700}>{t("content.drop")}</Text>
           <Text size="sm">{target}</Text>
         </div>
       )}
       <Stack gap="xs">
         <Group justify="space-between" align="center">
-          <Text size="sm" fw={600}>{t("content.target", { target })}</Text>
-          <Badge variant="light">{t("content.pending", { count: items.length + Number(Boolean(draftItem)) })}</Badge>
+          <Text size="sm" fw={600}>
+            {t("content.target", { target })}
+          </Text>
+          <Badge variant="light">
+            {t("content.pending", {
+              count: items.length + Number(Boolean(draftItem)),
+            })}
+          </Badge>
         </Group>
         <Textarea
           ref={draftRef}
@@ -279,21 +316,66 @@ export default function ContentIntake({
             if (!event.currentTarget.value) setDraftOverride(null);
           }}
         />
-        {pasteShortcut && <Text size="xs" c="dimmed">{t("content.shortcut", { shortcut: pasteShortcut })}</Text>}
+        {pasteShortcut && (
+          <Text size="xs" c="dimmed">
+            {t("content.shortcut", { shortcut: pasteShortcut })}
+          </Text>
+        )}
         <Group justify="space-between">
           <Group gap="xs">
             <FileButton multiple onChange={(files) => addFiles(files)}>
-              {(props) => <Button variant="light" leftSection={<TbFile />} disabled={disabled || submitting} {...props}>{t("content.choose-file")}</Button>}
+              {(props) => (
+                <Button
+                  variant="light"
+                  leftSection={<FileIcon />}
+                  disabled={disabled || submitting}
+                  {...props}
+                >
+                  {t("content.choose-file")}
+                </Button>
+              )}
             </FileButton>
-            <Button variant="subtle" leftSection={<TbClipboard />} disabled={disabled || submitting} onClick={() => void pasteFromClipboard()}>{t("content.paste")}</Button>
+            <Button
+              variant="subtle"
+              leftSection={<Clipboard />}
+              disabled={disabled || submitting}
+              onClick={() => void pasteFromClipboard()}
+            >
+              {t("content.paste")}
+            </Button>
           </Group>
-          <Button leftSection={<TbPlus />} disabled={!validCount || disabled} loading={submitting} onClick={() => void submit()}>{buttonLabel}</Button>
+          <Button
+            leftSection={<Plus />}
+            disabled={!validCount || disabled}
+            loading={submitting}
+            onClick={() => void submit()}
+          >
+            {buttonLabel}
+          </Button>
         </Group>
         {draftItem && (
           <Group gap="xs">
-            <Text size="xs" c="dimmed">{t("content.detected", { type: t(`room.asset.type.${draftItem.type.toLowerCase()}`) })}</Text>
-            <Select size="xs" w={120} aria-label={t("content.type")} data={[{ value: "TEXT", label: t("room.asset.type.text") }, { value: "LINK", label: t("room.asset.type.link") }]} value={draftItem.type} onChange={(value) => setDraftOverride(value as "TEXT" | "LINK")} />
-            {itemError(draftItem, t) && <Text size="xs" c="red">{itemError(draftItem, t)}</Text>}
+            <Text size="xs" c="dimmed">
+              {t("content.detected", {
+                type: t(`room.asset.type.${draftItem.type.toLowerCase()}`),
+              })}
+            </Text>
+            <Select
+              size="xs"
+              w={120}
+              aria-label={t("content.type")}
+              data={[
+                { value: "TEXT", label: t("room.asset.type.text") },
+                { value: "LINK", label: t("room.asset.type.link") },
+              ]}
+              value={draftItem.type}
+              onChange={(value) => setDraftOverride(value as "TEXT" | "LINK")}
+            />
+            {itemError(draftItem, t) && (
+              <Text size="xs" c="red">
+                {itemError(draftItem, t)}
+              </Text>
+            )}
           </Group>
         )}
         {items.map((item) => (
@@ -301,26 +383,82 @@ export default function ContentIntake({
             <Group align="flex-start" wrap="nowrap">
               <div className={classes.preview}>
                 {item.type === "FILE" ? (
-                  <Text size="sm">{item.file.name} · {byteToHumanSizeString(item.file.size)}</Text>
+                  <Text size="sm">
+                    {item.file.name} · {byteToHumanSizeString(item.file.size)}
+                  </Text>
                 ) : (
                   <>
                     <Select
                       size="xs"
                       aria-label={t("content.type")}
-                      data={[{ value: "TEXT", label: t("room.asset.type.text") }, { value: "LINK", label: t("room.asset.type.link") }]}
+                      data={[
+                        { value: "TEXT", label: t("room.asset.type.text") },
+                        { value: "LINK", label: t("room.asset.type.link") },
+                      ]}
                       value={item.type}
-                      onChange={(value) => setItems((current) => current.map((entry) => entry.id === item.id && entry.type !== "FILE" ? { ...entry, type: value as "TEXT" | "LINK" } : entry))}
+                      onChange={(value) =>
+                        setItems((current) =>
+                          current.map((entry) =>
+                            entry.id === item.id && entry.type !== "FILE"
+                              ? { ...entry, type: value as "TEXT" | "LINK" }
+                              : entry,
+                          ),
+                        )
+                      }
                     />
                     {item.type === "TEXT" ? (
-                      <Textarea size="xs" autosize minRows={2} aria-label={t("content.value")} value={item.value} onChange={(event) => setItems((current) => current.map((entry) => entry.id === item.id && entry.type !== "FILE" ? { ...entry, value: event.currentTarget.value } : entry))} />
+                      <Textarea
+                        size="xs"
+                        autosize
+                        minRows={2}
+                        aria-label={t("content.value")}
+                        value={item.value}
+                        onChange={(event) =>
+                          setItems((current) =>
+                            current.map((entry) =>
+                              entry.id === item.id && entry.type !== "FILE"
+                                ? { ...entry, value: event.currentTarget.value }
+                                : entry,
+                            ),
+                          )
+                        }
+                      />
                     ) : (
-                      <TextInput size="xs" aria-label={t("content.value")} value={item.value} onChange={(event) => setItems((current) => current.map((entry) => entry.id === item.id && entry.type !== "FILE" ? { ...entry, value: event.currentTarget.value } : entry))} />
+                      <TextInput
+                        size="xs"
+                        aria-label={t("content.value")}
+                        value={item.value}
+                        onChange={(event) =>
+                          setItems((current) =>
+                            current.map((entry) =>
+                              entry.id === item.id && entry.type !== "FILE"
+                                ? { ...entry, value: event.currentTarget.value }
+                                : entry,
+                            ),
+                          )
+                        }
+                      />
                     )}
                   </>
                 )}
-                {itemError(item, t) && <Text size="xs" c="red">{itemError(item, t)}</Text>}
+                {itemError(item, t) && (
+                  <Text size="xs" c="red">
+                    {itemError(item, t)}
+                  </Text>
+                )}
               </div>
-              <ActionIcon aria-label={t("common.button.delete")} variant="subtle" color="red" onClick={() => setItems((current) => current.filter((entry) => entry.id !== item.id))}><TbTrash /></ActionIcon>
+              <ActionIcon
+                aria-label={t("common.button.delete")}
+                variant="subtle"
+                color="red"
+                onClick={() =>
+                  setItems((current) =>
+                    current.filter((entry) => entry.id !== item.id),
+                  )
+                }
+              >
+                <Trash2 />
+              </ActionIcon>
             </Group>
           </Paper>
         ))}

@@ -1,3 +1,4 @@
+import { Copy, ExternalLink, Link2, Plus, Power, Trash2 } from "lucide-react";
 import {
   ActionIcon,
   Anchor,
@@ -20,14 +21,6 @@ import { useModals } from "@mantine/modals";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
-import {
-  TbCopy,
-  TbExternalLink,
-  TbLink,
-  TbPlus,
-  TbPower,
-  TbTrash,
-} from "react-icons/tb";
 import { FormattedMessage } from "react-intl";
 import Meta from "../../components/Meta";
 import tableClasses from "../../components/core/DataTable.module.css";
@@ -48,7 +41,9 @@ import classes from "./ShortLinksWorkspace.module.css";
 const isWebUrl = (value: string) => {
   try {
     const url = new URL(value.trim());
-    return !/\s/.test(value.trim()) && ["http:", "https:"].includes(url.protocol);
+    return (
+      !/\s/.test(value.trim()) && ["http:", "https:"].includes(url.protocol)
+    );
   } catch {
     return false;
   }
@@ -89,11 +84,20 @@ const ShortLinksWorkspace = () => {
   }, []);
 
   useEffect(() => {
-    const onDragStart = () => { internalDrag.current = true; };
-    const onDragEnd = () => { internalDrag.current = false; };
+    const onDragStart = () => {
+      internalDrag.current = true;
+    };
+    const onDragEnd = () => {
+      internalDrag.current = false;
+    };
     const onPaste = (event: ClipboardEvent) => {
-      if (isCreateOpen || event.target instanceof HTMLElement &&
-        (event.target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(event.target.tagName))) return;
+      if (
+        isCreateOpen ||
+        (event.target instanceof HTMLElement &&
+          (event.target.isContentEditable ||
+            ["INPUT", "TEXTAREA", "SELECT"].includes(event.target.tagName)))
+      )
+        return;
       const value = event.clipboardData?.getData("text/plain") ?? "";
       if (!isWebUrl(value)) return;
       event.preventDefault();
@@ -103,11 +107,19 @@ const ShortLinksWorkspace = () => {
     };
     const onDragOver = (event: DragEvent) => {
       if (internalDrag.current) return;
-      if (Array.from(event.dataTransfer?.types ?? []).some((type) => ["Files", "text/plain", "text/uri-list"].includes(type))) event.preventDefault();
+      if (
+        Array.from(event.dataTransfer?.types ?? []).some((type) =>
+          ["Files", "text/plain", "text/uri-list"].includes(type),
+        )
+      )
+        event.preventDefault();
     };
     const onDrop = (event: DragEvent) => {
       if (internalDrag.current) return;
-      const value = event.dataTransfer?.getData("text/uri-list") || event.dataTransfer?.getData("text/plain") || "";
+      const value =
+        event.dataTransfer?.getData("text/uri-list") ||
+        event.dataTransfer?.getData("text/plain") ||
+        "";
       if (!value && !event.dataTransfer?.files.length) return;
       event.preventDefault();
       if (isCreateOpen) return;
@@ -222,19 +234,14 @@ const ShortLinksWorkspace = () => {
       <Meta title={t("account.shortLinks.title")} />
 
       <Group align="flex-end" justify="space-between" mb={30}>
-        <div>
-          <Title order={3}>
-            <FormattedMessage id="account.shortLinks.title" />
-          </Title>
-          <Text c="dimmed" size="sm">
-            <FormattedMessage id="account.shortLinks.subtitle" />
-          </Text>
-        </div>
+        <Title order={3}>
+          <FormattedMessage id="account.shortLinks.title" />
+        </Title>
         <Group gap="sm">
           <Badge color="gray" size="lg" variant="light">
             {links.length} <FormattedMessage id="account.shortLinks.count" />
           </Badge>
-          <Button leftSection={<TbPlus />} onClick={openCreate}>
+          <Button leftSection={<Plus />} onClick={openCreate}>
             <FormattedMessage id="account.shortLinks.create" />
           </Button>
         </Group>
@@ -246,10 +253,16 @@ const ShortLinksWorkspace = () => {
           placeholder={t("account.shortLinks.quick-url")}
           value={targetDraft}
           onChange={(event) => setTargetDraft(event.currentTarget.value)}
-          onKeyDown={(event) => { if (event.key === "Enter") prepareTarget(); }}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") prepareTarget();
+          }}
           style={{ flex: "1 1 260px" }}
         />
-        <Button variant="light" disabled={!isWebUrl(targetDraft)} onClick={prepareTarget}>
+        <Button
+          variant="light"
+          disabled={!isWebUrl(targetDraft)}
+          onClick={prepareTarget}
+        >
           {t("account.shortLinks.quick-next")}
         </Button>
       </Group>
@@ -323,14 +336,19 @@ const ShortLinksWorkspace = () => {
               <AccessControlForm
                 value={accessControl}
                 onChange={setAccessControl}
-                fields={["password", "expiresAt", "maxViews", "allowAnonymous", "oneTime"]}
+                fields={[
+                  "password",
+                  "expiresAt",
+                  "maxViews",
+                  "allowAnonymous",
+                  "oneTime",
+                ]}
               />
-              <Text size="xs" c="dimmed">{t("account.shortLinks.access-scope")}</Text>
             </section>
 
             <Group className={modalClasses.footer}>
               <Button
-                leftSection={<TbPlus />}
+                leftSection={<Plus />}
                 loading={isCreating}
                 disabled={form.values.targetUrl.trim().length === 0}
                 type="submit"
@@ -395,7 +413,7 @@ const ShortLinksWorkspace = () => {
                   >
                     <Table.Td>
                       <Group gap="xs" wrap="nowrap">
-                        <TbLink />
+                        <Link2 />
                         <Anchor
                           component={Link}
                           href={`/short-links/${shortLink.code}`}
@@ -444,7 +462,7 @@ const ShortLinksWorkspace = () => {
                               copyLink(shortLink.code);
                             }}
                           >
-                            <TbCopy />
+                            <Copy />
                           </ActionIcon>
                         </HoverTip>
                         <HoverTip label={t("common.text.navigate-to-link")}>
@@ -459,7 +477,7 @@ const ShortLinksWorkspace = () => {
                             variant="subtle"
                             onClick={(event) => event.stopPropagation()}
                           >
-                            <TbExternalLink />
+                            <ExternalLink />
                           </ActionIcon>
                         </HoverTip>
                         <HoverTip
@@ -483,7 +501,7 @@ const ShortLinksWorkspace = () => {
                               setLinkActive(shortLink, !shortLink.isActive);
                             }}
                           >
-                            <TbPower />
+                            <Power />
                           </ActionIcon>
                         </HoverTip>
                         <HoverTip label={t("common.button.delete")}>
@@ -497,7 +515,7 @@ const ShortLinksWorkspace = () => {
                               confirmRemove(shortLink);
                             }}
                           >
-                            <TbTrash />
+                            <Trash2 />
                           </ActionIcon>
                         </HoverTip>
                       </Group>

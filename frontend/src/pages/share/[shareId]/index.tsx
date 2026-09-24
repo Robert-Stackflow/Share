@@ -1,3 +1,4 @@
+import { Pencil, PencilLine } from "lucide-react";
 import { ActionIcon, Box, Group, Text, Title } from "@mantine/core";
 import { useModals } from "@mantine/modals";
 import { GetStaticPaths, GetStaticProps } from "next";
@@ -5,7 +6,6 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { FormattedMessage } from "react-intl";
-import { TbEdit, TbPlusMinus } from "react-icons/tb";
 import Meta from "../../../components/Meta";
 import DownloadAllButton from "../../../components/share/DownloadAllButton";
 import ShareAssetList from "../../../components/share/ShareAssetList";
@@ -193,7 +193,7 @@ const Share = () => {
             <HoverTip label={t("account.shares.button.edit")}>
               <Link href={`/share/${shareId}/edit`}>
                 <ActionIcon variant="light" color="orange" size="lg">
-                  <TbPlusMinus />
+                  <PencilLine />
                 </ActionIcon>
               </Link>
             </HoverTip>
@@ -206,7 +206,7 @@ const Share = () => {
                 size="lg"
                 onClick={handleEditClick}
               >
-                <TbEdit />
+                <Pencil />
               </ActionIcon>
             </HoverTip>
           )}

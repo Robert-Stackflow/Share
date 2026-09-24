@@ -1,7 +1,7 @@
+import { FileIcon, FileText, Link2 } from "lucide-react";
 import { Anchor, Box, Group, Skeleton, Table, Text } from "@mantine/core";
 import moment from "moment";
 import { ReactNode } from "react";
-import { TbFile, TbFileText, TbLink } from "react-icons/tb";
 import useTranslate from "../../hooks/useTranslate.hook";
 import { Asset, AssetType } from "../../types/asset.type";
 import { byteToHumanSizeString } from "../../utils/fileSize.util";
@@ -23,9 +23,9 @@ type AssetTableProps = {
 };
 
 const typeIcon: Record<AssetType, ReactNode> = {
-  FILE: <TbFile />,
-  TEXT: <TbFileText />,
-  LINK: <TbLink />,
+  FILE: <FileIcon />,
+  TEXT: <FileText />,
+  LINK: <Link2 />,
 };
 
 export const sortAssetsByCreatedAtDesc = (assets: Asset[]) =>

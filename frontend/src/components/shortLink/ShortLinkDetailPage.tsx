@@ -1,4 +1,18 @@
 import {
+  ArrowLeft,
+  CalendarDays,
+  ChartColumn,
+  Clock,
+  Copy,
+  ExternalLink,
+  Globe,
+  Link2,
+  Pencil,
+  Save,
+  Trash2,
+  User,
+} from "lucide-react";
+import {
   ActionIcon,
   Anchor,
   Badge,
@@ -21,20 +35,6 @@ import { useModals } from "@mantine/modals";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { ReactNode, useEffect, useMemo, useState } from "react";
-import {
-  TbArrowLeft,
-  TbCalendarStats,
-  TbChartBar,
-  TbClock,
-  TbCopy,
-  TbDeviceFloppy,
-  TbEdit,
-  TbExternalLink,
-  TbLink,
-  TbUser,
-  TbWorld,
-  TbTrash,
-} from "react-icons/tb";
 import { FormattedMessage } from "react-intl";
 import Meta from "../../components/Meta";
 import CenterLoader from "../../components/core/CenterLoader";
@@ -52,7 +52,10 @@ import {
   ShortLinkTargetType,
 } from "../../types/shortLink.type";
 import toast from "../../utils/toast.util";
-import { AccessControl, toAccessControlPayload } from "../../types/accessControl.type";
+import {
+  AccessControl,
+  toAccessControlPayload,
+} from "../../types/accessControl.type";
 import classes from "./ShortLinksWorkspace.module.css";
 
 const formatDateTime = (value?: Date | string | null) => {
@@ -340,7 +343,10 @@ const ShortLinkDetailPage = () => {
         },
       })
       .then((updated) => {
-        return Promise.all([shortLinkService.list(), shortLinkService.stats(updated.code)]).then(([links, nextStats]) => {
+        return Promise.all([
+          shortLinkService.list(),
+          shortLinkService.stats(updated.code),
+        ]).then(([links, nextStats]) => {
           const refreshed = links.find((link) => link.code === updated.code);
           setShortLink(refreshed);
           setStats(nextStats);
@@ -483,25 +489,37 @@ const ShortLinkDetailPage = () => {
               <AccessControlForm
                 value={accessControl}
                 onChange={setAccessControl}
-                fields={["password", "expiresAt", "maxViews", "allowAnonymous", "oneTime"]}
+                fields={[
+                  "password",
+                  "expiresAt",
+                  "maxViews",
+                  "allowAnonymous",
+                  "oneTime",
+                ]}
               />
               {shortLink?.accessControl?.passwordProtected && (
                 <Stack gap="xs" mt="sm">
-                  <Text size="sm">{t("account.shortLinks.password-active")}</Text>
-                  <Button type="button" variant="light" color={removePassword ? "gray" : "red"} onClick={() => setRemovePassword((current) => !current)}>
-                    {t(removePassword ? "account.shortLinks.keep-password" : "account.shortLinks.remove-password")}
+                  <Text size="sm">
+                    {t("account.shortLinks.password-active")}
+                  </Text>
+                  <Button
+                    type="button"
+                    variant="light"
+                    color={removePassword ? "gray" : "red"}
+                    onClick={() => setRemovePassword((current) => !current)}
+                  >
+                    {t(
+                      removePassword
+                        ? "account.shortLinks.keep-password"
+                        : "account.shortLinks.remove-password",
+                    )}
                   </Button>
                 </Stack>
               )}
-              <Text size="xs" c="dimmed" mt="sm">{t("account.shortLinks.access-scope")}</Text>
             </section>
 
             <Group className={modalClasses.footer}>
-              <Button
-                leftSection={<TbDeviceFloppy />}
-                loading={isUpdating}
-                type="submit"
-              >
+              <Button leftSection={<Save />} loading={isUpdating} type="submit">
                 <FormattedMessage id="common.button.save" />
               </Button>
             </Group>
@@ -515,7 +533,7 @@ const ShortLinkDetailPage = () => {
             <Button
               component={Link}
               href="/short-links"
-              leftSection={<TbArrowLeft />}
+              leftSection={<ArrowLeft />}
               mb="sm"
               variant="subtle"
             >
@@ -526,7 +544,7 @@ const ShortLinkDetailPage = () => {
               <Badge
                 className={classes.metaBadge}
                 color="gray"
-                leftSection={<TbLink />}
+                leftSection={<Link2 />}
                 variant="light"
               >
                 /s/{code}
@@ -558,7 +576,7 @@ const ShortLinkDetailPage = () => {
                 variant="subtle"
                 onClick={openEdit}
               >
-                <TbEdit />
+                <Pencil />
               </ActionIcon>
             </HoverTip>
             <HoverTip label={t("common.button.copy-link")}>
@@ -568,7 +586,7 @@ const ShortLinkDetailPage = () => {
                 variant="subtle"
                 onClick={copyLink}
               >
-                <TbCopy />
+                <Copy />
               </ActionIcon>
             </HoverTip>
             <HoverTip label={t("common.text.navigate-to-link")}>
@@ -581,7 +599,7 @@ const ShortLinkDetailPage = () => {
                 rel="noreferrer"
                 variant="subtle"
               >
-                <TbExternalLink />
+                <ExternalLink />
               </ActionIcon>
             </HoverTip>
             <HoverTip label={t("common.button.delete")}>
@@ -591,7 +609,7 @@ const ShortLinkDetailPage = () => {
                 variant="subtle"
                 onClick={confirmRemove}
               >
-                <TbTrash />
+                <Trash2 />
               </ActionIcon>
             </HoverTip>
           </Group>
@@ -601,22 +619,22 @@ const ShortLinkDetailPage = () => {
       <main className={classes.shortLinkDetails}>
         <div className={classes.statsOverview}>
           <KpiCard
-            icon={<TbChartBar />}
+            icon={<ChartColumn />}
             label={t("account.shortLinks.stats.totalVisits")}
             value={stats.totalVisits}
           />
           <KpiCard
-            icon={<TbUser />}
+            icon={<User />}
             label={t("account.shortLinks.stats.uniqueVisitors")}
             value={stats.uniqueVisitors}
           />
           <KpiCard
-            icon={<TbClock />}
+            icon={<Clock />}
             label={t("account.shortLinks.stats.lastVisit")}
             value={formatDateTime(stats.lastVisitedAt)}
           />
           <KpiCard
-            icon={<TbWorld />}
+            icon={<Globe />}
             label={t("account.shortLinks.form.target")}
             value={
               stats.targetType === "URL"

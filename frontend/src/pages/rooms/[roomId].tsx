@@ -1,3 +1,4 @@
+import { Globe, KeyRound, LockKeyhole } from "lucide-react";
 import {
   Badge,
   Button,
@@ -14,7 +15,6 @@ import { AxiosError } from "axios";
 import { GetStaticPaths, GetStaticProps } from "next";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { TbKey, TbLock, TbWorld } from "react-icons/tb";
 import { FormattedMessage } from "react-intl";
 import AssetContentComposer from "../../components/content/AssetContentComposer";
 import RoomConversationPanel from "../../components/room/RoomConversationPanel";
@@ -108,19 +108,19 @@ const RoomPage = () => {
             <form onSubmit={verify}>
               <Stack gap="md">
                 <Group>
-                  <TbLock />
+                  <LockKeyhole />
                   <Title order={3}>
                     <FormattedMessage id="room.room.locked.title" />
                   </Title>
                 </Group>
                 <PasswordInput
                   label={t("room.room.passcode")}
-                  leftSection={<TbKey />}
+                  leftSection={<KeyRound />}
                   {...form.getInputProps("passcode")}
                 />
                 <Button
                   type="submit"
-                  leftSection={<TbKey />}
+                  leftSection={<KeyRound />}
                   disabled={form.values.passcode.trim().length === 0}
                 >
                   <FormattedMessage id="room.room.unlock" />
@@ -188,7 +188,7 @@ const RoomPage = () => {
           badge={
             <Badge
               color={room.hasPasscode ? "yellow" : "green"}
-              leftSection={room.hasPasscode ? <TbLock /> : <TbWorld />}
+              leftSection={room.hasPasscode ? <LockKeyhole /> : <Globe />}
               variant="light"
             >
               {room.hasPasscode

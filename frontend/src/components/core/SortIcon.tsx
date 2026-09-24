@@ -1,6 +1,6 @@
+import { ChevronDown, ChevronUp, ChevronsUpDown } from "lucide-react";
 import { ActionIcon } from "@mantine/core";
 import { Dispatch, SetStateAction } from "react";
-import { TbChevronDown, TbChevronUp, TbSelector } from "react-icons/tb";
 
 export type TableSort = {
   property?: string;
@@ -26,13 +26,13 @@ const TableSortIcon = ({
           })
         }
       >
-        {sort.direction === "asc" ? <TbChevronDown /> : <TbChevronUp />}
+        {sort.direction === "asc" ? <ChevronDown /> : <ChevronUp />}
       </ActionIcon>
     );
   } else {
     return (
       <ActionIcon onClick={() => setSort({ property, direction: "asc" })}>
-        <TbSelector />
+        <ChevronsUpDown />
       </ActionIcon>
     );
   }

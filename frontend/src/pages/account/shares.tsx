@@ -1,3 +1,4 @@
+import { Info, Link2, LockKeyhole, PencilLine, Trash2 } from "lucide-react";
 import {
   ActionIcon,
   Box,
@@ -15,13 +16,6 @@ import { useModals } from "@mantine/modals";
 import moment from "moment";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import {
-  TbPlusMinus,
-  TbInfoCircle,
-  TbLink,
-  TbLock,
-  TbTrash,
-} from "react-icons/tb";
 import { FormattedMessage } from "react-intl";
 import Meta from "../../components/Meta";
 import showShareInformationsModal from "../../components/share/showShareInformationsModal";
@@ -97,9 +91,11 @@ const MyShares = () => {
                     <Group gap="xs">
                       {share.id}{" "}
                       {share.security?.passwordProtected && (
-                        <TbLock
+                        <LockKeyhole
                           color="orange"
-                          title={t("account.shares.table.password-protected")}
+                          aria-label={t(
+                            "account.shares.table.password-protected",
+                          )}
                         />
                       )}
                     </Group>
@@ -139,7 +135,7 @@ const MyShares = () => {
                           variant="subtle"
                           size={25}
                         >
-                          <TbPlusMinus />
+                          <PencilLine />
                         </ActionIcon>
                       </HoverTip>
                       <HoverTip label={t("common.button.info")}>
@@ -166,7 +162,7 @@ const MyShares = () => {
                             );
                           }}
                         >
-                          <TbInfoCircle />
+                          <Info />
                         </ActionIcon>
                       </HoverTip>
                       <HoverTip label={t("common.button.copy-link")}>
@@ -190,7 +186,7 @@ const MyShares = () => {
                             }
                           }}
                         >
-                          <TbLink />
+                          <Link2 />
                         </ActionIcon>
                       </HoverTip>
                       <HoverTip label={t("common.button.delete")}>
@@ -224,7 +220,7 @@ const MyShares = () => {
                             });
                           }}
                         >
-                          <TbTrash />
+                          <Trash2 />
                         </ActionIcon>
                       </HoverTip>
                     </Group>

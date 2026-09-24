@@ -1,3 +1,4 @@
+import { Info } from "lucide-react";
 import {
   Anchor,
   Button,
@@ -16,7 +17,6 @@ import { notifications } from "@mantine/notifications";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { TbInfoCircle } from "react-icons/tb";
 import { FormattedMessage } from "react-intl";
 import * as yup from "yup";
 import useConfig from "../../hooks/config.hook";
@@ -58,7 +58,7 @@ const SignInForm = ({ redirectPath }: { redirectPath: string }) => {
         if (response.data["loginToken"]) {
           // Prompt the user to enter their totp code
           notifications.show({
-            icon: <TbInfoCircle />,
+            icon: <Info />,
             color: "blue",
             radius: "md",
             title: t("signIn.notify.totp-required.title"),

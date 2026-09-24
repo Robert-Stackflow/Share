@@ -1,5 +1,5 @@
+import { Check, X } from "lucide-react";
 import { NotificationData, notifications } from "@mantine/notifications";
-import { TbCheck, TbX } from "react-icons/tb";
 import { FormattedMessage } from "react-intl";
 import { getApiErrorMessage } from "./error.util";
 import { ReactNode } from "react";
@@ -9,7 +9,7 @@ const error = (
   config?: Omit<NotificationData, "message">,
 ) =>
   notifications.show({
-    icon: <TbX />,
+    icon: <X />,
     color: "red",
     radius: "md",
     title: <FormattedMessage id="common.error" />,
@@ -32,7 +32,7 @@ const success = (
   config?: Omit<NotificationData, "message">,
 ) =>
   notifications.show({
-    icon: <TbCheck />,
+    icon: <Check />,
     color: "green",
     radius: "md",
     title: <FormattedMessage id="common.success" />,

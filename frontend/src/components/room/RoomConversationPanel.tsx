@@ -1,3 +1,4 @@
+import { FileIcon, FileText, Link2 } from "lucide-react";
 import {
   Anchor,
   Badge,
@@ -10,7 +11,6 @@ import {
 } from "@mantine/core";
 import moment from "moment";
 import { ReactNode, useEffect, useRef, useState } from "react";
-import { TbFile, TbFileText, TbLink } from "react-icons/tb";
 import { FormattedMessage } from "react-intl";
 import useTranslate from "../../hooks/useTranslate.hook";
 import { Asset, AssetType } from "../../types/asset.type";
@@ -23,9 +23,9 @@ import AssetActionMenu from "../asset/AssetActionMenu";
 import classes from "./RoomConversationPanel.module.css";
 
 const typeIcon: Record<AssetType, ReactNode> = {
-  FILE: <TbFile />,
-  TEXT: <TbFileText />,
-  LINK: <TbLink />,
+  FILE: <FileIcon />,
+  TEXT: <FileText />,
+  LINK: <Link2 />,
 };
 
 type RoomConversationPanelProps = {

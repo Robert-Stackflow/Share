@@ -1,7 +1,7 @@
+import { CloudUpload, Upload } from "lucide-react";
 import { Button, Center, Group, Text } from "@mantine/core";
 import { Dropzone as MantineDropzone, FileWithPath } from "@mantine/dropzone";
 import { ForwardedRef, useRef } from "react";
-import { TbCloudUpload, TbUpload } from "react-icons/tb";
 import { FormattedMessage } from "react-intl";
 import useTranslate from "../../hooks/useTranslate.hook";
 import { FileUpload } from "../../types/File.type";
@@ -55,8 +55,13 @@ const Dropzone = ({
           className={classes.compactDropzone}
           radius="md"
         >
-          <Group justify="center" gap="sm" wrap="nowrap" style={{ pointerEvents: "none" }}>
-            <TbCloudUpload size={26} />
+          <Group
+            justify="center"
+            gap="sm"
+            wrap="nowrap"
+            style={{ pointerEvents: "none" }}
+          >
+            <CloudUpload size={26} />
             <div>
               <Text fw={600} size="sm">
                 {title || <FormattedMessage id="upload.dropzone.title" />}
@@ -88,7 +93,7 @@ const Dropzone = ({
       >
         <div style={{ pointerEvents: "none" }}>
           <Group justify="center">
-            <TbCloudUpload size={50} />
+            <CloudUpload size={50} />
           </Group>
           <Text ta="center" fw={700} size="lg" mt="xl">
             {title || <FormattedMessage id="upload.dropzone.title" />}
@@ -110,7 +115,7 @@ const Dropzone = ({
           disabled={isUploading}
           onClick={() => openRef.current && openRef.current()}
         >
-          {<TbUpload />}
+          {<Upload />}
         </Button>
       </Center>
     </div>

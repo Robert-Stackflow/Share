@@ -1,8 +1,8 @@
+import { Info, Link2, Trash2 } from "lucide-react";
 import { ActionIcon, Box, Group, Skeleton, Table, Text } from "@mantine/core";
 import { useClipboard } from "@mantine/hooks";
 import { useModals } from "@mantine/modals";
 import moment from "moment";
-import { TbInfoCircle, TbLink, TbTrash } from "react-icons/tb";
 import { FormattedMessage } from "react-intl";
 import useConfig from "../../../hooks/config.hook";
 import useTranslate from "../../../hooks/useTranslate.hook";
@@ -126,7 +126,7 @@ const ManageShareTable = ({
                             );
                           }}
                         >
-                          <TbInfoCircle />
+                          <Info />
                         </ActionIcon>
                       </HoverTip>
                       <HoverTip label={t("common.button.copy-link")}>
@@ -150,7 +150,7 @@ const ManageShareTable = ({
                             }
                           }}
                         >
-                          <TbLink />
+                          <Link2 />
                         </ActionIcon>
                       </HoverTip>
                       <HoverTip label={t("common.button.delete")}>
@@ -160,7 +160,7 @@ const ManageShareTable = ({
                           size={25}
                           onClick={() => deleteShare(share)}
                         >
-                          <TbTrash />
+                          <Trash2 />
                         </ActionIcon>
                       </HoverTip>
                     </Group>

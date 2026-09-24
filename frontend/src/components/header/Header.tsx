@@ -1,3 +1,4 @@
+import { ChevronLeft } from "lucide-react";
 import {
   Box,
   Burger,
@@ -15,7 +16,6 @@ import classes from "./Header.module.css";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { ReactNode, useEffect, useState } from "react";
-import { TbChevronLeft } from "react-icons/tb";
 import useConfig from "../../hooks/config.hook";
 import useUser from "../../hooks/user.hook";
 import useTranslate from "../../hooks/useTranslate.hook";
@@ -279,7 +279,7 @@ const Header = () => {
                   onClick={() => setMobileMenuView("root")}
                 >
                   <span className={classes.mobileMenuButtonContent}>
-                    <TbChevronLeft size={18} />
+                    <ChevronLeft size={18} />
                   </span>
                 </UnstyledButton>
               )}

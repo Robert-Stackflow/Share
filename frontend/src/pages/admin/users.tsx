@@ -1,7 +1,7 @@
+import { Plus } from "lucide-react";
 import { Button, Group, Space, Text, Title } from "@mantine/core";
 import { useModals } from "@mantine/modals";
 import { useEffect, useState } from "react";
-import { TbPlus } from "react-icons/tb";
 import { FormattedMessage } from "react-intl";
 import Meta from "../../components/Meta";
 import ManageUserTable from "../../components/admin/users/ManageUserTable";
@@ -67,7 +67,7 @@ const Users = () => {
           onClick={() =>
             showCreateUserModal(modals, config.get("smtp.enabled"), getUsers)
           }
-          leftSection={<TbPlus size={20} />}
+          leftSection={<Plus size={20} />}
         >
           <FormattedMessage id="common.button.create" />
         </Button>

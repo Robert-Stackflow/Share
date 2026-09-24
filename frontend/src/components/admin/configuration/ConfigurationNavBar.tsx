@@ -1,32 +1,32 @@
+import {
+  AtSign,
+  Database,
+  Mail,
+  Network,
+  Palette,
+  Scale,
+  ServerCog,
+  Settings,
+  Share,
+  Workflow,
+} from "lucide-react";
 import { Box, Button, Group, Stack, Text, ThemeIcon } from "@mantine/core";
 import Link from "next/link";
 import { Dispatch, SetStateAction } from "react";
-import {
-  TbAt,
-  TbBinaryTree,
-  TbBucket,
-  TbMail,
-  TbPalette,
-  TbScale,
-  TbServerBolt,
-  TbSettings,
-  TbShare,
-  TbSocial,
-} from "react-icons/tb";
 import { FormattedMessage } from "react-intl";
 import classes from "./ConfigurationNavBar.module.css";
 
 export const categories = [
-  { name: "General", icon: <TbSettings /> },
-  { name: "Appearance", icon: <TbPalette /> },
-  { name: "Email", icon: <TbMail /> },
-  { name: "Share", icon: <TbShare /> },
-  { name: "SMTP", icon: <TbAt /> },
-  { name: "OAuth", icon: <TbSocial /> },
-  { name: "LDAP", icon: <TbBinaryTree /> },
-  { name: "S3", icon: <TbBucket /> },
-  { name: "Legal", icon: <TbScale /> },
-  { name: "Cache", icon: <TbServerBolt /> },
+  { name: "General", icon: <Settings /> },
+  { name: "Appearance", icon: <Palette /> },
+  { name: "Email", icon: <Mail /> },
+  { name: "Share", icon: <Share /> },
+  { name: "SMTP", icon: <AtSign /> },
+  { name: "OAuth", icon: <Network /> },
+  { name: "LDAP", icon: <Workflow /> },
+  { name: "S3", icon: <Database /> },
+  { name: "Legal", icon: <Scale /> },
+  { name: "Cache", icon: <ServerCog /> },
 ];
 
 const ConfigurationNavBar = ({

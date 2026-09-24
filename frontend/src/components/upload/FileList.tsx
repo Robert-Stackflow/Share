@@ -1,8 +1,7 @@
+import { ArrowRight, Pencil, Trash2, Undo2 } from "lucide-react";
 import { ActionIcon, Box, Table, Group, Text } from "@mantine/core";
 import { useModals } from "@mantine/modals";
 import { useEffect, useState } from "react";
-import { TbTrash, TbEdit, TbArrowRight } from "react-icons/tb";
-import { GrUndo } from "react-icons/gr";
 import { FileListItem } from "../../types/File.type";
 import { byteToHumanSizeString } from "../../utils/fileSize.util";
 import UploadProgressIndicator from "./UploadProgressIndicator";
@@ -57,7 +56,7 @@ const FileListRow = ({
               <Text span c="dimmed" style={{ textDecoration: "line-through" }}>
                 {file.name}
               </Text>
-              <TbArrowRight style={{ flexShrink: 0, opacity: 0.6 }} />
+              <ArrowRight style={{ flexShrink: 0, opacity: 0.6 }} />
               <Text span fw={500}>
                 {previewName}
               </Text>
@@ -77,7 +76,7 @@ const FileListRow = ({
                   size={25}
                   onClick={onEdit}
                 >
-                  <TbEdit />
+                  <Pencil />
                 </ActionIcon>
               </HoverTip>
             )}
@@ -89,7 +88,7 @@ const FileListRow = ({
                   size={25}
                   onClick={onRemove}
                 >
-                  <TbTrash />
+                  <Trash2 />
                 </ActionIcon>
               </HoverTip>
             )}
@@ -104,7 +103,7 @@ const FileListRow = ({
                   size={25}
                   onClick={onRestore}
                 >
-                  <GrUndo />
+                  <Undo2 />
                 </ActionIcon>
               </HoverTip>
             )}

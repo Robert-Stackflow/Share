@@ -1,3 +1,4 @@
+import { Laptop, Moon, Sun } from "lucide-react";
 import {
   Box,
   Center,
@@ -12,7 +13,6 @@ import {
   TextInput,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { TbDeviceLaptop, TbMoon, TbSun } from "react-icons/tb";
 import { FormattedMessage } from "react-intl";
 import {
   AdminConfig,
@@ -39,8 +39,7 @@ const AdminConfigInput = ({
   optionalConfigVariables?: AdminConfig[];
 }) => {
   const isCustomCssConfig = configVariable.key === "appearance.customCss";
-  const isFileRenameRulesConfig =
-    configVariable.key === "s3.fileRenameRules";
+  const isFileRenameRulesConfig = configVariable.key === "s3.fileRenameRules";
   const isThemePrimaryColorConfig =
     configVariable.key === "appearance.themePrimaryColor";
   const isThemePrimaryColorOverrideConfig =
@@ -213,7 +212,7 @@ const AdminConfigInput = ({
               {
                 label: (
                   <Center>
-                    <TbMoon size={16} />
+                    <Moon size={16} />
                     <Box ml={10}>
                       <FormattedMessage id="account.theme.dark" />
                     </Box>
@@ -224,7 +223,7 @@ const AdminConfigInput = ({
               {
                 label: (
                   <Center>
-                    <TbSun size={16} />
+                    <Sun size={16} />
                     <Box ml={10}>
                       <FormattedMessage id="account.theme.light" />
                     </Box>
@@ -235,7 +234,7 @@ const AdminConfigInput = ({
               {
                 label: (
                   <Center>
-                    <TbDeviceLaptop size={16} />
+                    <Laptop size={16} />
                     <Box ml={10}>
                       <FormattedMessage id="account.theme.system" />
                     </Box>

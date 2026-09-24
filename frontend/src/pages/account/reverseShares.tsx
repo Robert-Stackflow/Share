@@ -1,3 +1,4 @@
+import { Check, Info, Link2, Plus, Share2, Trash2, X } from "lucide-react";
 import {
   Accordion,
   ActionIcon,
@@ -16,15 +17,6 @@ import { useClipboard } from "@mantine/hooks";
 import { useModals } from "@mantine/modals";
 import moment from "moment";
 import { useEffect, useMemo, useState } from "react";
-import {
-  TbCheck,
-  TbInfoCircle,
-  TbLink,
-  TbPlus,
-  TbShare3,
-  TbTrash,
-  TbX,
-} from "react-icons/tb";
 import { FormattedMessage } from "react-intl";
 import showReverseShareLinkModal from "../../components/account/showReverseShareLinkModal";
 import showShareLinkModal from "../../components/account/showShareLinkModal";
@@ -182,7 +174,7 @@ const MyShares = () => {
           </Title>
           <HoverTip label={t("account.reverseShares.description")}>
             <ActionIcon color="gray" variant="subtle">
-              <TbInfoCircle />
+              <Info />
             </ActionIcon>
           </HoverTip>
         </Group>
@@ -198,7 +190,7 @@ const MyShares = () => {
               getReverseShares,
             )
           }
-          leftSection={<TbPlus size={20} />}
+          leftSection={<Plus size={20} />}
         >
           <FormattedMessage id="common.button.create" />
         </Button>
@@ -292,7 +284,7 @@ const MyShares = () => {
                           <Group justify="flex-end" gap={6} wrap="nowrap">
                             <Button
                               color="gray"
-                              leftSection={<TbCheck />}
+                              leftSection={<Check />}
                               loading={
                                 submissionAction ===
                                 `${submission.id}:accept-assets`
@@ -307,7 +299,7 @@ const MyShares = () => {
                             </Button>
                             <Button
                               color="gray"
-                              leftSection={<TbShare3 />}
+                              leftSection={<Share2 />}
                               loading={
                                 submissionAction ===
                                 `${submission.id}:accept-share`
@@ -322,7 +314,7 @@ const MyShares = () => {
                             </Button>
                             <Button
                               color="red"
-                              leftSection={<TbX />}
+                              leftSection={<X />}
                               loading={
                                 submissionAction === `${submission.id}:reject`
                               }
@@ -422,7 +414,7 @@ const MyShares = () => {
                                         }
                                       }}
                                     >
-                                      <TbLink />
+                                      <Link2 />
                                     </ActionIcon>
                                   </HoverTip>
                                 </Group>
@@ -470,7 +462,7 @@ const MyShares = () => {
                               }
                             }}
                           >
-                            <TbLink />
+                            <Link2 />
                           </ActionIcon>
                         </HoverTip>
                         <HoverTip label={t("common.button.delete")}>
@@ -511,7 +503,7 @@ const MyShares = () => {
                               });
                             }}
                           >
-                            <TbTrash />
+                            <Trash2 />
                           </ActionIcon>
                         </HoverTip>
                       </Group>

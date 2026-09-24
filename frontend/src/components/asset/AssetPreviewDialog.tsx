@@ -1,3 +1,4 @@
+import { Copy, Download, ExternalLink } from "lucide-react";
 import {
   Anchor,
   Box,
@@ -12,7 +13,6 @@ import {
 import { useClipboard } from "@mantine/hooks";
 import mime from "mime-types";
 import { useEffect, useMemo, useState } from "react";
-import { TbCopy, TbDownload, TbExternalLink } from "react-icons/tb";
 import useTranslate from "../../hooks/useTranslate.hook";
 import assetService from "../../services/asset.service";
 import { Asset } from "../../types/asset.type";
@@ -150,7 +150,7 @@ const AssetPreviewDialog = ({
           <Textarea autosize minRows={8} readOnly value={asset.content || ""} />
           <Group justify="flex-end">
             <Button
-              leftSection={<TbCopy />}
+              leftSection={<Copy />}
               variant="light"
               onClick={() => copy(asset.content)}
             >
@@ -167,7 +167,7 @@ const AssetPreviewDialog = ({
           </Anchor>
           <Group justify="flex-end">
             <Button
-              leftSection={<TbCopy />}
+              leftSection={<Copy />}
               variant="light"
               onClick={() => copy(asset.url)}
             >
@@ -176,7 +176,7 @@ const AssetPreviewDialog = ({
             <Button
               component="a"
               href={asset.url}
-              leftSection={<TbExternalLink />}
+              leftSection={<ExternalLink />}
               target="_blank"
               rel="noreferrer"
             >
@@ -193,7 +193,7 @@ const AssetPreviewDialog = ({
           <Group justify="flex-end">
             {allowFileDownload && (
               <Button
-                leftSection={<TbDownload />}
+                leftSection={<Download />}
                 variant="light"
                 onClick={
                   onDownloadFile ?? (() => assetService.downloadFile(asset.id))

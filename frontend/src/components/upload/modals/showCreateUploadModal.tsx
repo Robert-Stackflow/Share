@@ -1,4 +1,14 @@
 import {
+  Captions,
+  CircleAlert,
+  FileIcon,
+  Link2,
+  Plus,
+  RefreshCw,
+  Share2,
+  Trash2,
+} from "lucide-react";
+import {
   ActionIcon,
   Alert,
   Badge,
@@ -21,16 +31,6 @@ import { useModals } from "@mantine/modals";
 import { ModalsContextProps } from "@mantine/modals/lib/context";
 import moment from "moment";
 import React, { useState } from "react";
-import {
-  TbAlertCircle,
-  TbFile,
-  TbLink,
-  TbPlus,
-  TbRefresh,
-  TbShare3,
-  TbTextCaption,
-  TbTrash,
-} from "react-icons/tb";
 import { FormattedMessage } from "react-intl";
 import * as yup from "yup";
 import useTranslate, {
@@ -166,13 +166,19 @@ const CreateUploadModalBody = ({
 
   const [showNotSignedInAlert, setShowNotSignedInAlert] = useState(true);
   const [activeContentTab, setActiveContentTab] = useState<string | null>(
-    files.length > 0 ? "files" : initialAssets[0]?.type.toLowerCase() ?? "files",
+    files.length > 0
+      ? "files"
+      : (initialAssets[0]?.type.toLowerCase() ?? "files"),
   );
   const [pendingTextAssets, setPendingTextAssets] = useState<string[]>(
-    initialAssets.filter((asset) => asset.type === "TEXT").map((asset) => asset.content),
+    initialAssets
+      .filter((asset) => asset.type === "TEXT")
+      .map((asset) => asset.content),
   );
   const [pendingLinkAssets, setPendingLinkAssets] = useState<string[]>(
-    initialAssets.filter((asset) => asset.type === "LINK").map((asset) => asset.url),
+    initialAssets
+      .filter((asset) => asset.type === "LINK")
+      .map((asset) => asset.url),
   );
   const [accessControl, setAccessControl] = useState<AccessControl>({});
 
@@ -326,8 +332,12 @@ const CreateUploadModalBody = ({
           recipients: options.isInbox ? [] : values.recipients,
           description: values.description,
           security: {
-            password: options.isInbox ? undefined : values.password || undefined,
-            maxViews: options.isInbox ? undefined : values.maxViews || undefined,
+            password: options.isInbox
+              ? undefined
+              : values.password || undefined,
+            maxViews: options.isInbox
+              ? undefined
+              : values.maxViews || undefined,
           },
           accessControl: toAccessControlPayload(accessControl),
         },
@@ -344,7 +354,7 @@ const CreateUploadModalBody = ({
         <Alert
           withCloseButton
           onClose={() => setShowNotSignedInAlert(false)}
-          icon={<TbAlertCircle size={16} />}
+          icon={<CircleAlert size={16} />}
           title={t("upload.modal.not-signed-in")}
           color="yellow"
         >
@@ -382,7 +392,7 @@ const CreateUploadModalBody = ({
                         )
                       }
                     >
-                      <TbRefresh />
+                      <RefreshCw />
                     </ActionIcon>
                   </HoverTip>
                 </div>
@@ -419,16 +429,13 @@ const CreateUploadModalBody = ({
                 onChange={setActiveContentTab}
               >
                 <Tabs.List>
-                  <Tabs.Tab value="files" leftSection={<TbFile size={15} />}>
+                  <Tabs.Tab value="files" leftSection={<FileIcon size={15} />}>
                     {t("upload.modal.content.files")}
                   </Tabs.Tab>
-                  <Tabs.Tab
-                    value="text"
-                    leftSection={<TbTextCaption size={15} />}
-                  >
+                  <Tabs.Tab value="text" leftSection={<Captions size={15} />}>
                     {t("upload.modal.content.text")}
                   </Tabs.Tab>
-                  <Tabs.Tab value="link" leftSection={<TbLink size={15} />}>
+                  <Tabs.Tab value="link" leftSection={<Link2 size={15} />}>
                     {t("upload.modal.content.link")}
                   </Tabs.Tab>
                 </Tabs.List>
@@ -458,7 +465,7 @@ const CreateUploadModalBody = ({
                             key={`${file.name}-${file.size}-${file.lastModified}`}
                           >
                             <div className={modalClasses.assetSummaryMain}>
-                              <TbFile size={16} />
+                              <FileIcon size={16} />
                               <Text lineClamp={1}>{file.name}</Text>
                             </div>
                             <Text className={modalClasses.assetSummaryMeta}>
@@ -495,7 +502,7 @@ const CreateUploadModalBody = ({
                       <Button
                         color="gray"
                         disabled={!form.values.textContent.trim()}
-                        leftSection={<TbPlus />}
+                        leftSection={<Plus />}
                         type="button"
                         variant="default"
                         onClick={addPendingTextAsset}
@@ -515,7 +522,7 @@ const CreateUploadModalBody = ({
                             key={`${content}-${index}`}
                           >
                             <div className={modalClasses.assetSummaryMain}>
-                              <TbTextCaption size={16} />
+                              <Captions size={16} />
                               <Text
                                 className={modalClasses.pendingAssetValue}
                                 lineClamp={1}
@@ -538,7 +545,7 @@ const CreateUploadModalBody = ({
                                   )
                                 }
                               >
-                                <TbTrash />
+                                <Trash2 />
                               </ActionIcon>
                             </HoverTip>
                           </div>
@@ -564,7 +571,7 @@ const CreateUploadModalBody = ({
                       <Button
                         color="gray"
                         disabled={!form.values.linkUrl.trim()}
-                        leftSection={<TbPlus />}
+                        leftSection={<Plus />}
                         type="button"
                         variant="default"
                         onClick={addPendingLinkAsset}
@@ -584,7 +591,7 @@ const CreateUploadModalBody = ({
                             key={`${url}-${index}`}
                           >
                             <div className={modalClasses.assetSummaryMain}>
-                              <TbLink size={16} />
+                              <Link2 size={16} />
                               <Text
                                 className={modalClasses.pendingAssetValue}
                                 lineClamp={1}
@@ -607,7 +614,7 @@ const CreateUploadModalBody = ({
                                   )
                                 }
                               >
-                                <TbTrash />
+                                <Trash2 />
                               </ActionIcon>
                             </HoverTip>
                           </div>
@@ -826,7 +833,7 @@ const CreateUploadModalBody = ({
               color="gray"
               data-autofocus
               disabled={contentCount === 0}
-              leftSection={<TbShare3 />}
+              leftSection={<Share2 />}
               type="submit"
             >
               <FormattedMessage
@@ -920,7 +927,7 @@ const SimplifiedCreateUploadModalModal = ({
         <Alert
           withCloseButton
           onClose={() => setShowNotSignedInAlert(false)}
-          icon={<TbAlertCircle size={16} />}
+          icon={<CircleAlert size={16} />}
           title={t("upload.modal.not-signed-in")}
           color="yellow"
         >
@@ -966,7 +973,7 @@ const SimplifiedCreateUploadModalModal = ({
             <Button
               color="gray"
               data-autofocus
-              leftSection={<TbShare3 />}
+              leftSection={<Share2 />}
               type="submit"
             >
               <FormattedMessage

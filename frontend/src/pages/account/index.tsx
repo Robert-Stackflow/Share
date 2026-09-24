@@ -1,3 +1,4 @@
+import { ShieldCheck } from "lucide-react";
 import {
   Badge,
   Button,
@@ -14,7 +15,6 @@ import {
 import { useForm, yupResolver } from "@mantine/form";
 import { useModals } from "@mantine/modals";
 import { useEffect, useState } from "react";
-import { TbAuth2Fa } from "react-icons/tb";
 import { FormattedMessage } from "react-intl";
 import * as yup from "yup";
 import Meta from "../../components/Meta";
@@ -299,7 +299,7 @@ const Account = () => {
 
         <Tabs defaultValue="totp">
           <Tabs.List>
-            <Tabs.Tab value="totp" leftSection={<TbAuth2Fa size={14} />}>
+            <Tabs.Tab value="totp" leftSection={<ShieldCheck size={14} />}>
               TOTP
             </Tabs.Tab>
           </Tabs.List>

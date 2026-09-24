@@ -1,3 +1,4 @@
+import { Plus } from "lucide-react";
 import {
   Button,
   Group,
@@ -13,7 +14,6 @@ import { useModals } from "@mantine/modals";
 import { ModalsContextProps } from "@mantine/modals/lib/context";
 import { getCookie, setCookie } from "cookies-next";
 import moment from "moment";
-import { TbPlus } from "react-icons/tb";
 import { FormattedMessage } from "react-intl";
 import * as yup from "yup";
 import useTranslate, {
@@ -305,7 +305,7 @@ const Body = ({
         </section>
 
         <Group className={modalClasses.footer}>
-          <Button leftSection={<TbPlus />} type="submit">
+          <Button leftSection={<Plus />} type="submit">
             <FormattedMessage id="common.button.create" />
           </Button>
         </Group>

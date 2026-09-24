@@ -1,3 +1,4 @@
+import { Pencil, Save } from "lucide-react";
 import {
   Button,
   Checkbox,
@@ -16,7 +17,6 @@ import { useForm, yupResolver } from "@mantine/form";
 import { ModalsContextProps } from "@mantine/modals/lib/context";
 import moment from "moment";
 import { useState } from "react";
-import { TbDeviceFloppy, TbEdit } from "react-icons/tb";
 import * as yup from "yup";
 import { translateOutsideContext } from "../../hooks/useTranslate.hook";
 import shareService from "../../services/share.service";
@@ -171,7 +171,7 @@ const Body = ({
       </section>
       <Group className={modalClasses.footer}>
         <Button
-          leftSection={<TbEdit />}
+          leftSection={<Pencil />}
           variant="default"
           onClick={() => setIsEditing(true)}
         >
@@ -385,11 +385,7 @@ const EditShareBody = ({
           <Button variant="default" onClick={onCancel}>
             {t("common.button.cancel")}
           </Button>
-          <Button
-            leftSection={<TbDeviceFloppy />}
-            loading={isSubmitting}
-            type="submit"
-          >
+          <Button leftSection={<Save />} loading={isSubmitting} type="submit">
             {t("common.button.save")}
           </Button>
         </Group>

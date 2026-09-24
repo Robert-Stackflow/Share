@@ -1,3 +1,4 @@
+import { ArrowLeft } from "lucide-react";
 import {
   Anchor,
   Box,
@@ -13,7 +14,6 @@ import {
 import { useForm, yupResolver } from "@mantine/form";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { TbArrowLeft } from "react-icons/tb";
 import { FormattedMessage } from "react-intl";
 import * as yup from "yup";
 import useTranslate from "../../../hooks/useTranslate.hook";
@@ -74,7 +74,7 @@ const ResetPassword = () => {
               href={"/auth/signIn"}
             >
               <Center inline>
-                <TbArrowLeft size={12} />
+                <ArrowLeft size={12} />
                 <Box ml={5}>
                   <FormattedMessage id="resetPassword.button.back" />
                 </Box>

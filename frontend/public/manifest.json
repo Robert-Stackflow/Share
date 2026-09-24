@@ -1,6 +1,6 @@
 {
   "name": "Share",
-  "theme_color": "#46509e",
+  "theme_color": "#4055a8",
   "background_color": "#ffffff",
   "display": "standalone",
   "orientation": "portrait",
@@ -14,8 +14,8 @@
       "purpose": "any maskable"
     },
     {
-      "src": "img/icons/icon-96x96.png",
-      "sizes": "96x96",
+      "src": "img/icons/icon-48x48.png",
+      "sizes": "48x48",
       "type": "image/png",
       "purpose": "any maskable"
     },

@@ -1,4 +1,14 @@
 import {
+  ExternalLink,
+  Globe,
+  KeyRound,
+  Link2,
+  LockKeyhole,
+  Pencil,
+  Plus,
+  Trash2,
+} from "lucide-react";
+import {
   ActionIcon,
   Badge,
   Button,
@@ -20,16 +30,6 @@ import { useModals } from "@mantine/modals";
 import { AxiosError } from "axios";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import {
-  TbEdit,
-  TbExternalLink,
-  TbKey,
-  TbLink,
-  TbLock,
-  TbPlus,
-  TbTrash,
-  TbWorld,
-} from "react-icons/tb";
 import { FormattedMessage } from "react-intl";
 import AccessControlForm from "../../components/access/AccessControlForm";
 import AssetContentComposer from "../../components/content/AssetContentComposer";
@@ -336,7 +336,7 @@ export default function RoomsPage() {
           <FormattedMessage id="room.rooms.title" />
         </Title>
         <Button
-          leftSection={<TbPlus />}
+          leftSection={<Plus />}
           onClick={() => {
             setPolicy({});
             setCreateOpen(true);
@@ -386,11 +386,11 @@ export default function RoomsPage() {
                   </small>
                 </span>
                 {room.visibility === "PRIVATE" ? (
-                  <TbLock />
+                  <LockKeyhole />
                 ) : room.hasPasscode ? (
-                  <TbLock />
+                  <LockKeyhole />
                 ) : (
-                  <TbWorld />
+                  <Globe />
                 )}
               </button>
             ))}
@@ -410,7 +410,7 @@ export default function RoomsPage() {
                   <strong>{room.name || room.roomId}</strong>
                   <small>{room.roomId}</small>
                 </span>
-                {room.hasPasscode ? <TbLock /> : <TbWorld />}
+                {room.hasPasscode ? <LockKeyhole /> : <Globe />}
               </button>
             ))}
             {visibleOwned.length + visibleVisited.length === 0 && (
@@ -469,7 +469,7 @@ export default function RoomsPage() {
                       onClick={() => copyLink(selection.roomId)}
                       variant="subtle"
                     >
-                      <TbLink />
+                      <Link2 />
                     </ActionIcon>
                     <ActionIcon
                       aria-label={t("common.text.navigate-to-link")}
@@ -478,7 +478,7 @@ export default function RoomsPage() {
                       target="_blank"
                       variant="subtle"
                     >
-                      <TbExternalLink />
+                      <ExternalLink />
                     </ActionIcon>
                   </>
                 )}
@@ -489,7 +489,7 @@ export default function RoomsPage() {
                       onClick={() => openEdit(selectedOwned)}
                       variant="subtle"
                     >
-                      <TbEdit />
+                      <Pencil />
                     </ActionIcon>
                     <ActionIcon
                       aria-label={t("common.button.delete")}
@@ -497,7 +497,7 @@ export default function RoomsPage() {
                       onClick={() => confirmDelete(selectedOwned)}
                       variant="subtle"
                     >
-                      <TbTrash />
+                      <Trash2 />
                     </ActionIcon>
                   </>
                 )}
@@ -514,7 +514,7 @@ export default function RoomsPage() {
                     </Title>
                     <PasswordInput
                       label={t("room.room.passcode")}
-                      leftSection={<TbKey />}
+                      leftSection={<KeyRound />}
                       {...passcodeForm.getInputProps("passcode")}
                     />
                     <Button
@@ -533,7 +533,11 @@ export default function RoomsPage() {
               assets={active.assets}
               composer={
                 <AssetContentComposer
-                  target={active.visibility === "PRIVATE" ? t("room.private.title") : active.name || active.roomId}
+                  target={
+                    active.visibility === "PRIVATE"
+                      ? t("room.private.title")
+                      : active.name || active.roomId
+                  }
                   buttonLabel={t("room.asset.create")}
                   onCreate={addAsset}
                   onFilesUploaded={addFiles}

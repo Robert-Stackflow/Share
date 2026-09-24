@@ -1,3 +1,4 @@
+import { Plus, Trash2 } from "lucide-react";
 import {
   ActionIcon,
   Button,
@@ -8,7 +9,6 @@ import {
   TextInput,
 } from "@mantine/core";
 import { useState } from "react";
-import { TbPlus, TbTrash } from "react-icons/tb";
 import useTranslate from "../../../hooks/useTranslate.hook";
 import {
   parseRenameRules,
@@ -42,7 +42,9 @@ const RenameRulesInput = ({
   };
 
   const updateRule = (index: number, patch: Partial<RenameRule>) =>
-    commit(rules.map((rule, i) => (i === index ? { ...rule, ...patch } : rule)));
+    commit(
+      rules.map((rule, i) => (i === index ? { ...rule, ...patch } : rule)),
+    );
 
   const removeRule = (index: number) =>
     commit(rules.filter((_, i) => i !== index));
@@ -118,7 +120,7 @@ const RenameRulesInput = ({
                   disabled={disabled}
                   onClick={() => removeRule(index)}
                 >
-                  <TbTrash size={16} />
+                  <Trash2 size={16} />
                 </ActionIcon>
               </td>
             </tr>
@@ -129,7 +131,7 @@ const RenameRulesInput = ({
         <Button
           variant="light"
           size="xs"
-          leftSection={<TbPlus size={16} />}
+          leftSection={<Plus size={16} />}
           disabled={disabled}
           onClick={addRule}
         >

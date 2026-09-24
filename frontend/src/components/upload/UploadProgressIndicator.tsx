@@ -1,5 +1,5 @@
+import { CircleCheck } from "lucide-react";
 import { Loader, RingProgress } from "@mantine/core";
-import { TbCircleCheck } from "react-icons/tb";
 const UploadProgressIndicator = ({ progress }: { progress: number }) => {
   if (progress > 0 && progress < 100) {
     return (
@@ -10,7 +10,7 @@ const UploadProgressIndicator = ({ progress }: { progress: number }) => {
       />
     );
   } else if (progress >= 100) {
-    return <TbCircleCheck color="green" size={22} />;
+    return <CircleCheck color="green" size={22} />;
   } else {
     return <Loader color="red" size={19} />;
   }

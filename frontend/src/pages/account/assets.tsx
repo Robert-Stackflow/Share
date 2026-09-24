@@ -1,3 +1,4 @@
+import { Search } from "lucide-react";
 import {
   Button,
   Center,
@@ -11,7 +12,6 @@ import {
 } from "@mantine/core";
 import { useDebouncedValue } from "@mantine/hooks";
 import { useEffect, useMemo, useState } from "react";
-import { TbSearch } from "react-icons/tb";
 import { FormattedMessage } from "react-intl";
 import Meta from "../../components/Meta";
 import AssetActionMenu from "../../components/asset/AssetActionMenu";
@@ -78,7 +78,9 @@ const Assets = () => {
   }, []);
 
   if (!assets) return <CenterLoader />;
-  const hasActiveFilter = Boolean(search || typeFilter || sourceFilter || favoriteOnly || tagFilter);
+  const hasActiveFilter = Boolean(
+    search || typeFilter || sourceFilter || favoriteOnly || tagFilter,
+  );
   const showFilters = assets.length > 0 || hasActiveFilter;
 
   const clearFilters = () => {
@@ -116,83 +118,87 @@ const Assets = () => {
         />
       </Stack>
 
-      {showFilters && <Group gap="sm" align="flex-end" wrap="wrap" mb="md">
-        <TextInput
-          leftSection={<TbSearch />}
-          placeholder={t("account.assets.filter.search")}
-          value={search}
-          onChange={(event) => setSearch(event.currentTarget.value)}
-          style={{ flex: "1 1 220px" }}
-        />
-        <Select
-          aria-label={t("account.assets.table.type")}
-          clearable
-          data={[
-            { value: "FILE", label: t("account.assets.type.file") },
-            { value: "TEXT", label: t("account.assets.type.text") },
-            { value: "LINK", label: t("account.assets.type.link") },
-          ]}
-          placeholder={t("account.assets.filter.type.all")}
-          value={typeFilter}
-          onChange={(value) => setTypeFilter(value as AssetType | null)}
-          w={130}
-        />
-        <Select
-          aria-label={t("account.assets.filter.source.all")}
-          clearable
-          data={[
-            { value: "UPLOAD", label: t("account.assets.source.upload") },
-            { value: "SHARE", label: t("account.assets.source.share") },
-            { value: "ROOM", label: t("account.assets.source.room") },
-            { value: "INBOX", label: t("account.assets.source.inbox") },
-          ]}
-          placeholder={t("account.assets.filter.source.all")}
-          value={sourceFilter}
-          onChange={(value) => setSourceFilter(value as AssetSource | null)}
-          w={140}
-        />
-        <Select
-          aria-label={t("account.assets.filter.tag.all")}
-          clearable
-          data={tags.map((tag) => ({
-            value: tag.name,
-            label: `${tag.name} (${tag._count.assignments})`,
-          }))}
-          placeholder={t("account.assets.filter.tag.all")}
-          value={tagFilter}
-          onChange={setTagFilter}
-          w={160}
-        />
-        <Select
-          aria-label={t("account.assets.sort.createdAt_desc")}
-          data={[
-            {
-              value: "createdAt_desc",
-              label: t("account.assets.sort.createdAt_desc"),
-            },
-            {
-              value: "createdAt_asc",
-              label: t("account.assets.sort.createdAt_asc"),
-            },
-            {
-              value: "lastAccessedAt_desc",
-              label: t("account.assets.sort.lastAccessedAt_desc"),
-            },
-            {
-              value: "name_asc",
-              label: t("account.assets.sort.name_asc"),
-            },
-          ]}
-          value={sort}
-          onChange={(value) => setSort((value as SortValue) ?? "createdAt_desc")}
-          w={170}
-        />
-        <Switch
-          label={t("account.assets.filter.favorite")}
-          checked={favoriteOnly}
-          onChange={(event) => setFavoriteOnly(event.currentTarget.checked)}
-        />
-      </Group>}
+      {showFilters && (
+        <Group gap="sm" align="flex-end" wrap="wrap" mb="md">
+          <TextInput
+            leftSection={<Search />}
+            placeholder={t("account.assets.filter.search")}
+            value={search}
+            onChange={(event) => setSearch(event.currentTarget.value)}
+            style={{ flex: "1 1 220px" }}
+          />
+          <Select
+            aria-label={t("account.assets.table.type")}
+            clearable
+            data={[
+              { value: "FILE", label: t("account.assets.type.file") },
+              { value: "TEXT", label: t("account.assets.type.text") },
+              { value: "LINK", label: t("account.assets.type.link") },
+            ]}
+            placeholder={t("account.assets.filter.type.all")}
+            value={typeFilter}
+            onChange={(value) => setTypeFilter(value as AssetType | null)}
+            w={130}
+          />
+          <Select
+            aria-label={t("account.assets.filter.source.all")}
+            clearable
+            data={[
+              { value: "UPLOAD", label: t("account.assets.source.upload") },
+              { value: "SHARE", label: t("account.assets.source.share") },
+              { value: "ROOM", label: t("account.assets.source.room") },
+              { value: "INBOX", label: t("account.assets.source.inbox") },
+            ]}
+            placeholder={t("account.assets.filter.source.all")}
+            value={sourceFilter}
+            onChange={(value) => setSourceFilter(value as AssetSource | null)}
+            w={140}
+          />
+          <Select
+            aria-label={t("account.assets.filter.tag.all")}
+            clearable
+            data={tags.map((tag) => ({
+              value: tag.name,
+              label: `${tag.name} (${tag._count.assignments})`,
+            }))}
+            placeholder={t("account.assets.filter.tag.all")}
+            value={tagFilter}
+            onChange={setTagFilter}
+            w={160}
+          />
+          <Select
+            aria-label={t("account.assets.sort.createdAt_desc")}
+            data={[
+              {
+                value: "createdAt_desc",
+                label: t("account.assets.sort.createdAt_desc"),
+              },
+              {
+                value: "createdAt_asc",
+                label: t("account.assets.sort.createdAt_asc"),
+              },
+              {
+                value: "lastAccessedAt_desc",
+                label: t("account.assets.sort.lastAccessedAt_desc"),
+              },
+              {
+                value: "name_asc",
+                label: t("account.assets.sort.name_asc"),
+              },
+            ]}
+            value={sort}
+            onChange={(value) =>
+              setSort((value as SortValue) ?? "createdAt_desc")
+            }
+            w={170}
+          />
+          <Switch
+            label={t("account.assets.filter.favorite")}
+            checked={favoriteOnly}
+            onChange={(event) => setFavoriteOnly(event.currentTarget.checked)}
+          />
+        </Group>
+      )}
 
       <AssetTable
         assets={assets}
@@ -206,12 +212,28 @@ const Assets = () => {
           <Center style={{ height: "45vh" }}>
             <Stack align="center" gap={10}>
               <Title order={3}>
-                <FormattedMessage id={hasActiveFilter ? "account.assets.title.noResults" : "account.assets.title.empty"} />
+                <FormattedMessage
+                  id={
+                    hasActiveFilter
+                      ? "account.assets.title.noResults"
+                      : "account.assets.title.empty"
+                  }
+                />
               </Title>
               <Text>
-                <FormattedMessage id={hasActiveFilter ? "account.assets.description.noResults" : "account.assets.description.empty"} />
+                <FormattedMessage
+                  id={
+                    hasActiveFilter
+                      ? "account.assets.description.noResults"
+                      : "account.assets.description.empty"
+                  }
+                />
               </Text>
-              {hasActiveFilter && <Button variant="light" onClick={clearFilters}>{t("account.assets.filter.clear")}</Button>}
+              {hasActiveFilter && (
+                <Button variant="light" onClick={clearFilters}>
+                  {t("account.assets.filter.clear")}
+                </Button>
+              )}
             </Stack>
           </Center>
         }

@@ -1,6 +1,6 @@
+import { Link2, Package, RotateCcw } from "lucide-react";
 import { ActionIcon, Menu } from "@mantine/core";
 import Link from "next/link";
-import { TbArrowLoopLeft, TbLink, TbPackage } from "react-icons/tb";
 import { FormattedMessage } from "react-intl";
 import useTranslate from "../../hooks/useTranslate.hook";
 import classes from "./Header.module.css";
@@ -18,28 +18,28 @@ const NavbarShareMneu = () => {
           title={t("common.button.shares")}
           variant="subtle"
         >
-          <TbLink />
+          <Link2 />
         </ActionIcon>
       </Menu.Target>
       <Menu.Dropdown>
         <Menu.Item
           component={Link}
           href="/account/shares"
-          leftSection={<TbLink />}
+          leftSection={<Link2 />}
         >
           <FormattedMessage id="navbar.links.shares" />
         </Menu.Item>
         <Menu.Item
           component={Link}
           href="/account/assets"
-          leftSection={<TbPackage />}
+          leftSection={<Package />}
         >
           <FormattedMessage id="navbar.links.assets" />
         </Menu.Item>
         <Menu.Item
           component={Link}
           href="/account/reverseShares"
-          leftSection={<TbArrowLoopLeft />}
+          leftSection={<RotateCcw />}
         >
           <FormattedMessage id="navbar.links.reverse" />
         </Menu.Item>

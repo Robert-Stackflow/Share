@@ -166,7 +166,6 @@ export default {
   "shortLinkAccess.password": "访问密码",
   "shortLinkAccess.open": "打开链接",
   "shortLinkAccess.denied": "无法验证访问权限。请检查密码或访问规则后重试。",
-  "account.shortLinks.access-scope": "这些规则只控制短链接入口；目标内容仍遵守其自身的访问规则。",
   "account.shortLinks.remove-password": "保存时移除当前密码",
   "account.shortLinks.keep-password": "保留当前密码",
   "account.shortLinks.password-active": "当前需要访问密码。留空可保留原密码，也可以输入新密码。",
@@ -254,7 +253,6 @@ export default {
 
   // /account/short-links
   "account.shortLinks.title": "短链接",
-  "account.shortLinks.subtitle": "为上传、房间和站内路径创建可复用短链接。",
   "account.shortLinks.count": "个链接",
   "account.shortLinks.create.title": "创建短链接",
   "account.shortLinks.create": "创建链接",
