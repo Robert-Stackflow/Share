@@ -17,11 +17,12 @@ import moment from "moment";
 import type { AppProps } from "next/app";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { IntlProvider } from "react-intl";
 import Header from "../components/header/Header";
 import { ConfigContext } from "../hooks/config.hook";
 import { UserContext } from "../hooks/user.hook";
+import { LocaleContext } from "../hooks/locale.hook";
 import { DEFAULT_LOCALE } from "../i18n/locales";
 import type { Messages } from "../i18n/locales";
 import authService from "../services/auth.service";
@@ -129,12 +130,29 @@ function App({ Component, pageProps }: AppProps) {
   const [user, setUser] = useState<CurrentUser | null>(null);
   const [route, setRoute] = useState<string>(router.pathname);
 
-  const [configVariables, setConfigVariables] = useState<Config[]>(
-    getDefaultConfig(),
+  const [configVariables, setConfigVariables] =
+    useState<Config[]>(getDefaultConfig());
+  const [localeState, setLocaleState] = useState<{
+    language: string;
+    messages: Messages;
+    ready: boolean;
+  }>({ language: DEFAULT_LOCALE, messages: englishMessages, ready: false });
+  const changeLanguage = useCallback(
+    async (language: string): Promise<boolean> => {
+      if (!i18nUtil.isLanguageSupported(language)) return false;
+      try {
+        const loaded = await i18nUtil.loadMessages(language);
+        i18nUtil.setLanguageCookie(language);
+        moment.locale(language.toLowerCase());
+        setLocaleState({ language, messages: loaded, ready: true });
+        return true;
+      } catch (error) {
+        console.error(`Failed to load translations for ${language}:`, error);
+        return false;
+      }
+    },
+    [],
   );
-  const [language, setLanguage] = useState(DEFAULT_LOCALE);
-  const [messages, setMessages] = useState<Messages>(englishMessages);
-  const [localeReady, setLocaleReady] = useState(false);
   const getStringConfigValue = (key: string, fallback = ""): string => {
     const config = configVariables?.find((item) => item.key === key);
     return (config?.value ?? config?.defaultValue ?? fallback).trim();
@@ -216,8 +234,8 @@ function App({ Component, pageProps }: AppProps) {
   useEffect(() => {
     let active = true;
 
-    Promise.all([configService.list(), userService.getCurrentUser()]).then(
-      async ([configs, currentUser]) => {
+    Promise.all([configService.list(), userService.getCurrentUser()])
+      .then(async ([configs, currentUser]) => {
         if (!active) return;
         setConfigVariables(configs);
         setUser(currentUser);
@@ -242,20 +260,24 @@ function App({ Component, pageProps }: AppProps) {
         }
         const loaded = await i18nUtil.loadMessages(supportedLanguage);
         if (!active) return;
-        setLanguage(supportedLanguage);
-        setMessages(loaded);
-        setLocaleReady(true);
         moment.locale(supportedLanguage.toLowerCase());
-      },
-    ).catch((error) => {
-      if (active) {
-        console.error("Failed to initialize app translations:", error);
-        setLanguage(DEFAULT_LOCALE);
-        setMessages(englishMessages);
-        setLocaleReady(true);
-        moment.locale(DEFAULT_LOCALE.toLowerCase());
-      }
-    });
+        setLocaleState({
+          language: supportedLanguage,
+          messages: loaded,
+          ready: true,
+        });
+      })
+      .catch((error) => {
+        if (active) {
+          console.error("Failed to initialize app translations:", error);
+          moment.locale(DEFAULT_LOCALE.toLowerCase());
+          setLocaleState({
+            language: DEFAULT_LOCALE,
+            messages: englishMessages,
+            ready: true,
+          });
+        }
+      });
 
     return () => {
       active = false;
@@ -292,59 +314,63 @@ function App({ Component, pageProps }: AppProps) {
         />
       </Head>
       <IntlProvider
-        messages={messages}
-        locale={language}
+        messages={localeState.messages}
+        locale={localeState.language}
         defaultLocale={DEFAULT_LOCALE}
       >
-        <MantineProvider
-          theme={mergedTheme}
-          defaultColorScheme={defaultColorScheme}
-          colorSchemeManager={cookieColorSchemeManager()}
+        <LocaleContext.Provider
+          value={{ language: localeState.language, changeLanguage }}
         >
-          {customCss && (
-            <style id="admin-custom-css">
-              {customCss.replace(/<\/style/gi, "<\\/style")}
-            </style>
-          )}
-          <Notifications />
-          <ModalsProvider>
-            <ConfigContext.Provider
-              value={{
-                configVariables,
-                refresh: async () => {
-                  setConfigVariables(await configService.list());
-                },
-              }}
-            >
-              <UserContext.Provider
+          <MantineProvider
+            theme={mergedTheme}
+            defaultColorScheme={defaultColorScheme}
+            colorSchemeManager={cookieColorSchemeManager()}
+          >
+            {customCss && (
+              <style id="admin-custom-css">
+                {customCss.replace(/<\/style/gi, "<\\/style")}
+              </style>
+            )}
+            <Notifications />
+            <ModalsProvider>
+              <ConfigContext.Provider
                 value={{
-                  user,
-                  refreshUser: async () => {
-                    const user = await userService.getCurrentUser();
-                    setUser(user);
-                    return user;
+                  configVariables,
+                  refresh: async () => {
+                    setConfigVariables(await configService.list());
                   },
                 }}
               >
-                {!localeReady ? (
-                  <CenterLoader />
-                ) : excludeDefaultLayoutRoutes.includes(route) ? (
-                  <Component {...pageProps} />
-                ) : (
-                  <Stack justify="space-between" mih="100vh">
-                    <div>
-                      <Header />
-                      <Container size={1080}>
-                        <Component {...pageProps} />
-                      </Container>
-                    </div>
-                    <Footer />
-                  </Stack>
-                )}
-              </UserContext.Provider>
-            </ConfigContext.Provider>
-          </ModalsProvider>
-        </MantineProvider>
+                <UserContext.Provider
+                  value={{
+                    user,
+                    refreshUser: async () => {
+                      const user = await userService.getCurrentUser();
+                      setUser(user);
+                      return user;
+                    },
+                  }}
+                >
+                  {!localeState.ready ? (
+                    <CenterLoader />
+                  ) : excludeDefaultLayoutRoutes.includes(route) ? (
+                    <Component {...pageProps} />
+                  ) : (
+                    <Stack justify="space-between" mih="100vh">
+                      <div>
+                        <Header />
+                        <Container size={1080}>
+                          <Component {...pageProps} />
+                        </Container>
+                      </div>
+                      <Footer />
+                    </Stack>
+                  )}
+                </UserContext.Provider>
+              </ConfigContext.Provider>
+            </ModalsProvider>
+          </MantineProvider>
+        </LocaleContext.Provider>
       </IntlProvider>
     </>
   );
