@@ -2,7 +2,7 @@ import { Upload } from "lucide-react";
 import { Box, FileInput, Group, Stack, Text, Title } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
 import { Dispatch, SetStateAction } from "react";
-import { FormattedMessage } from "react-intl";
+import FormattedMessage from "../../core/FormattedMessage";
 import useTranslate from "../../../hooks/useTranslate.hook";
 
 const LogoConfigInput = ({

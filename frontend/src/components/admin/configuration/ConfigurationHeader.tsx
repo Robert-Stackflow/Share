@@ -1,7 +1,7 @@
 import { Box, Burger, Button, Group, Text } from "@mantine/core";
 import Link from "next/link";
 import { Dispatch, SetStateAction } from "react";
-import { FormattedMessage } from "react-intl";
+import FormattedMessage from "../../core/FormattedMessage";
 import useConfig from "../../../hooks/config.hook";
 import Logo from "../../Logo";
 

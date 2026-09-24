@@ -4,7 +4,7 @@ import { AxiosError } from "axios";
 import { useRouter } from "next/router";
 import pLimit from "p-limit";
 import { FormEvent, useEffect, useId, useMemo, useRef, useState } from "react";
-import { FormattedMessage } from "react-intl";
+import FormattedMessage from "../core/FormattedMessage";
 import Dropzone from "../../components/upload/Dropzone";
 import FileList from "../../components/upload/FileList";
 import useConfig from "../../hooks/config.hook";

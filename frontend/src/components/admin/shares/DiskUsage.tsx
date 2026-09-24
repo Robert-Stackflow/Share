@@ -2,7 +2,7 @@ import { Group, Progress, Stack, Text } from "@mantine/core";
 import { useEffect, useState } from "react";
 import systemService, { SystemInfo } from "../../../services/system.service";
 import { byteToHumanSizeString } from "../../../utils/fileSize.util";
-import { FormattedMessage } from "react-intl";
+import FormattedMessage from "../../core/FormattedMessage";
 
 const DiskUsage = () => {
   const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null);

@@ -30,7 +30,7 @@ import { useClipboard } from "@mantine/hooks";
 import { useModals } from "@mantine/modals";
 import moment from "moment";
 import { useEffect, useMemo, useState } from "react";
-import { FormattedMessage } from "react-intl";
+import FormattedMessage from "../../components/core/FormattedMessage";
 import showReverseShareLinkModal from "../../components/account/showReverseShareLinkModal";
 import showShareLinkModal from "../../components/account/showShareLinkModal";
 import AssetActionMenu from "../../components/asset/AssetActionMenu";

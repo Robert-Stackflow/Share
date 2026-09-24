@@ -12,7 +12,7 @@ import {
 } from "@mantine/core";
 import { useDebouncedValue } from "@mantine/hooks";
 import { useEffect, useMemo, useState } from "react";
-import { FormattedMessage } from "react-intl";
+import FormattedMessage from "../../components/core/FormattedMessage";
 import Meta from "../../components/Meta";
 import AssetActionMenu from "../../components/asset/AssetActionMenu";
 import AssetContentComposer from "../../components/content/AssetContentComposer";

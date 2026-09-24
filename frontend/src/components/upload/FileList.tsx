@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { FileListItem } from "../../types/File.type";
 import { byteToHumanSizeString } from "../../utils/fileSize.util";
 import UploadProgressIndicator from "./UploadProgressIndicator";
-import { FormattedMessage } from "react-intl";
+import FormattedMessage from "../core/FormattedMessage";
 import useTranslate from "../../hooks/useTranslate.hook";
 import { HoverTip } from "../core/HoverTip";
 import showTextEditorModal from "./modals/showTextEditorModal";

@@ -10,7 +10,7 @@ import { modals } from "@mantine/modals";
 import Markdown, { MarkdownToJSX } from "markdown-to-jsx";
 import Link from "next/link";
 import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
-import { FormattedMessage } from "react-intl";
+import FormattedMessage from "../core/FormattedMessage";
 import api from "../../services/api.service";
 
 const FilePreviewContext = React.createContext<{

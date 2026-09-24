@@ -1,7 +1,7 @@
 import { Button, Stack, Collapse } from "@mantine/core";
 import { useModals } from "@mantine/modals";
 import { ModalsContextProps } from "@mantine/modals/lib/context";
-import { FormattedMessage } from "react-intl";
+import FormattedMessage from "../../core/FormattedMessage";
 import { useState } from "react";
 import { translateOutsideContext } from "../../../hooks/useTranslate.hook";
 import CopyTextField from "../../upload/CopyTextField";

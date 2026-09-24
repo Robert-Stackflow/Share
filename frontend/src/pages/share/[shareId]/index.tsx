@@ -5,7 +5,7 @@ import { GetStaticPaths, GetStaticProps } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { FormattedMessage } from "react-intl";
+import FormattedMessage from "../../../components/core/FormattedMessage";
 import Meta from "../../../components/Meta";
 import DownloadAllButton from "../../../components/share/DownloadAllButton";
 import ShareAssetList from "../../../components/share/ShareAssetList";

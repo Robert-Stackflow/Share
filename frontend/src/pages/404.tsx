@@ -1,6 +1,6 @@
 import { Button, Container, Group, Title } from "@mantine/core";
 import Link from "next/link";
-import { FormattedMessage } from "react-intl";
+import FormattedMessage from "../components/core/FormattedMessage";
 import Meta from "../components/Meta";
 import classes from "./404.module.css";
 

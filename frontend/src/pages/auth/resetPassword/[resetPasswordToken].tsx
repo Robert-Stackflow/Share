@@ -10,7 +10,7 @@ import {
 import { useForm, yupResolver } from "@mantine/form";
 import { GetStaticPaths, GetStaticProps } from "next";
 import { useRouter } from "next/router";
-import { FormattedMessage } from "react-intl";
+import FormattedMessage from "../../../components/core/FormattedMessage";
 import * as yup from "yup";
 import useTranslate from "../../../hooks/useTranslate.hook";
 import useStaticRouteParam from "../../../hooks/staticRouteParam.hook";

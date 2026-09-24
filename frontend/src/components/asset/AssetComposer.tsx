@@ -11,7 +11,7 @@ import { useForm } from "@mantine/form";
 import { AxiosError } from "axios";
 import pLimit from "p-limit";
 import { useMemo, useState } from "react";
-import { FormattedMessage } from "react-intl";
+import FormattedMessage from "../core/FormattedMessage";
 import useConfig from "../../hooks/config.hook";
 import useTranslate from "../../hooks/useTranslate.hook";
 import { Asset, CreateAsset } from "../../types/asset.type";

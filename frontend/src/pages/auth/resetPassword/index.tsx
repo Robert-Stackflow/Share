@@ -14,7 +14,7 @@ import {
 import { useForm, yupResolver } from "@mantine/form";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { FormattedMessage } from "react-intl";
+import FormattedMessage from "../../../components/core/FormattedMessage";
 import * as yup from "yup";
 import useTranslate from "../../../hooks/useTranslate.hook";
 import authService from "../../../services/auth.service";

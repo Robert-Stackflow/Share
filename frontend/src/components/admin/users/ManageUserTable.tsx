@@ -4,7 +4,7 @@ import { useModals } from "@mantine/modals";
 import User from "../../../types/user.type";
 import showChangeUserPasswordModal from "./showChangeUserPasswordModal";
 import showUpdateUserModal from "./showUpdateUserModal";
-import { FormattedMessage } from "react-intl";
+import FormattedMessage from "../../core/FormattedMessage";
 import useTranslate from "../../../hooks/useTranslate.hook";
 import tableClasses from "../../core/DataTable.module.css";
 import { HoverTip } from "../../core/HoverTip";

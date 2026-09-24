@@ -1,6 +1,6 @@
 import { Check, X } from "lucide-react";
 import { NotificationData, notifications } from "@mantine/notifications";
-import { FormattedMessage } from "react-intl";
+import FormattedMessage from "../components/core/FormattedMessage";
 import { getApiErrorMessage } from "./error.util";
 import { ReactNode } from "react";
 

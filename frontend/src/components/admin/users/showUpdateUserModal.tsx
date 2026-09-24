@@ -1,7 +1,7 @@
 import { Button, Group, Stack, Switch, TextInput } from "@mantine/core";
 import { useForm, yupResolver } from "@mantine/form";
 import { ModalsContextProps } from "@mantine/modals/lib/context";
-import { FormattedMessage } from "react-intl";
+import FormattedMessage from "../../core/FormattedMessage";
 import * as yup from "yup";
 import useTranslate, {
   translateOutsideContext,

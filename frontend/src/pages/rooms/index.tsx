@@ -31,7 +31,7 @@ import { useModals } from "@mantine/modals";
 import { AxiosError } from "axios";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { FormattedMessage } from "react-intl";
+import FormattedMessage from "../../components/core/FormattedMessage";
 import AccessControlForm from "../../components/access/AccessControlForm";
 import AssetContentComposer from "../../components/content/AssetContentComposer";
 import RoomConversationPanel from "../../components/room/RoomConversationPanel";

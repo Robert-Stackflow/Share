@@ -1,7 +1,7 @@
 import { Anchor, Title, useComputedColorScheme } from "@mantine/core";
 import Meta from "../../components/Meta";
 import useTranslate from "../../hooks/useTranslate.hook";
-import { FormattedMessage } from "react-intl";
+import FormattedMessage from "../../components/core/FormattedMessage";
 import useConfig from "../../hooks/config.hook";
 import Markdown from "markdown-to-jsx";
 

@@ -15,7 +15,7 @@ import { AxiosError } from "axios";
 import { GetStaticPaths, GetStaticProps } from "next";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { FormattedMessage } from "react-intl";
+import FormattedMessage from "../../components/core/FormattedMessage";
 import AssetContentComposer from "../../components/content/AssetContentComposer";
 import RoomConversationPanel from "../../components/room/RoomConversationPanel";
 import CenterLoader from "../../components/core/CenterLoader";

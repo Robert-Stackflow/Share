@@ -3,7 +3,7 @@ import { ActionIcon, Group } from "@mantine/core";
 import { useClipboard } from "@mantine/hooks";
 import { useModals } from "@mantine/modals";
 import { useMemo, useState } from "react";
-import { FormattedMessage } from "react-intl";
+import FormattedMessage from "../core/FormattedMessage";
 import AssetTable, { getAssetSortValue } from "../asset/AssetTable";
 import api from "../../services/api.service";
 import shareService from "../../services/share.service";

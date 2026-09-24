@@ -17,7 +17,7 @@ import { notifications } from "@mantine/notifications";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { FormattedMessage } from "react-intl";
+import FormattedMessage from "../core/FormattedMessage";
 import * as yup from "yup";
 import useConfig from "../../hooks/config.hook";
 import useUser from "../../hooks/user.hook";
