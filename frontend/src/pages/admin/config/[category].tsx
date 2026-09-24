@@ -71,9 +71,26 @@ export default function AppShellDemo() {
   const config = useConfig();
 
   const routeCategory = useStaticRouteParam("category", 2);
-  const categoryId = categories.includes(routeCategory)
-    ? routeCategory
+  const [selectedCategory, setSelectedCategory] = useState<string>();
+  const activeCategory = selectedCategory ?? routeCategory;
+  const categoryId = categories.includes(activeCategory)
+    ? activeCategory
     : "general";
+
+  const navigateCategory = (category: string) => {
+    if (category === categoryId) return;
+    window.history.pushState(null, "", `/admin/config/${category}/`);
+    setSelectedCategory(category);
+  };
+
+  useEffect(() => {
+    const onPopState = () => {
+      const category = window.location.pathname.split("/").filter(Boolean)[2];
+      setSelectedCategory(categories.includes(category) ? category : "general");
+    };
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []);
 
   const [configVariables, setConfigVariables] = useState<AdminConfig[]>();
   const [loadedCategory, setLoadedCategory] = useState<string>();
@@ -216,6 +233,7 @@ export default function AppShellDemo() {
         <AppShell.Navbar>
           <ConfigurationNavBar
             categoryId={categoryId}
+            onCategoryChange={navigateCategory}
             isMobileNavBarOpened={isMobileNavBarOpened}
             setIsMobileNavBarOpened={setIsMobileNavBarOpened}
           />
