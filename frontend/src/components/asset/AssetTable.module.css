@@ -1,0 +1,34 @@
+.mobileCards {
+  display: none;
+}
+
+@media (max-width: 48em) {
+  .responsiveTable {
+    display: none;
+  }
+
+  .mobileCards {
+    display: block;
+  }
+
+  .mobileCard {
+    padding: var(--mantine-spacing-md);
+  }
+
+  .mobileCard + .mobileCard {
+    border-top: 1px solid light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
+  }
+
+  .mobileCardContent {
+    min-width: 0;
+  }
+
+  .mobileValue {
+    margin-top: var(--mantine-spacing-xs);
+    overflow-wrap: anywhere;
+  }
+
+  .mobileActions {
+    flex: 0 0 auto;
+  }
+}
