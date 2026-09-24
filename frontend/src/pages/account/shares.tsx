@@ -1,6 +1,7 @@
 import { Info, Link2, LockKeyhole, PencilLine, Trash2 } from "lucide-react";
 import {
   ActionIcon,
+  Badge,
   Box,
   Button,
   Center,
@@ -43,6 +44,20 @@ const MyShares = () => {
 
   if (!shares) return <CenterLoader />;
 
+  const getStatus = (share: MyShare) => {
+    const expiration = share.effectiveExpiration ?? share.expiration;
+    if (
+      moment(expiration).unix() !== 0 &&
+      moment(expiration).isSameOrBefore()
+    ) {
+      return "expired";
+    }
+    if (share.security?.maxViews && share.views >= share.security.maxViews) {
+      return "exhausted";
+    }
+    return "active";
+  };
+
   return (
     <>
       <Meta title={t("account.shares.title")} />
@@ -75,6 +90,7 @@ const MyShares = () => {
                 <th>
                   <FormattedMessage id="account.shares.table.name" />
                 </th>
+                <th>{t("account.shares.table.status")}</th>
                 <th>
                   <FormattedMessage id="account.shares.table.visitors" />
                 </th>
@@ -100,7 +116,15 @@ const MyShares = () => {
                       )}
                     </Group>
                   </td>
-                  <td>{share.name}</td>
+                  <td>{share.name || "—"}</td>
+                  <td>
+                    <Badge
+                      color={getStatus(share) === "active" ? "green" : "gray"}
+                      variant="light"
+                    >
+                      {t(`account.shares.status.${getStatus(share)}`)}
+                    </Badge>
+                  </td>
                   <td>
                     {share.security?.maxViews ? (
                       <FormattedMessage
@@ -115,10 +139,14 @@ const MyShares = () => {
                     )}
                   </td>
                   <td>
-                    {moment(share.expiration).unix() === 0 ? (
+                    {moment(
+                      share.effectiveExpiration ?? share.expiration,
+                    ).unix() === 0 ? (
                       <FormattedMessage id="account.shares.table.expiry-never" />
                     ) : (
-                      moment(share.expiration).format("LLL")
+                      moment(
+                        share.effectiveExpiration ?? share.expiration,
+                      ).format("LLL")
                     )}
                   </td>
                   <td className={tableClasses.actionCell}>
@@ -168,6 +196,7 @@ const MyShares = () => {
                       <HoverTip label={t("common.button.copy-link")}>
                         <ActionIcon
                           color="gray"
+                          disabled={getStatus(share) !== "active"}
                           variant="subtle"
                           size={25}
                           onClick={() => {

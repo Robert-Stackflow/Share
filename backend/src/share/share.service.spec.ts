@@ -29,6 +29,10 @@ function createPrismaMock(records: { shares?: any[] } = {}) {
         },
       },
       share: {
+        findMany: async (args: any) => {
+          calls.push(["share.findMany", args]);
+          return shares;
+        },
         findFirst: async (args: any) => {
           calls.push(["share.findFirst", args]);
           return shares.find((item) => item.id === args.where.id) ?? null;
@@ -343,4 +347,43 @@ test("create upserts an access policy for the share when accessControl is sent",
     { shareId: "share-new-2" },
     { password: "secret123", maxViews: 3 },
   ]);
+});
+
+test("owner share list includes expired entries and reports effective access limits", async () => {
+  const { calls, prisma } = createPrismaMock({
+    shares: [
+      {
+        id: "expired-share",
+        createdAt: new Date("2026-01-01T00:00:00.000Z"),
+        expiration: new Date("2026-02-01T00:00:00.000Z"),
+        views: 2,
+        recipients: [],
+        assets: [],
+        security: null,
+        accessPolicy: {
+          expiresAt: new Date("2026-01-15T00:00:00.000Z"),
+          views: 1,
+          maxViews: 1,
+          passwordHash: "hash",
+        },
+      },
+    ],
+  });
+  const { service: assetService } = createAssetServiceMock();
+  const service = createShareService(prisma, assetService);
+
+  const [share] = await service.getSharesByUser("user-1");
+
+  assert.equal(share.id, "expired-share");
+  assert.equal(share.views, 1);
+  assert.equal(share.security.maxViews, 1);
+  assert.equal(share.security.passwordProtected, true);
+  assert.equal(
+    share.effectiveExpiration.toISOString(),
+    "2026-01-15T00:00:00.000Z",
+  );
+  const query = calls.find(([name]) => name === "share.findMany")[1];
+  assert.equal(query.where.OR, undefined);
+  assert.equal(query.where.removedReason, null);
+  assert.equal(query.include.accessPolicy, true);
 });

@@ -283,16 +283,17 @@ export class ShareService {
       where: {
         creator: { id: userId },
         uploadLocked: true,
-        // We want to grab any shares that are not expired or have their expiration date set to "never" (unix 0)
-        OR: [
-          { expiration: { gt: new Date() } },
-          { expiration: { equals: moment(0).toDate() } },
-        ],
+        removedReason: null,
       },
       orderBy: {
-        expiration: "desc",
+        createdAt: "desc",
       },
-      include: { recipients: true, assets: true, security: true },
+      include: {
+        recipients: true,
+        assets: true,
+        security: true,
+        accessPolicy: true,
+      },
     });
 
     return shares.map((share) => this.transformShare(share));
@@ -505,9 +506,16 @@ export class ShareService {
       files,
       size: files.reduce((acc, file) => acc + parseInt(file.size), 0),
       recipients: share.recipients?.map((recipient) => recipient.email) ?? [],
+      views: share.accessPolicy?.views ?? share.views,
+      effectiveExpiration:
+        share.accessPolicy?.expiresAt &&
+        (moment(share.expiration).unix() === 0 ||
+          share.accessPolicy.expiresAt < share.expiration)
+          ? share.accessPolicy.expiresAt
+          : share.expiration,
       security: {
-        maxViews: share.security?.maxViews,
-        passwordProtected: !!share.security?.password,
+        maxViews: this.getShareMaxViews(share),
+        passwordProtected: !!this.getSharePasswordHash(share),
       },
     };
   }

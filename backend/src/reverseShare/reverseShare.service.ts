@@ -77,10 +77,9 @@ export class ReverseShareService {
     const reverseShares = await this.prisma.reverseShare.findMany({
       where: {
         creatorId: userId,
-        shareExpiration: { gt: new Date() },
       },
       orderBy: {
-        shareExpiration: "desc",
+        createdAt: "desc",
       },
       include: { shares: { include: { creator: true } } },
     });

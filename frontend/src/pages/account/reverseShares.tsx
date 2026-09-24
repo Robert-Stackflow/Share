@@ -91,6 +91,12 @@ const MyShares = () => {
 
   const getInboxLink = (token: string) => `${publicBaseUrl}/inbox/${token}`;
 
+  const getInboxStatus = (inbox: MyReverseShare) => {
+    if (moment(inbox.shareExpiration).isSameOrBefore()) return "expired";
+    if (inbox.remainingUses <= 0) return "exhausted";
+    return "active";
+  };
+
   const loadSubmissions = async (shares: MyReverseShare[]) => {
     const entries = await Promise.all(
       shares.map(async (share) => {
@@ -412,7 +418,7 @@ const MyShares = () => {
               <thead>
                 <tr>
                   <th>
-                    <FormattedMessage id="account.reverseShares.table.shares" />
+                    <FormattedMessage id="account.reverseShares.title" />
                   </th>
                   <th>
                     <FormattedMessage id="account.reverseShares.table.remaining" />
@@ -434,6 +440,19 @@ const MyShares = () => {
                         {reverseShare.name ||
                           t("account.reverseShares.table.unnamed")}
                       </Text>
+                      <Badge
+                        color={
+                          getInboxStatus(reverseShare) === "active"
+                            ? "green"
+                            : "gray"
+                        }
+                        size="sm"
+                        variant="light"
+                      >
+                        {t(
+                          `account.reverseShares.status.${getInboxStatus(reverseShare)}`,
+                        )}
+                      </Badge>
                       {reverseShare.description && (
                         <Text c="dimmed" lineClamp={2} size="xs">
                           {reverseShare.description}
@@ -513,9 +532,7 @@ const MyShares = () => {
                       )}
                     </td>
                     <td>
-                      {moment(reverseShare.shareExpiration).unix() === 0
-                        ? "Never"
-                        : moment(reverseShare.shareExpiration).format("LLL")}
+                      {moment(reverseShare.shareExpiration).format("LLL")}
                     </td>
                     <td className={tableClasses.actionCell}>
                       <Group
@@ -526,6 +543,7 @@ const MyShares = () => {
                         <HoverTip label={t("common.button.copy-link")}>
                           <ActionIcon
                             color="gray"
+                            disabled={getInboxStatus(reverseShare) !== "active"}
                             variant="subtle"
                             size={25}
                             onClick={() => {
