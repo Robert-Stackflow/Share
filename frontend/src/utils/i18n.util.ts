@@ -1,7 +1,22 @@
 import { setCookie } from "cookies-next";
-import { LOCALES } from "../i18n/locales";
+import { DEFAULT_LOCALE, LOCALES } from "../i18n/locales";
+import englishMessages from "../i18n/translations/en-US";
 
-const loadedMessages = new Map<string, Awaited<ReturnType<(typeof LOCALES)[keyof typeof LOCALES]["load"]>>>();
+const reportedMissingMessages = new Set<string>();
+
+const missingMessage = (code: string, id: string): string => {
+  const reportId = `${code}:${id}`;
+  if (!reportedMissingMessages.has(reportId)) {
+    reportedMissingMessages.add(reportId);
+    console.error(`Missing translation: ${reportId}`);
+  }
+  return code.startsWith("zh") ? "内容暂不可用" : "Text unavailable";
+};
+
+const loadedMessages = new Map<
+  string,
+  Awaited<ReturnType<(typeof LOCALES)[keyof typeof LOCALES]["load"]>>
+>();
 
 const getLocaleByCode = (code: string) => {
   return Object.values(LOCALES).find((l) => l.code === code) ?? LOCALES.ENGLISH;
@@ -17,11 +32,11 @@ const loadMessages = async (code: string) => {
 };
 
 const getLoadedMessages = (code: string) =>
-  loadedMessages.get(getLocaleByCode(code).code) ?? {};
+  loadedMessages.get(getLocaleByCode(code).code) ?? englishMessages;
 
 // Parse the Accept-Language header and return the first supported language
 const getLanguageFromAcceptHeader = (acceptLanguage?: string) => {
-  if (!acceptLanguage) return "en";
+  if (!acceptLanguage) return DEFAULT_LOCALE;
 
   const languages = acceptLanguage.split(",").map((l) => l.split(";")[0]);
   const supportedLanguages = Object.values(LOCALES).map((l) => l.code);
@@ -39,10 +54,10 @@ const getLanguageFromAcceptHeader = (acceptLanguage?: string) => {
       const similarLanguage = supportedLanguages.find((l) =>
         l.startsWith(language.split("-")[0]),
       );
-      return similarLanguage;
+      return similarLanguage ?? DEFAULT_LOCALE;
     }
   }
-  return "en";
+  return DEFAULT_LOCALE;
 };
 
 const isLanguageSupported = (code: string) => {
@@ -60,6 +75,7 @@ export default {
   getLocaleByCode,
   loadMessages,
   getLoadedMessages,
+  missingMessage,
   getLanguageFromAcceptHeader,
   isLanguageSupported,
   setLanguageCookie,
