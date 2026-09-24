@@ -1,9 +1,6 @@
 export default {
   "passkey.title": "Passkeys",
   "passkey.signIn": "Sign in with a passkey",
-  "passkey.description": "Use your device's screen lock or security key to sign in.",
-  "passkey.recovery": "Keep another sign-in method or a second passkey in case you lose your device.",
-  "passkey.totpRelation": "A passkey verifies you on your device, so passkey sign-in does not ask for a TOTP code. Password and social sign-in keep their current TOTP rules.",
   "passkey.unsupported": "This browser or device does not support passkeys. Use another sign-in method.",
   "passkey.cancelled": "Passkey verification was cancelled. You can try again or use another sign-in method.",
   "passkey.networkError": "The connection was interrupted. Please try again.",
@@ -19,7 +16,6 @@ export default {
   "passkey.removed": "Passkey removed",
   "passkey.created": "Added",
   "passkey.lastUsed": "Last used",
-  "passkey.recentLogin": "To add or change passkeys, sign in again if your last sign-in was more than 10 minutes ago.",
   // Navbar
   "navbar.upload": "Upload",
   "navbar.menu.open": "Open menu",
@@ -245,7 +241,11 @@ export default {
   "account.assets.table.size": "Size",
   "account.assets.modal.delete.title": "Delete asset",
   "account.assets.modal.delete.description":
-    "Do you really want to delete this asset?",
+    "Delete this library asset? Copies already added to shares or rooms will stay available.",
+  "account.assets.rename.title": "Rename asset",
+  "account.assets.rename.name": "Name",
+  "account.assets.action.rename": "Rename",
+  "account.assets.notify.renamed": "Asset renamed",
   "account.assets.notify.created": "Asset created",
   "account.assets.notify.deleted": "Asset deleted",
   "account.assets.notify.cloned": "Asset copied",

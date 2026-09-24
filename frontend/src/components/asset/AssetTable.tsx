@@ -79,9 +79,16 @@ export const AssetValueCell = ({
 }) => {
   if (asset.type === "LINK") {
     return (
-      <Anchor href={asset.url} target="_blank" rel="noreferrer">
-        {asset.url}
-      </Anchor>
+      <Box>
+        {asset.name?.trim() && (
+          <Text fw={600} lineClamp={1}>
+            {asset.name}
+          </Text>
+        )}
+        <Anchor href={asset.url} target="_blank" rel="noreferrer">
+          {asset.url}
+        </Anchor>
+      </Box>
     );
   }
 
@@ -99,9 +106,16 @@ export const AssetValueCell = ({
   }
 
   return (
-    <Text lineClamp={textLineClamp} style={{ whiteSpace: "pre-wrap" }}>
-      {getAssetLabel(asset)}
-    </Text>
+    <Box>
+      {asset.name?.trim() && (
+        <Text fw={600} lineClamp={1}>
+          {asset.name}
+        </Text>
+      )}
+      <Text lineClamp={textLineClamp} style={{ whiteSpace: "pre-wrap" }}>
+        {asset.content || ""}
+      </Text>
+    </Box>
   );
 };
 
