@@ -13,7 +13,7 @@ import {
 import { Box, Button, Group, Stack, Text, ThemeIcon } from "@mantine/core";
 import Link from "next/link";
 import { Dispatch, SetStateAction } from "react";
-import { FormattedMessage } from "react-intl";
+import FormattedMessage from "../../core/FormattedMessage";
 import classes from "./ConfigurationNavBar.module.css";
 
 export const categories = [

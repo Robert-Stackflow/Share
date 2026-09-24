@@ -9,7 +9,7 @@ import {
 import { useForm, yupResolver } from "@mantine/form";
 import { useRouter } from "next/router";
 import { useState } from "react";
-import { FormattedMessage } from "react-intl";
+import FormattedMessage from "../core/FormattedMessage";
 import * as yup from "yup";
 import useTranslate from "../../hooks/useTranslate.hook";
 import useUser from "../../hooks/user.hook";

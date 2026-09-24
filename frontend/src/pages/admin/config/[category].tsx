@@ -16,7 +16,7 @@ import { GetStaticPaths, GetStaticProps } from "next";
 
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { FormattedMessage } from "react-intl";
+import FormattedMessage from "../../../components/core/FormattedMessage";
 import Meta from "../../../components/Meta";
 import AdminConfigInput from "../../../components/admin/configuration/AdminConfigInput";
 import ConfigurationHeader from "../../../components/admin/configuration/ConfigurationHeader";

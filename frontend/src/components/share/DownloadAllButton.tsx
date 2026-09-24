@@ -1,6 +1,6 @@
 import { Button } from "@mantine/core";
 import { useEffect, useState } from "react";
-import { FormattedMessage } from "react-intl";
+import FormattedMessage from "../core/FormattedMessage";
 import useTranslate from "../../hooks/useTranslate.hook";
 import shareService from "../../services/share.service";
 import toast from "../../utils/toast.util";

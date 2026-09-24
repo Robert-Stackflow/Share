@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button, Group, Box, useComputedColorScheme } from "@mantine/core";
 import dynamic from "next/dynamic";
 import { commands } from "@uiw/react-md-editor";
-import { FormattedMessage } from "react-intl";
+import FormattedMessage from "../core/FormattedMessage";
 import classes from "./TextEditor.module.css";
 
 const MDEditor = dynamic(

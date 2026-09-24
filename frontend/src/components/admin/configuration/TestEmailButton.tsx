@@ -1,7 +1,7 @@
 import { Button, Stack, Text, Textarea } from "@mantine/core";
 import { useModals } from "@mantine/modals";
 import { useState } from "react";
-import { FormattedMessage } from "react-intl";
+import FormattedMessage from "../../core/FormattedMessage";
 import useUser from "../../../hooks/user.hook";
 import useTranslate from "../../../hooks/useTranslate.hook";
 import configService from "../../../services/config.service";

@@ -1,7 +1,7 @@
 import { LoadingOverlay, Paper, Stack, Text, Title } from "@mantine/core";
 import { useModals } from "@mantine/modals";
 import { GetStaticPaths, GetStaticProps } from "next";
-import { FormattedMessage } from "react-intl";
+import FormattedMessage from "../../../components/core/FormattedMessage";
 import { useEffect, useMemo, useState } from "react";
 import Meta from "../../../components/Meta";
 import AssetTable, {

@@ -10,7 +10,8 @@ import {
   Title,
 } from "@mantine/core";
 import { ReactNode, useEffect, useRef, useState } from "react";
-import { FormattedMessage, useIntl } from "react-intl";
+import { useIntl } from "react-intl";
+import FormattedMessage from "../core/FormattedMessage";
 import useTranslate from "../../hooks/useTranslate.hook";
 import { Asset, AssetType } from "../../types/asset.type";
 import {

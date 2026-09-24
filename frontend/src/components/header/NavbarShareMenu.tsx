@@ -1,7 +1,7 @@
 import { ChevronDown, Inbox, Link2, Package } from "lucide-react";
 import { Group, Menu, UnstyledButton } from "@mantine/core";
 import Link from "next/link";
-import { FormattedMessage } from "react-intl";
+import FormattedMessage from "../core/FormattedMessage";
 import useTranslate from "../../hooks/useTranslate.hook";
 import classes from "./Header.module.css";
 

@@ -12,7 +12,7 @@ import { ActionIcon, Menu } from "@mantine/core";
 import Link from "next/link";
 import useUser from "../../hooks/user.hook";
 import authService from "../../services/auth.service";
-import { FormattedMessage } from "react-intl";
+import FormattedMessage from "../core/FormattedMessage";
 import useTranslate from "../../hooks/useTranslate.hook";
 import classes from "./Header.module.css";
 

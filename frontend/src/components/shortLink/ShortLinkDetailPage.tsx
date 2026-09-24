@@ -35,7 +35,8 @@ import { useModals } from "@mantine/modals";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { ReactNode, useEffect, useMemo, useState } from "react";
-import { FormattedMessage, useIntl } from "react-intl";
+import { useIntl } from "react-intl";
+import FormattedMessage from "../core/FormattedMessage";
 import Meta from "../../components/Meta";
 import CenterLoader from "../../components/core/CenterLoader";
 import tableClasses from "../../components/core/DataTable.module.css";
@@ -218,6 +219,7 @@ const RecentVisitsTable = ({
   emptyLabel: string;
 }) => {
   const { locale } = useIntl();
+  const t = useTranslate();
   return <section className={classes.recentVisitsPanel}>
     <PanelHeader
       title={<FormattedMessage id="account.shortLinks.stats.recent" />}
@@ -250,7 +252,7 @@ const RecentVisitsTable = ({
                 </Table.Td>
                 <Table.Td>
                   <Text c="dimmed" lineClamp={2} size="sm">
-                    {visit.referer || "-"}
+                    {visit.referer || t("account.shortLinks.stats.direct")}
                   </Text>
                 </Table.Td>
                 <Table.Td className={classes.userAgentCell}>

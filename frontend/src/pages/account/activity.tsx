@@ -1,7 +1,7 @@
 import { Box, Center, Group, Select, Stack, Table, Text, Title } from "@mantine/core";
 import moment from "moment";
 import { useEffect, useMemo, useState } from "react";
-import { FormattedMessage } from "react-intl";
+import FormattedMessage from "../../components/core/FormattedMessage";
 import Meta from "../../components/Meta";
 import CenterLoader from "../../components/core/CenterLoader";
 import tableClasses from "../../components/core/DataTable.module.css";

@@ -32,7 +32,7 @@ import { useModals } from "@mantine/modals";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
-import { FormattedMessage } from "react-intl";
+import FormattedMessage from "../core/FormattedMessage";
 import Meta from "../../components/Meta";
 import tableClasses from "../../components/core/DataTable.module.css";
 import CenterLoader from "../../components/core/CenterLoader";

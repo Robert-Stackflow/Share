@@ -2,7 +2,7 @@ import { CloudUpload, Upload } from "lucide-react";
 import { Button, Center, Group, Text } from "@mantine/core";
 import { Dropzone as MantineDropzone, FileWithPath } from "@mantine/dropzone";
 import { ForwardedRef, useRef } from "react";
-import { FormattedMessage } from "react-intl";
+import FormattedMessage from "../core/FormattedMessage";
 import useTranslate from "../../hooks/useTranslate.hook";
 import { FileUpload } from "../../types/File.type";
 import { byteToHumanSizeString } from "../../utils/fileSize.util";

@@ -2,7 +2,7 @@ import { Plus } from "lucide-react";
 import { Button, Group, Space, Text, Title } from "@mantine/core";
 import { useModals } from "@mantine/modals";
 import { useEffect, useState } from "react";
-import { FormattedMessage } from "react-intl";
+import FormattedMessage from "../../components/core/FormattedMessage";
 import Meta from "../../components/Meta";
 import ManageUserTable from "../../components/admin/users/ManageUserTable";
 import showCreateUserModal from "../../components/admin/users/showCreateUserModal";

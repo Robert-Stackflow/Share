@@ -3,7 +3,7 @@ import { Button, Stack, Text, Title } from "@mantine/core";
 import Meta from "../components/Meta";
 import useTranslate from "../hooks/useTranslate.hook";
 import { useRouter } from "next/router";
-import { FormattedMessage } from "react-intl";
+import FormattedMessage from "../components/core/FormattedMessage";
 import classes from "./error.module.css";
 
 export default function Error() {

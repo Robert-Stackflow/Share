@@ -4,7 +4,7 @@ import { ModalsContextProps } from "@mantine/modals/lib/context";
 import { useState } from "react";
 import moment from "moment";
 import { useRouter } from "next/router";
-import { FormattedMessage } from "react-intl";
+import FormattedMessage from "../../core/FormattedMessage";
 import useTranslate, {
   translateOutsideContext,
 } from "../../../hooks/useTranslate.hook";
