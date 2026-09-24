@@ -1,4 +1,12 @@
-import { Copy, ExternalLink, Link2, Plus, Power, Trash2 } from "lucide-react";
+import {
+  Copy,
+  ExternalLink,
+  Link2,
+  Plus,
+  Power,
+  Search,
+  Trash2,
+} from "lucide-react";
 import {
   ActionIcon,
   Anchor,
@@ -8,6 +16,7 @@ import {
   Group,
   Modal,
   SegmentedControl,
+  Select,
   SimpleGrid,
   Stack,
   Table,
@@ -37,17 +46,9 @@ import {
 import AccessControlForm from "../access/AccessControlForm";
 import toast from "../../utils/toast.util";
 import classes from "./ShortLinksWorkspace.module.css";
-
-const isWebUrl = (value: string) => {
-  try {
-    const url = new URL(value.trim());
-    return (
-      !/\s/.test(value.trim()) && ["http:", "https:"].includes(url.protocol)
-    );
-  } catch {
-    return false;
-  }
-};
+import InternalTargetPicker from "./InternalTargetPicker";
+import { getShortLinkStatus, ShortLinkStatus } from "./shortLinkStatus";
+import { isValidTarget, isWebUrl } from "./shortLinkTarget";
 
 const ShortLinksWorkspace = () => {
   const t = useTranslate();
@@ -59,6 +60,13 @@ const ShortLinksWorkspace = () => {
     useDisclosure(false);
   const [isCreating, setIsCreating] = useState(false);
   const [targetDraft, setTargetDraft] = useState("");
+  const [query, setQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<ShortLinkStatus | "all">(
+    "all",
+  );
+  const [typeFilter, setTypeFilter] = useState<ShortLinkTargetType | "all">(
+    "all",
+  );
   const internalDrag = useRef(false);
   const [accessControl, setAccessControl] = useState<AccessControl>({});
   const form = useForm({
@@ -68,7 +76,36 @@ const ShortLinksWorkspace = () => {
       title: "",
       code: "",
     },
+    validate: {
+      targetUrl: (value, values) =>
+        isValidTarget(values.targetType, value.trim())
+          ? null
+          : t("account.shortLinks.error.target"),
+    },
   });
+
+  const normalizedQuery = query.trim().toLowerCase();
+  const filteredLinks = (links ?? []).filter((link) => {
+    if (statusFilter !== "all" && getShortLinkStatus(link) !== statusFilter) {
+      return false;
+    }
+    if (typeFilter !== "all" && link.targetType !== typeFilter) return false;
+    return (
+      !normalizedQuery ||
+      [link.code, link.title ?? "", link.targetUrl].some((value) =>
+        value.toLowerCase().includes(normalizedQuery),
+      )
+    );
+  });
+  const hasFilters = Boolean(
+    normalizedQuery || statusFilter !== "all" || typeFilter !== "all",
+  );
+
+  const clearFilters = () => {
+    setQuery("");
+    setStatusFilter("all");
+    setTypeFilter("all");
+  };
 
   const publicLink = (code: string) => {
     if (typeof window === "undefined") return `/s/${code}`;
@@ -157,7 +194,7 @@ const ShortLinksWorkspace = () => {
     shortLinkService
       .create({
         targetType: values.targetType,
-        targetUrl: values.targetUrl,
+        targetUrl: values.targetUrl.trim(),
         title: values.title.trim() || undefined,
         code: values.code.trim() || undefined,
         accessControl: toAccessControlPayload(accessControl),
@@ -182,10 +219,9 @@ const ShortLinksWorkspace = () => {
   const setLinkActive = (shortLink: ShortLink, isActive: boolean) => {
     shortLinkService
       .update(shortLink.code, { isActive })
-      .then((updated) => {
-        setLinks((current) =>
-          current?.map((link) => (link.code === updated.code ? updated : link)),
-        );
+      .then(() => shortLinkService.list())
+      .then((updatedLinks) => {
+        setLinks(updatedLinks);
         toast.success(
           t(
             isActive
@@ -285,12 +321,13 @@ const ShortLinksWorkspace = () => {
               <Stack gap="sm">
                 <SegmentedControl
                   value={form.values.targetType}
-                  onChange={(value) =>
+                  onChange={(value) => {
                     form.setFieldValue(
                       "targetType",
                       value as ShortLinkTargetType,
-                    )
-                  }
+                    );
+                    form.setFieldValue("targetUrl", "");
+                  }}
                   data={[
                     {
                       value: "URL",
@@ -302,15 +339,19 @@ const ShortLinksWorkspace = () => {
                     },
                   ]}
                 />
-                <TextInput
-                  label={t("account.shortLinks.form.target")}
-                  placeholder={
-                    form.values.targetType === "URL"
-                      ? "https://example.com"
-                      : "/rooms"
-                  }
-                  {...form.getInputProps("targetUrl")}
-                />
+                {form.values.targetType === "URL" ? (
+                  <TextInput
+                    label={t("account.shortLinks.form.target")}
+                    placeholder="https://example.com"
+                    {...form.getInputProps("targetUrl")}
+                  />
+                ) : (
+                  <InternalTargetPicker
+                    error={form.errors.targetUrl as string | undefined}
+                    value={form.values.targetUrl}
+                    onChange={(value) => form.setFieldValue("targetUrl", value)}
+                  />
+                )}
               </Stack>
             </section>
 
@@ -350,7 +391,12 @@ const ShortLinksWorkspace = () => {
               <Button
                 leftSection={<Plus />}
                 loading={isCreating}
-                disabled={form.values.targetUrl.trim().length === 0}
+                disabled={
+                  !isValidTarget(
+                    form.values.targetType,
+                    form.values.targetUrl.trim(),
+                  )
+                }
                 type="submit"
               >
                 <FormattedMessage id="account.shortLinks.create" />
@@ -360,13 +406,69 @@ const ShortLinksWorkspace = () => {
         </form>
       </Modal>
 
+      {links.length > 0 && (
+        <Group align="flex-end" gap="sm" mb="md" wrap="wrap">
+          <TextInput
+            aria-label={t("account.shortLinks.filter.search")}
+            leftSection={<Search size={16} />}
+            onChange={(event) => setQuery(event.currentTarget.value)}
+            placeholder={t("account.shortLinks.filter.search")}
+            style={{ flex: "1 1 220px" }}
+            value={query}
+          />
+          <Select
+            aria-label={t("account.shortLinks.filter.status")}
+            data={["all", "active", "disabled", "expired", "limit"].map(
+              (status) => ({
+                value: status,
+                label: t(
+                  status === "all"
+                    ? "account.shortLinks.filter.all"
+                    : `account.shortLinks.status.${status}`,
+                ),
+              }),
+            )}
+            onChange={(value) =>
+              setStatusFilter((value as ShortLinkStatus | "all") ?? "all")
+            }
+            value={statusFilter}
+            w={145}
+          />
+          <Select
+            aria-label={t("account.shortLinks.filter.type")}
+            data={[
+              { value: "all", label: t("account.shortLinks.filter.all") },
+              { value: "URL", label: t("account.shortLinks.type.url") },
+              {
+                value: "INTERNAL_PATH",
+                label: t("account.shortLinks.type.internal"),
+              },
+            ]}
+            onChange={(value) =>
+              setTypeFilter((value as ShortLinkTargetType | "all") ?? "all")
+            }
+            value={typeFilter}
+            w={160}
+          />
+          {hasFilters && (
+            <Button onClick={clearFilters} variant="subtle">
+              {t("account.shortLinks.filter.clear")}
+            </Button>
+          )}
+        </Group>
+      )}
+
       <div
         className={`${tableClasses.tablePanel} ${classes.shortLinkListPanel}`}
       >
-        {links.length === 0 ? (
+        {filteredLinks.length === 0 ? (
           <Center py="xl">
             <Text c="dimmed">
-              <FormattedMessage id="account.shortLinks.empty" />
+              {t(
+                hasFilters
+                  ? "account.shortLinks.filter.empty"
+                  : "account.shortLinks.empty",
+              )}
             </Text>
           </Center>
         ) : (
@@ -392,7 +494,8 @@ const ShortLinksWorkspace = () => {
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
-              {links.map((shortLink) => {
+              {filteredLinks.map((shortLink) => {
+                const status = getShortLinkStatus(shortLink);
                 const openDetail = () => {
                   void router.push(`/short-links/${shortLink.code}`);
                 };
@@ -436,12 +539,18 @@ const ShortLinksWorkspace = () => {
                     <Table.Td>{shortLink.visits}</Table.Td>
                     <Table.Td>
                       <Badge
-                        color={shortLink.isActive ? "green" : "gray"}
-                        variant={shortLink.isActive ? "light" : "outline"}
+                        color={
+                          status === "active"
+                            ? "green"
+                            : status === "expired"
+                              ? "orange"
+                              : status === "limit"
+                                ? "red"
+                                : "gray"
+                        }
+                        variant={status === "disabled" ? "outline" : "light"}
                       >
-                        {shortLink.isActive
-                          ? t("account.shortLinks.status.active")
-                          : t("account.shortLinks.status.disabled")}
+                        {t(`account.shortLinks.status.${status}`)}
                       </Badge>
                     </Table.Td>
                     <Table.Td className={tableClasses.actionCell}>

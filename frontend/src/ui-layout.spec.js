@@ -536,13 +536,15 @@ test("activity log pages and nav surface user and admin events", () => {
   }
 });
 
-test("short link status controls use radios and differentiated table badges", () => {
+test("short link status controls and badges cover disabled, expired, and exhausted links", () => {
   const detail = read("components/shortLink/ShortLinkDetailPage.tsx");
   const workspace = read("components/shortLink/ShortLinksWorkspace.tsx");
 
   assert.match(detail, /Radio\.Group/);
   assert.match(detail, /name="short-link-status"/);
   assert.equal((detail.match(/<SegmentedControl/g) ?? []).length, 1);
-  assert.match(workspace, /shortLink\.isActive\s*\?\s*"green"\s*:\s*"gray"/);
-  assert.match(workspace, /shortLink\.isActive\s*\?\s*"light"\s*:\s*"outline"/);
+  assert.match(workspace, /getShortLinkStatus\(shortLink\)/);
+  assert.match(workspace, /status === "expired"/);
+  assert.match(workspace, /status === "limit"/);
+  assert.match(detail, /getShortLinkStatus\(shortLink\)/);
 });

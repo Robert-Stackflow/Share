@@ -3,6 +3,12 @@ a {
   text-decoration: none;
 }
 
+/* Lucide defaults to 24px, which crowds compact controls and list rows. */
+svg.lucide[width="24"][height="24"] {
+  width: 16px;
+  height: 16px;
+}
+
 * {
   scrollbar-color: light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-4))
     transparent;

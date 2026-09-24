@@ -57,6 +57,9 @@ import {
   toAccessControlPayload,
 } from "../../types/accessControl.type";
 import classes from "./ShortLinksWorkspace.module.css";
+import InternalTargetPicker from "./InternalTargetPicker";
+import { getShortLinkStatus } from "./shortLinkStatus";
+import { isValidTarget } from "./shortLinkTarget";
 
 const formatDateTime = (value?: Date | string | null) => {
   if (!value) return "-";
@@ -275,6 +278,12 @@ const ShortLinkDetailPage = () => {
       title: "",
       isActive: true,
     },
+    validate: {
+      targetUrl: (value, values) =>
+        isValidTarget(values.targetType, value.trim())
+          ? null
+          : t("account.shortLinks.error.target"),
+    },
   });
 
   const code = useStaticRouteParam("code", 1);
@@ -334,7 +343,7 @@ const ShortLinkDetailPage = () => {
     shortLinkService
       .update(code, {
         targetType: values.targetType,
-        targetUrl: values.targetUrl,
+        targetUrl: values.targetUrl.trim(),
         title: values.title.trim() || undefined,
         isActive: values.isActive,
         accessControl: {
@@ -411,6 +420,7 @@ const ShortLinkDetailPage = () => {
   }
 
   const pageTitle = shortLink?.title || stats.targetUrl;
+  const status = shortLink ? getShortLinkStatus(shortLink) : "active";
 
   return (
     <>
@@ -433,12 +443,13 @@ const ShortLinkDetailPage = () => {
               <Stack gap="sm">
                 <SegmentedControl
                   value={editForm.values.targetType}
-                  onChange={(value) =>
+                  onChange={(value) => {
                     editForm.setFieldValue(
                       "targetType",
                       value as ShortLinkTargetType,
-                    )
-                  }
+                    );
+                    editForm.setFieldValue("targetUrl", "");
+                  }}
                   data={[
                     {
                       value: "URL",
@@ -451,10 +462,20 @@ const ShortLinkDetailPage = () => {
                   ]}
                 />
                 <SimpleGrid cols={{ base: 1, sm: 2 }}>
-                  <TextInput
-                    label={t("account.shortLinks.form.target")}
-                    {...editForm.getInputProps("targetUrl")}
-                  />
+                  {editForm.values.targetType === "URL" ? (
+                    <TextInput
+                      label={t("account.shortLinks.form.target")}
+                      {...editForm.getInputProps("targetUrl")}
+                    />
+                  ) : (
+                    <InternalTargetPicker
+                      error={editForm.errors.targetUrl as string | undefined}
+                      value={editForm.values.targetUrl}
+                      onChange={(value) =>
+                        editForm.setFieldValue("targetUrl", value)
+                      }
+                    />
+                  )}
                   <TextInput
                     label={t("account.shortLinks.form.title")}
                     {...editForm.getInputProps("title")}
@@ -551,12 +572,18 @@ const ShortLinkDetailPage = () => {
               </Badge>
               <Badge
                 className={classes.metaBadge}
-                color={(shortLink?.isActive ?? true) ? "green" : "gray"}
-                variant={(shortLink?.isActive ?? true) ? "light" : "outline"}
+                color={
+                  status === "active"
+                    ? "green"
+                    : status === "expired"
+                      ? "orange"
+                      : status === "limit"
+                        ? "red"
+                        : "gray"
+                }
+                variant={status === "disabled" ? "outline" : "light"}
               >
-                {(shortLink?.isActive ?? true)
-                  ? t("account.shortLinks.status.active")
-                  : t("account.shortLinks.status.disabled")}
+                {t(`account.shortLinks.status.${status}`)}
               </Badge>
               <Anchor
                 className={classes.targetUrl}
