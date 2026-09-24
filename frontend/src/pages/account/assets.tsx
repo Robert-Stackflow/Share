@@ -201,6 +201,7 @@ const Assets = () => {
       )}
 
       <AssetTable
+        responsiveCards
         assets={assets}
         headers={{
           type: <FormattedMessage id="account.assets.table.type" />,

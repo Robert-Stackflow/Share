@@ -6,6 +6,7 @@ import useTranslate from "../../hooks/useTranslate.hook";
 import { Asset, AssetType } from "../../types/asset.type";
 import { byteToHumanSizeString } from "../../utils/fileSize.util";
 import tableClasses from "../core/DataTable.module.css";
+import classes from "./AssetTable.module.css";
 
 export type AssetTableColumn = "type" | "value" | "createdAt" | "size";
 
@@ -17,6 +18,7 @@ type AssetTableProps = {
   isLoading?: boolean;
   loadingRows?: number;
   renderActions?: (asset: Asset) => ReactNode;
+  responsiveCards?: boolean;
   showFileSizeInValue?: boolean;
   textLineClamp?: number;
   typeLabelPrefix?: string;
@@ -110,6 +112,7 @@ const AssetTable = ({
   isLoading = false,
   loadingRows = 5,
   renderActions,
+  responsiveCards = false,
   showFileSizeInValue = !columns.includes("size"),
   textLineClamp = 2,
   typeLabelPrefix = "account.assets.type",
@@ -122,7 +125,9 @@ const AssetTable = ({
 
   return (
     <Box className={tableClasses.tablePanel}>
-      <Table className={tableClasses.table}>
+      <Table
+        className={`${tableClasses.table} ${responsiveCards ? classes.responsiveTable : ""}`}
+      >
         <thead>
           <tr>
             {columns.map((column) => (
@@ -187,6 +192,48 @@ const AssetTable = ({
               ))}
         </tbody>
       </Table>
+      {responsiveCards && (
+        <div className={classes.mobileCards}>
+          {isLoading
+            ? [...Array(loadingRows)].map((_, index) => (
+                <div className={classes.mobileCard} key={index}>
+                  <Skeleton height={16} width="40%" />
+                  <Skeleton height={18} mt="sm" />
+                </div>
+              ))
+            : assets.map((asset) => (
+                <div className={classes.mobileCard} key={asset.id}>
+                  <Group
+                    justify="space-between"
+                    align="flex-start"
+                    wrap="nowrap"
+                  >
+                    <div className={classes.mobileCardContent}>
+                      <AssetTypeLabel
+                        asset={asset}
+                        labelPrefix={typeLabelPrefix}
+                      />
+                      <div className={classes.mobileValue}>
+                        <AssetValueCell
+                          asset={asset}
+                          textLineClamp={textLineClamp}
+                        />
+                      </div>
+                    </div>
+                    {hasActions && (
+                      <div className={classes.mobileActions}>
+                        {renderActions?.(asset)}
+                      </div>
+                    )}
+                  </Group>
+                  <Text size="xs" c="dimmed" mt="xs">
+                    {moment(asset.createdAt).format("ll")}
+                    {asset.size && ` · ${getAssetSizeLabel(asset)}`}
+                  </Text>
+                </div>
+              ))}
+        </div>
+      )}
     </Box>
   );
 };
