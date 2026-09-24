@@ -40,16 +40,16 @@ import { camelToKebab } from "../../../utils/string.util";
 import toast from "../../../utils/toast.util";
 
 const categories = [
-  "General",
-  "Appearance",
-  "Email",
-  "Share",
-  "SMTP",
-  "OAuth",
-  "LDAP",
-  "S3",
-  "Legal",
-  "Cache",
+  "general",
+  "appearance",
+  "email",
+  "share",
+  "smtp",
+  "oauth",
+  "ldap",
+  "s3",
+  "legal",
+  "cache",
 ];
 
 const OAUTH_PROVIDERS = ["github", "google", "microsoft", "discord", "oidc"];
@@ -76,6 +76,7 @@ export default function AppShellDemo() {
     : "general";
 
   const [configVariables, setConfigVariables] = useState<AdminConfig[]>();
+  const [loadedCategory, setLoadedCategory] = useState<string>();
   const [updatedConfigVariables, setUpdatedConfigVariables] = useState<
     UpdateConfig[]
   >([]);
@@ -156,8 +157,18 @@ export default function AppShellDemo() {
   };
 
   useEffect(() => {
+    let active = true;
+    setConfigVariables(undefined);
+    setLoadedCategory(undefined);
+    setUpdatedConfigVariables([]);
+    setOptionalConfigVariables(undefined);
+    setLogo(null);
+    setDarkLogo(null);
+
     configService.getByCategory(categoryId).then((configVariables) => {
+      if (!active) return;
       setConfigVariables(configVariables);
+      setLoadedCategory(categoryId);
     });
 
     if (categoryId === "email") {
@@ -169,9 +180,13 @@ export default function AppShellDemo() {
             }
           },
         );
-        setOptionalConfigVariables(optionalConfigVariables);
+        if (active) setOptionalConfigVariables(optionalConfigVariables);
       });
     }
+
+    return () => {
+      active = false;
+    };
   }, [categoryId]);
 
   return (
@@ -207,7 +222,7 @@ export default function AppShellDemo() {
         </AppShell.Navbar>
         <AppShell.Main>
           <Container size="lg">
-            {!configVariables ? (
+            {!configVariables || loadedCategory !== categoryId ? (
               <CenterLoader />
             ) : (
               <>
