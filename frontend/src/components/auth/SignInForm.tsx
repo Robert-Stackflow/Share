@@ -1,5 +1,4 @@
 import { Info, KeyRound } from "lucide-react";
-import { startAuthentication } from "@simplewebauthn/browser";
 import {
   Anchor,
   Button,
@@ -49,6 +48,7 @@ const SignInForm = ({ redirectPath }: { redirectPath: string }) => {
     setPasskeyBusy(true);
     try {
       const { data } = await authService.getPasskeyLoginOptions();
+      const { startAuthentication } = await import("@simplewebauthn/browser");
       const assertion = await startAuthentication({
         optionsJSON: data.options,
       });
