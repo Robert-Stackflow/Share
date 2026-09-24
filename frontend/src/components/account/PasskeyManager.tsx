@@ -1,6 +1,7 @@
-import { Button, Group, Stack, Text, TextInput } from "@mantine/core";
+import { Button, Group, Stack, Text } from "@mantine/core";
 import { KeyRound, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useIntl } from "react-intl";
 import useTranslate from "../../hooks/useTranslate.hook";
 import authService from "../../services/auth.service";
 import toast from "../../utils/toast.util";
@@ -15,8 +16,8 @@ type Passkey = {
 
 const PasskeyManager = () => {
   const t = useTranslate();
+  const intl = useIntl();
   const [keys, setKeys] = useState<Passkey[]>([]);
-  const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
 
   const reload = () =>
@@ -39,12 +40,14 @@ const PasskeyManager = () => {
       const { data } = await authService.getPasskeyRegistrationOptions();
       const { startRegistration } = await import("@simplewebauthn/browser");
       const response = await startRegistration({ optionsJSON: data.options });
+      const baseName = t("passkey.defaultName");
+      let number = 1;
+      while (keys.some((key) => key.name === `${baseName} ${number}`)) number++;
       await authService.registerPasskey(
         data.challengeId,
         response,
-        name.trim() || t("passkey.defaultName"),
+        `${baseName} ${number}`,
       );
-      setName("");
       await reload();
       toast.success(t("passkey.added"));
     } catch (error) {
@@ -78,15 +81,15 @@ const PasskeyManager = () => {
 
   return (
     <Stack mt="md" gap="sm">
-      <Text size="sm" c="dimmed">
-        {t("passkey.description")}
-      </Text>
-      <Text size="xs" c="dimmed">
-        {t("passkey.recovery")}
-      </Text>
-      <Text size="xs" c="dimmed">
-        {t("passkey.totpRelation")}
-      </Text>
+      <Group>
+        <Button
+          leftSection={<KeyRound size={16} />}
+          loading={busy}
+          onClick={() => void add()}
+        >
+          {t("passkey.add")}
+        </Button>
+      </Group>
       {keys.length === 0 && <Text size="sm">{t("passkey.empty")}</Text>}
       {keys.map((key) => (
         <Group key={key.id} justify="space-between" wrap="wrap">
@@ -96,9 +99,17 @@ const PasskeyManager = () => {
             </Text>
             <Text size="xs" c="dimmed">
               {t("passkey.created")}:{" "}
-              {new Date(key.createdAt).toLocaleDateString()}
+              {intl.formatDate(key.createdAt, {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+              })}
               {key.lastUsedAt &&
-                ` · ${t("passkey.lastUsed")}: ${new Date(key.lastUsedAt).toLocaleDateString()}`}
+                ` · ${t("passkey.lastUsed")}: ${intl.formatDate(key.lastUsedAt, {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
+                })}`}
             </Text>
           </div>
           <Group gap="xs">
@@ -117,25 +128,6 @@ const PasskeyManager = () => {
           </Group>
         </Group>
       ))}
-      <Group align="end" wrap="wrap">
-        <TextInput
-          label={t("passkey.name")}
-          placeholder={t("passkey.defaultName")}
-          value={name}
-          onChange={(event) => setName(event.currentTarget.value)}
-          maxLength={80}
-        />
-        <Button
-          leftSection={<KeyRound size={16} />}
-          loading={busy}
-          onClick={() => void add()}
-        >
-          {t("passkey.add")}
-        </Button>
-      </Group>
-      <Text size="xs" c="dimmed">
-        {t("passkey.recentLogin")}
-      </Text>
     </Stack>
   );
 };
