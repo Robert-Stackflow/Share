@@ -2,7 +2,7 @@
 	root * /opt/app/frontend/public
 
 	@page {
-		not path /api/* /_next/* /img/* /manifest.json /sw.js /workbox-*.js /clipboard /clipboard/* /*.*
+		not path /api/* /_next/* /img/* /brand/* /manifest.json /sw.js /workbox-*.js /*.*
 	}
 	forward_auth @page http://localhost:{$BACKEND_PORT:8080} {
 		uri /api/frontend-route
