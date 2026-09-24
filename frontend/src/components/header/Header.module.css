@@ -62,6 +62,24 @@
   width: 34px;
 }
 
+.link:focus-visible,
+.iconLink:focus-visible,
+.mobileMenuButton:focus-visible {
+  outline: 2px solid var(--mantine-primary-color-filled);
+  outline-offset: 2px;
+}
+
+.iconLinkActive,
+.iconLinkActive:hover,
+.menuItemActive,
+.menuItemActive:hover {
+  background-color: light-dark(
+    var(--mantine-color-gray-1),
+    var(--mantine-color-dark-6)
+  );
+  color: light-dark(var(--mantine-color-gray-9), var(--mantine-color-dark-0));
+}
+
 @media (max-width: $mantine-breakpoint-sm) {
   .link {
     border-radius: 0;

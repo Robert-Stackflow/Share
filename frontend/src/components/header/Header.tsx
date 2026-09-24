@@ -23,6 +23,11 @@ import authService from "../../services/auth.service";
 import Logo from "../Logo";
 import ActionAvatar from "./ActionAvatar";
 import NavbarShareMenu from "./NavbarShareMenu";
+import {
+  isContentRoute,
+  isProfileRoute,
+  isRouteWithin,
+} from "./navigation.util";
 
 const HEADER_HEIGHT = 60;
 
@@ -42,11 +47,10 @@ const Header = () => {
   const t = useTranslate();
 
   const [opened, { toggle, close }] = useDisclosure(false);
-  const [currentRoute, setCurrentRoute] = useState("");
   const [mobileMenuView, setMobileMenuView] = useState<MobileMenuView>("root");
+  const currentRoute = router.pathname;
 
   useEffect(() => {
-    setCurrentRoute(router.pathname);
     close();
     setMobileMenuView("root");
   }, [close, router.pathname]);
@@ -62,10 +66,10 @@ const Header = () => {
       label: t("navbar.links.shortLinks"),
     },
     {
-      component: <NavbarShareMenu />,
+      component: <NavbarShareMenu active={isContentRoute(currentRoute)} />,
     },
     {
-      component: <ActionAvatar />,
+      component: <ActionAvatar active={isProfileRoute(currentRoute)} />,
     },
   ];
 
@@ -178,8 +182,14 @@ const Header = () => {
             key={link.label}
             href={link.link ?? ""}
             onClick={close}
+            aria-current={
+              link.link && isRouteWithin(currentRoute, link.link)
+                ? "page"
+                : undefined
+            }
             className={clsx(classes.link, {
-              [classes.linkActive]: currentRoute == link.link,
+              [classes.linkActive]:
+                !!link.link && isRouteWithin(currentRoute, link.link),
             })}
           >
             {link.label}
@@ -206,7 +216,11 @@ const Header = () => {
       return (
         <UnstyledButton
           key={link.label}
-          className={classes.mobileMenuButton}
+          className={clsx(classes.mobileMenuButton, {
+            [classes.linkActive]: isSharesEntry
+              ? isContentRoute(currentRoute)
+              : isProfileRoute(currentRoute),
+          })}
           onClick={() =>
             setMobileMenuView(isSharesEntry ? "shares" : "profile")
           }
@@ -236,12 +250,18 @@ const Header = () => {
       <Link
         key={link.label}
         href={link.link ?? ""}
+        aria-current={
+          link.link && isRouteWithin(currentRoute, link.link)
+            ? "page"
+            : undefined
+        }
         onClick={() => {
           close();
           setMobileMenuView("root");
         }}
         className={clsx(classes.link, {
-          [classes.linkActive]: currentRoute == link.link,
+          [classes.linkActive]:
+            !!link.link && isRouteWithin(currentRoute, link.link),
         })}
       >
         {link.label}
@@ -266,16 +286,24 @@ const Header = () => {
             onClick={toggle}
             className={classes.burger}
             size="sm"
+            aria-label={opened ? t("navbar.menu.close") : t("navbar.menu.open")}
+            aria-controls="mobile-navigation"
           />
         </Container>
       </Box>
       <Transition transition="scale-y" duration={20} mounted={opened}>
         {(styles) => (
-          <Paper className={classes.mobilePanel} withBorder style={styles}>
+          <Paper
+            id="mobile-navigation"
+            className={classes.mobilePanel}
+            withBorder
+            style={styles}
+          >
             <Stack gap={0}>
               {mobileMenuView !== "root" && (
                 <UnstyledButton
                   className={classes.mobileMenuButton}
+                  aria-label={t("navbar.menu.back")}
                   onClick={() => setMobileMenuView("root")}
                 >
                   <span className={classes.mobileMenuButtonContent}>
