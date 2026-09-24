@@ -1,14 +1,14 @@
 import { Select } from "@mantine/core";
-import { getCookie, setCookie } from "cookies-next";
 import { useState } from "react";
 import useTranslate from "../../hooks/useTranslate.hook";
+import useLocale from "../../hooks/locale.hook";
 import { LOCALES } from "../../i18n/locales";
+import toast from "../../utils/toast.util";
 
 const LanguagePicker = () => {
   const t = useTranslate();
-  const [selectedLanguage, setSelectedLanguage] = useState(
-    getCookie("language")?.toString(),
-  );
+  const { language, changeLanguage } = useLocale();
+  const [changing, setChanging] = useState(false);
 
   const languages = Object.values(LOCALES).map((locale) => ({
     value: locale.code,
@@ -16,17 +16,16 @@ const LanguagePicker = () => {
   }));
   return (
     <Select
-      value={selectedLanguage}
+      value={language}
+      disabled={changing}
       description={t("account.card.language.description")}
       onChange={(value) => {
-        setSelectedLanguage(value ?? "en");
-        setCookie("language", value, {
-          sameSite: "lax",
-          expires: new Date(
-            new Date().setFullYear(new Date().getFullYear() + 1),
-          ),
+        if (!value || value === language) return;
+        setChanging(true);
+        void changeLanguage(value).then((changed) => {
+          setChanging(false);
+          if (!changed) toast.error(t("account.card.language.error"));
         });
-        location.reload();
       }}
       data={languages}
     />
