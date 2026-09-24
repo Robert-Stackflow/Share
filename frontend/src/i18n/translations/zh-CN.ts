@@ -294,6 +294,7 @@ export default {
   "account.shortLinks.status.expired": "已到期",
   "account.shortLinks.status.limit": "次数用尽",
   "account.shortLinks.action.enable": "启用",
+  "account.shortLinks.action.more": "更多操作",
   "account.shortLinks.action.disable": "停用",
   "account.shortLinks.edit.title": "编辑选中链接",
   "account.shortLinks.stats.open": "查看统计",

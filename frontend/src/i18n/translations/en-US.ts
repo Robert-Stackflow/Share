@@ -331,6 +331,7 @@ export default {
   "account.shortLinks.status.expired": "Expired",
   "account.shortLinks.status.limit": "View limit reached",
   "account.shortLinks.action.enable": "Enable",
+  "account.shortLinks.action.more": "More actions",
   "account.shortLinks.action.disable": "Disable",
   "account.shortLinks.edit.title": "Edit selected link",
   "account.shortLinks.stats.open": "View stats",

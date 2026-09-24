@@ -1,5 +1,6 @@
 import {
   Copy,
+  Ellipsis,
   ExternalLink,
   Link2,
   Plus,
@@ -14,6 +15,7 @@ import {
   Button,
   Center,
   Group,
+  Menu,
   Modal,
   SegmentedControl,
   Select,
@@ -34,7 +36,6 @@ import { FormattedMessage } from "react-intl";
 import Meta from "../../components/Meta";
 import tableClasses from "../../components/core/DataTable.module.css";
 import CenterLoader from "../../components/core/CenterLoader";
-import { HoverTip } from "../../components/core/HoverTip";
 import modalClasses from "../../components/core/ModalForm.module.css";
 import useTranslate from "../../hooks/useTranslate.hook";
 import shortLinkService from "../../services/shortLink.service";
@@ -478,19 +479,21 @@ const ShortLinksWorkspace = () => {
                 <Table.Th>
                   <FormattedMessage id="account.shortLinks.table.code" />
                 </Table.Th>
-                <Table.Th>
+                <Table.Th className={classes.secondaryColumn}>
                   <FormattedMessage id="account.shortLinks.form.title" />
                 </Table.Th>
-                <Table.Th>
+                <Table.Th className={classes.secondaryColumn}>
                   <FormattedMessage id="account.shortLinks.table.target" />
                 </Table.Th>
-                <Table.Th>
+                <Table.Th className={classes.secondaryColumn}>
                   <FormattedMessage id="account.shortLinks.table.visits" />
                 </Table.Th>
-                <Table.Th>
+                <Table.Th className={classes.statusColumn}>
                   <FormattedMessage id="account.shortLinks.table.status" />
                 </Table.Th>
-                <Table.Th className={tableClasses.actionCell} />
+                <Table.Th
+                  className={`${tableClasses.actionCell} ${classes.rowActionCell}`}
+                />
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
@@ -514,7 +517,7 @@ const ShortLinksWorkspace = () => {
                       }
                     }}
                   >
-                    <Table.Td>
+                    <Table.Td className={classes.codeCell}>
                       <Group gap="xs" wrap="nowrap">
                         <Link2 />
                         <Anchor
@@ -525,19 +528,48 @@ const ShortLinksWorkspace = () => {
                           /s/{shortLink.code}
                         </Anchor>
                       </Group>
+                      <div className={classes.mobileMeta}>
+                        {shortLink.title && (
+                          <Text size="xs" fw={600} lineClamp={1}>
+                            {shortLink.title}
+                          </Text>
+                        )}
+                        <Text size="xs" c="dimmed" lineClamp={1}>
+                          {shortLink.targetUrl}
+                        </Text>
+                        <Badge
+                          size="xs"
+                          color={
+                            status === "active"
+                              ? "green"
+                              : status === "expired"
+                                ? "orange"
+                                : status === "limit"
+                                  ? "red"
+                                  : "gray"
+                          }
+                          variant="light"
+                        >
+                          {t(`account.shortLinks.status.${status}`)}
+                        </Badge>
+                      </div>
                     </Table.Td>
-                    <Table.Td>
+                    <Table.Td className={classes.secondaryColumn}>
                       <Text fw={500} lineClamp={1}>
                         {shortLink.title || "-"}
                       </Text>
                     </Table.Td>
-                    <Table.Td className={classes.targetCell}>
+                    <Table.Td
+                      className={`${classes.targetCell} ${classes.secondaryColumn}`}
+                    >
                       <Text c="dimmed" lineClamp={1} size="sm">
                         {shortLink.targetUrl}
                       </Text>
                     </Table.Td>
-                    <Table.Td>{shortLink.visits}</Table.Td>
-                    <Table.Td>
+                    <Table.Td className={classes.secondaryColumn}>
+                      {shortLink.visits}
+                    </Table.Td>
+                    <Table.Td className={classes.statusColumn}>
                       <Badge
                         color={
                           status === "active"
@@ -553,80 +585,68 @@ const ShortLinksWorkspace = () => {
                         {t(`account.shortLinks.status.${status}`)}
                       </Badge>
                     </Table.Td>
-                    <Table.Td className={tableClasses.actionCell}>
+                    <Table.Td
+                      className={`${tableClasses.actionCell} ${classes.rowActionCell}`}
+                    >
                       <Group
                         className={tableClasses.actions}
                         gap={4}
                         justify="flex-end"
                         wrap="nowrap"
                       >
-                        <HoverTip label={t("common.button.copy-link")}>
-                          <ActionIcon
-                            aria-label={t("common.button.copy-link")}
-                            color="gray"
-                            size="sm"
-                            variant="subtle"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              copyLink(shortLink.code);
-                            }}
-                          >
-                            <Copy />
-                          </ActionIcon>
-                        </HoverTip>
-                        <HoverTip label={t("common.text.navigate-to-link")}>
-                          <ActionIcon
-                            aria-label={t("common.text.navigate-to-link")}
-                            color="gray"
-                            component={Link}
-                            href={`/s/${shortLink.code}`}
-                            target="_blank"
-                            rel="noreferrer"
-                            size="sm"
-                            variant="subtle"
-                            onClick={(event) => event.stopPropagation()}
-                          >
-                            <ExternalLink />
-                          </ActionIcon>
-                        </HoverTip>
-                        <HoverTip
-                          label={
-                            shortLink.isActive
-                              ? t("account.shortLinks.action.disable")
-                              : t("account.shortLinks.action.enable")
-                          }
+                        <Button
+                          size="xs"
+                          variant="subtle"
+                          leftSection={<Copy size={14} />}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            copyLink(shortLink.code);
+                          }}
                         >
-                          <ActionIcon
-                            aria-label={
-                              shortLink.isActive
+                          {t("common.button.copy")}
+                        </Button>
+                        <Menu position="bottom-end" withinPortal>
+                          <Menu.Target>
+                            <ActionIcon
+                              aria-label={t("account.shortLinks.action.more")}
+                              variant="subtle"
+                              color="gray"
+                              size="md"
+                              onClick={(event) => event.stopPropagation()}
+                            >
+                              <Ellipsis size={16} />
+                            </ActionIcon>
+                          </Menu.Target>
+                          <Menu.Dropdown>
+                            <Menu.Item
+                              component={Link}
+                              href={`/s/${shortLink.code}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              leftSection={<ExternalLink size={14} />}
+                            >
+                              {t("common.text.navigate-to-link")}
+                            </Menu.Item>
+                            <Menu.Item
+                              leftSection={<Power size={14} />}
+                              onClick={() =>
+                                setLinkActive(shortLink, !shortLink.isActive)
+                              }
+                            >
+                              {shortLink.isActive
                                 ? t("account.shortLinks.action.disable")
-                                : t("account.shortLinks.action.enable")
-                            }
-                            color="gray"
-                            size="sm"
-                            variant="subtle"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              setLinkActive(shortLink, !shortLink.isActive);
-                            }}
-                          >
-                            <Power />
-                          </ActionIcon>
-                        </HoverTip>
-                        <HoverTip label={t("common.button.delete")}>
-                          <ActionIcon
-                            aria-label={t("common.button.delete")}
-                            color="red"
-                            size="sm"
-                            variant="subtle"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              confirmRemove(shortLink);
-                            }}
-                          >
-                            <Trash2 />
-                          </ActionIcon>
-                        </HoverTip>
+                                : t("account.shortLinks.action.enable")}
+                            </Menu.Item>
+                            <Menu.Divider />
+                            <Menu.Item
+                              color="red"
+                              leftSection={<Trash2 size={14} />}
+                              onClick={() => confirmRemove(shortLink)}
+                            >
+                              {t("common.button.delete")}
+                            </Menu.Item>
+                          </Menu.Dropdown>
+                        </Menu>
                       </Group>
                     </Table.Td>
                   </Table.Tr>
