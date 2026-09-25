@@ -12,12 +12,16 @@ import {
 } from "@mantine/core";
 import { useClipboard } from "@mantine/hooks";
 import mime from "mime-types";
-import { useEffect, useMemo, useState } from "react";
+import dynamic from "next/dynamic";
+import { useMemo } from "react";
 import useTranslate from "../../hooks/useTranslate.hook";
 import assetService from "../../services/asset.service";
 import { Asset } from "../../types/asset.type";
+import { isTextPreviewableFile } from "../../utils/filePreview.util";
 import toast from "../../utils/toast.util";
 import { getAssetLabel } from "./AssetTable";
+
+const RoomCodePreview = dynamic(() => import("../room/RoomCodePreview"));
 
 type AssetPreviewDialogProps = {
   asset: Asset;
@@ -46,8 +50,6 @@ const AssetPreviewDialog = ({
 }: AssetPreviewDialogProps) => {
   const t = useTranslate();
   const clipboard = useClipboard();
-  const [textPreview, setTextPreview] = useState<string>();
-  const [isTextPreviewLoading, setIsTextPreviewLoading] = useState(false);
 
   const fileUrl = useMemo(() => {
     if (asset.type !== "FILE" || !allowFileDownload) return undefined;
@@ -55,21 +57,6 @@ const AssetPreviewDialog = ({
   }, [allowFileDownload, asset.id, asset.type, providedFileUrl]);
 
   const fileMimeType = useMemo(() => getFileMimeType(asset), [asset]);
-
-  useEffect(() => {
-    if (!opened || asset.type !== "FILE" || !fileUrl) return;
-    if (!fileMimeType.startsWith("text/")) {
-      setTextPreview(undefined);
-      return;
-    }
-
-    setIsTextPreviewLoading(true);
-    fetch(fileUrl)
-      .then((response) => response.text())
-      .then(setTextPreview)
-      .catch(() => setTextPreview(undefined))
-      .finally(() => setIsTextPreviewLoading(false));
-  }, [asset.type, fileMimeType, fileUrl, opened]);
 
   const copy = (value?: string) => {
     if (!value) return;
@@ -79,14 +66,18 @@ const AssetPreviewDialog = ({
 
   const renderFilePreview = () => {
     if (!fileUrl) return null;
+    const previewUrl = (mode: string) =>
+      fileUrl.includes("/rooms/")
+        ? `${fileUrl}${fileUrl.includes("?") ? "&" : "?"}preview=${mode}`
+        : fileUrl;
 
-    if (fileMimeType.startsWith("image/")) {
+    if (fileMimeType.startsWith("image/") && fileMimeType !== "image/svg+xml") {
       return (
         <Image
           alt={asset.name || asset.id}
           fit="contain"
           mah="60vh"
-          src={fileUrl}
+          src={previewUrl("1")}
         />
       );
     }
@@ -109,25 +100,19 @@ const AssetPreviewDialog = ({
       return (
         <Box
           component="iframe"
-          src={fileUrl}
+          src={previewUrl("pdf")}
           style={{ border: 0, height: "60vh", width: "100%" }}
           title={asset.name || asset.id}
         />
       );
     }
 
-    if (fileMimeType.startsWith("text/")) {
+    if (
+      isTextPreviewableFile(asset.name, fileMimeType) &&
+      Number(asset.size ?? 0) <= 1024 * 1024
+    ) {
       return (
-        <Textarea
-          autosize
-          minRows={8}
-          readOnly
-          value={
-            isTextPreviewLoading
-              ? t("common.text.redirecting")
-              : textPreview || ""
-          }
-        />
+        <RoomCodePreview full name={asset.name || asset.id} url={fileUrl} />
       );
     }
 

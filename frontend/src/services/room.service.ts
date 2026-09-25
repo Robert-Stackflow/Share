@@ -48,6 +48,16 @@ const downloadFileUrl = (id: string, assetId: string) =>
 const removeAsset = async (id: string, assetId: string) => {
   await api.delete(`rooms/${id}/assets/${assetId}`);
 };
+const removeAssets = async (
+  id: string,
+  assetIds?: string[],
+): Promise<string[]> =>
+  (
+    await api.post(
+      `rooms/${id}/assets/bulk-delete`,
+      assetIds ? { ids: assetIds } : { all: true },
+    )
+  ).data.deletedIds;
 const eventsUrl = (id: string) => `/api/rooms/${id}/events`;
 const listEventsUrl = "/api/rooms/events";
 const ownedEventsUrl = (id: string) => `/api/rooms/${id}/owner/events`;
@@ -64,6 +74,7 @@ export default {
   uploadFile,
   downloadFileUrl,
   removeAsset,
+  removeAssets,
   eventsUrl,
   listEventsUrl,
   ownedEventsUrl,

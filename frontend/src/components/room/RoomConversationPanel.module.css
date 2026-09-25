@@ -8,7 +8,29 @@
 
 .header {
   border-bottom: 1px solid var(--share-border);
-  padding: 14px var(--mantine-spacing-md);
+  min-height: 64px;
+  gap: 12px;
+  padding: 10px var(--mantine-spacing-md);
+}
+.headerIdentity {
+  min-width: 0;
+  flex: 1;
+}
+.headerTitle {
+  flex: 0 1 auto;
+  font-size: 16px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.headerSubtitle {
+  flex: 0 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.headerControls {
+  flex: 0 0 auto;
 }
 
 /* Flush header: no divider, used where an outer tab bar already separates it. */
@@ -42,6 +64,22 @@
   align-items: flex-start;
   display: flex;
   gap: var(--mantine-spacing-sm);
+  position: relative;
+}
+.selectableRow {
+  cursor: pointer;
+}
+.selectedRow .roomMessageBubble {
+  border-color: var(--share-accent-ink);
+  background: var(--share-accent-soft);
+}
+.selectionHitArea {
+  position: absolute;
+  inset: -5px;
+  z-index: 2;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
 }
 
 .messageListItem {
@@ -60,6 +98,16 @@
   justify-content: center;
   margin-top: 1px;
   width: 28px;
+  cursor: pointer;
+  padding: 0;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    transform 150ms ease;
+}
+.messageIcon:hover {
+  border-color: var(--share-accent-ink);
+  transform: scale(1.08);
 }
 
 .messageIcon[data-type="link"] {
@@ -90,6 +138,11 @@
 .messageIcon[data-kind="archive"] {
   background: light-dark(#fff4e5, #493b2b);
   color: light-dark(#ae7422, #edc47f);
+}
+.selectedRow .messageIcon {
+  background: var(--share-accent-ink);
+  color: white;
+  border-color: var(--share-accent-ink);
 }
 
 .roomMessageBubble {
@@ -165,6 +218,16 @@
   max-height: 76vh;
   max-width: 100%;
   object-fit: contain;
+}
+.pdfPreviewButton {
+  justify-self: start;
+}
+.pdfFrame {
+  border: 0;
+  border-radius: 10px;
+  display: block;
+  height: 72vh;
+  width: 100%;
 }
 
 .fileDetails {
@@ -279,6 +342,22 @@
   border-top: 1px solid var(--share-border);
   padding: 14px var(--mantine-spacing-md);
 }
+.selectionToolbar {
+  min-height: 68px;
+  gap: 12px;
+}
+.selectionActions {
+  overflow-x: auto;
+}
+.selectionActions :global(.mantine-Button-root) {
+  flex: 0 0 auto;
+}
+.copyFallback {
+  max-height: 50vh;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
 
 @media (max-width: 62em) {
   .roomConversationPanel {
@@ -286,7 +365,7 @@
   }
 
   .header {
-    padding: var(--mantine-spacing-md);
+    padding: 10px var(--mantine-spacing-md);
   }
 
   .roomConversationMessages {
@@ -297,5 +376,16 @@
 @media (max-width: 48em) {
   .roomConversationPanel {
     min-height: 0;
+  }
+  .headerSubtitle {
+    display: none;
+  }
+  .selectionToolbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .selectionActions {
+    max-width: 100%;
+    width: 100%;
   }
 }

@@ -36,6 +36,83 @@ const inlineImageTypes = new Set([
   "image/png",
   "image/webp",
 ]);
+const previewTextExtensions = new Set([
+  "txt",
+  "text",
+  "md",
+  "markdown",
+  "log",
+  "json",
+  "jsonl",
+  "ndjson",
+  "yaml",
+  "yml",
+  "xml",
+  "html",
+  "htm",
+  "svg",
+  "css",
+  "scss",
+  "sass",
+  "less",
+  "js",
+  "jsx",
+  "ts",
+  "tsx",
+  "mjs",
+  "cjs",
+  "vue",
+  "svelte",
+  "py",
+  "java",
+  "go",
+  "rs",
+  "c",
+  "h",
+  "cc",
+  "cpp",
+  "cxx",
+  "hpp",
+  "cs",
+  "kt",
+  "kts",
+  "swift",
+  "rb",
+  "php",
+  "pl",
+  "lua",
+  "r",
+  "sh",
+  "bash",
+  "zsh",
+  "fish",
+  "ps1",
+  "bat",
+  "cmd",
+  "sql",
+  "graphql",
+  "gql",
+  "csv",
+  "tsv",
+  "ini",
+  "properties",
+  "conf",
+  "config",
+  "toml",
+  "env",
+  "diff",
+  "patch",
+  "mk",
+  "dockerfile",
+  "makefile",
+  "gradle",
+  "dart",
+  "ex",
+  "exs",
+  "erl",
+  "hs",
+]);
+const maxTextPreviewBytes = 1024 * 1024;
 
 type RoomWithContent = Prisma.RoomGetPayload<{
   include: { assets: true; accessPolicy: true };
@@ -322,10 +399,10 @@ export class RoomService {
     assetId: string,
     token?: string,
     userId?: string | null,
-    previewOnly = false,
+    previewMode?: "image" | "text" | "pdf",
   ) {
     const room = await this.getForRead(roomId, token, userId, {
-      requireDownload: !previewOnly,
+      requireDownload: !previewMode,
       allowOwner: true,
     });
     const asset = await this.prisma.asset.findFirst({
@@ -337,8 +414,41 @@ export class RoomService {
       },
     });
     if (!asset) throw new NotFoundException("Asset not found");
-    if (previewOnly && !inlineImageTypes.has((asset.mimeType || "").toLowerCase())) {
+    if (
+      previewMode === "image" &&
+      !inlineImageTypes.has((asset.mimeType || "").toLowerCase())
+    ) {
       throw new BadRequestException("Image preview unavailable");
+    }
+    if (previewMode === "text") {
+      const basename = asset.name?.split(/[\\/]/).pop()?.toLowerCase() || "";
+      const extension = basename.split(".").pop() || "";
+      const mime = (asset.mimeType || "").toLowerCase();
+      const hasTextMime =
+        mime.startsWith("text/") ||
+        mime === "application/json" ||
+        mime.endsWith("+json") ||
+        mime === "application/xml" ||
+        mime.endsWith("+xml") ||
+        mime.includes("yaml");
+      if (
+        !(
+          previewTextExtensions.has(extension) ||
+          basename.startsWith(".env") ||
+          hasTextMime
+        ) ||
+        !asset.size ||
+        Number(asset.size) > maxTextPreviewBytes
+      ) {
+        throw new BadRequestException("Text preview unavailable");
+      }
+    }
+    if (
+      previewMode === "pdf" &&
+      (asset.mimeType !== "application/pdf" ||
+        !asset.name?.toLowerCase().endsWith(".pdf"))
+    ) {
+      throw new BadRequestException("PDF preview unavailable");
     }
     return this.assetService.getDownloadStream(asset);
   }
@@ -351,6 +461,18 @@ export class RoomService {
     if (!asset) throw new NotFoundException("Asset not found");
     await this.assetService.remove(asset);
     roomChanges.next(roomId);
+  }
+
+  async removeAssets(roomId: string, owner: User, ids?: string[]) {
+    const room = await this.requireOwnedRoom(roomId, owner.id);
+    const selected = ids ? new Set(ids) : null;
+    const assets = room.assets.filter(
+      (asset) =>
+        asset.shareId === null && (!selected || selected.has(asset.id)),
+    );
+    for (const asset of assets) await this.assetService.remove(asset);
+    if (assets.length) roomChanges.next(roomId);
+    return { deletedIds: assets.map((asset) => asset.id) };
   }
 
   private async requireWritableRoom(

@@ -16,6 +16,7 @@ import {
   Center,
   Checkbox,
   Group,
+  Menu,
   Modal,
   Paper,
   PasswordInput,
@@ -327,6 +328,21 @@ export default function RoomsPage() {
       assets.filter((item) => item.id !== asset.id),
     );
   };
+  const removeAssets = async (items: Asset[]) => {
+    if (selection?.kind !== "owned") return;
+    const ids = await roomService.removeAssets(
+      selection.roomId,
+      items.map((item) => item.id),
+    );
+    updateActiveAssets((current) =>
+      current.filter((item) => !ids.includes(item.id)),
+    );
+  };
+  const clearAssets = async () => {
+    if (selection?.kind !== "owned") return;
+    await roomService.removeAssets(selection.roomId);
+    updateActiveAssets(() => []);
+  };
 
   if (!user)
     return (
@@ -442,97 +458,6 @@ export default function RoomsPage() {
           </div>
         </aside>
         <main className={classes.content}>
-          {selection && (
-            <Group
-              className={classes.toolbar}
-              justify="space-between"
-              wrap="nowrap"
-            >
-              <Group gap="xs" wrap="nowrap">
-                <ActionIcon
-                  aria-label={t("common.button.go-back")}
-                  className={classes.mobileBack}
-                  onClick={() => setSelection(null)}
-                  variant="subtle"
-                >
-                  <ArrowLeft />
-                </ActionIcon>
-                <Badge color={selection.kind === "owned" ? "blue" : "gray"}>
-                  {t(
-                    selection.kind === "owned"
-                      ? "room.role.owner"
-                      : "room.role.visitor",
-                  )}
-                </Badge>
-                {active && (
-                  <Badge
-                    color={
-                      active.visibility === "PRIVATE"
-                        ? "gray"
-                        : active.hasPasscode
-                          ? "yellow"
-                          : "green"
-                    }
-                    variant="light"
-                  >
-                    {t(
-                      active.visibility === "PRIVATE"
-                        ? "room.private.title"
-                        : active.hasPasscode
-                          ? "room.rooms.protected"
-                          : "room.rooms.open",
-                    )}
-                  </Badge>
-                )}
-                {eventsUrl && syncStatus !== "connected" && (
-                  <Text c="dimmed" size="xs">
-                    <FormattedMessage id="room.sync.reconnecting" />
-                  </Text>
-                )}
-              </Group>
-              <Group gap={4} wrap="nowrap">
-                {active?.visibility !== "PRIVATE" && (
-                  <>
-                    <ActionIcon
-                      aria-label={t("common.button.copy-link")}
-                      onClick={() => copyLink(selection.roomId)}
-                      variant="subtle"
-                    >
-                      <Link2 />
-                    </ActionIcon>
-                    <ActionIcon
-                      aria-label={t("common.text.navigate-to-link")}
-                      component={Link}
-                      href={`/rooms/${selection.roomId}`}
-                      target="_blank"
-                      variant="subtle"
-                    >
-                      <ExternalLink />
-                    </ActionIcon>
-                  </>
-                )}
-                {selectedOwned?.visibility === "SHARED" && (
-                  <>
-                    <ActionIcon
-                      aria-label={t("common.button.edit")}
-                      onClick={() => openEdit(selectedOwned)}
-                      variant="subtle"
-                    >
-                      <Pencil />
-                    </ActionIcon>
-                    <ActionIcon
-                      aria-label={t("common.button.delete")}
-                      color="red"
-                      onClick={() => confirmDelete(selectedOwned)}
-                      variant="subtle"
-                    >
-                      <Trash2 />
-                    </ActionIcon>
-                  </>
-                )}
-              </Group>
-            </Group>
-          )}
           {locked && selection?.kind === "visited" ? (
             <Center className={classes.empty}>
               <Paper withBorder p="lg" maw={360} w="100%">
@@ -560,6 +485,75 @@ export default function RoomsPage() {
             <RoomConversationPanel
               key={`${selection?.kind}:${active.id}`}
               assets={active.assets}
+              badge={
+                <Group gap={5} wrap="nowrap">
+                  <Badge
+                    color={selection?.kind === "owned" ? "blue" : "gray"}
+                    variant="light"
+                  >
+                    {t(
+                      selection?.kind === "owned"
+                        ? "room.role.owner"
+                        : "room.role.visitor",
+                    )}
+                  </Badge>
+                  <Badge
+                    color={
+                      active.visibility === "PRIVATE"
+                        ? "gray"
+                        : active.hasPasscode
+                          ? "yellow"
+                          : "green"
+                    }
+                    variant="light"
+                  >
+                    {t(
+                      active.visibility === "PRIVATE"
+                        ? "room.private.title"
+                        : active.hasPasscode
+                          ? "room.rooms.protected"
+                          : "room.rooms.open",
+                    )}
+                  </Badge>
+                </Group>
+              }
+              headerActions={
+                active.visibility !== "PRIVATE" ? (
+                  <>
+                    <Menu.Item
+                      leftSection={<Link2 size={16} />}
+                      onClick={() => copyLink(active.roomId)}
+                    >
+                      {t("common.button.copy-link")}
+                    </Menu.Item>
+                    <Menu.Item
+                      leftSection={<ExternalLink size={16} />}
+                      component={Link}
+                      href={`/rooms/${active.roomId}`}
+                      target="_blank"
+                    >
+                      {t("common.text.navigate-to-link")}
+                    </Menu.Item>
+                    {selectedOwned?.visibility === "SHARED" && (
+                      <>
+                        <Menu.Item
+                          leftSection={<Pencil size={16} />}
+                          onClick={() => openEdit(selectedOwned)}
+                        >
+                          {t("common.button.edit")}
+                        </Menu.Item>
+                        <Menu.Item
+                          color="red"
+                          leftSection={<Trash2 size={16} />}
+                          onClick={() => confirmDelete(selectedOwned)}
+                        >
+                          {t("common.button.delete")}
+                        </Menu.Item>
+                      </>
+                    )}
+                  </>
+                ) : undefined
+              }
               composer={
                 <AssetContentComposer
                   target={
@@ -586,15 +580,29 @@ export default function RoomsPage() {
                 roomService.downloadFileUrl(active.roomId, asset.id)
               }
               onDelete={selection?.kind === "owned" ? removeAsset : undefined}
+              onDeleteMany={
+                selection?.kind === "owned" ? removeAssets : undefined
+              }
+              onClear={selection?.kind === "owned" ? clearAssets : undefined}
               canSaveToLibrary={selection?.kind === "owned"}
               scrollToLatestSignal={scrollSignal}
               subtitle={
                 active.visibility === "PRIVATE" ? undefined : active.roomId
               }
               title={
-                active.visibility === "PRIVATE"
-                  ? t("room.private.title")
-                  : active.name || active.roomId
+                <Group gap={5} wrap="nowrap">
+                  <ActionIcon
+                    aria-label={t("common.button.go-back")}
+                    className={classes.mobileBack}
+                    onClick={() => setSelection(null)}
+                    variant="subtle"
+                  >
+                    <ArrowLeft size={18} />
+                  </ActionIcon>
+                  {active.visibility === "PRIVATE"
+                    ? t("room.private.title")
+                    : active.name || active.roomId}
+                </Group>
               }
             />
           ) : (

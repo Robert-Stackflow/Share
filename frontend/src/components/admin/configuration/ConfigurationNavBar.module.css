@@ -1,7 +1,7 @@
 @media (max-width: $mantine-breakpoint-sm) {
   .navbar {
-    height: calc(100dvh - 60px);
-    max-height: calc(100dvh - 60px);
+    height: calc(100dvh - 64px);
+    max-height: calc(100dvh - 64px);
     overflow-y: auto;
   }
 }
@@ -14,10 +14,10 @@
 }
 
 .navLink {
-  border-radius: 11px;
+  border-radius: 10px;
   color: var(--mantine-color-text);
   display: block;
-  padding: 9px 10px;
+  padding: 10px 12px;
   transition: background 150ms ease;
 }
 
@@ -33,4 +33,9 @@
 
 .navLink :global(.mantine-ThemeIcon-root) {
   border-radius: 9px;
+}
+
+.navLink :global(.mantine-ThemeIcon-root) svg {
+  height: 17px;
+  width: 17px;
 }

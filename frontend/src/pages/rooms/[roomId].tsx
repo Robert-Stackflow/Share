@@ -177,6 +177,24 @@ const RoomPage = () => {
         : current,
     );
   };
+  const deleteAssets = async (items: Asset[]) => {
+    const ids = await roomService.removeAssets(
+      roomKey,
+      items.map((item) => item.id),
+    );
+    setRoom((current) =>
+      current
+        ? {
+            ...current,
+            assets: current.assets.filter((item) => !ids.includes(item.id)),
+          }
+        : current,
+    );
+  };
+  const clearAssets = async () => {
+    await roomService.removeAssets(roomKey);
+    setRoom((current) => (current ? { ...current, assets: [] } : current));
+  };
 
   return (
     <>
@@ -212,6 +230,8 @@ const RoomPage = () => {
             roomService.downloadFileUrl(roomKey, asset.id)
           }
           onDelete={isOwner ? deleteAsset : undefined}
+          onDeleteMany={isOwner ? deleteAssets : undefined}
+          onClear={isOwner ? clearAssets : undefined}
           canSaveToLibrary={isOwner}
           subtitle={room.roomId}
           title={room.name || room.roomId}

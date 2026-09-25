@@ -206,9 +206,9 @@ export default function AppShellDemo() {
     <>
       <Meta title={t("admin.config.title")} />
       <AppShell
-        header={{ height: 60 }}
+        header={{ height: 64 }}
         navbar={{
-          width: { sm: 200, lg: 300 },
+          width: { sm: 220, lg: 260 },
           breakpoint: "sm",
           collapsed: { mobile: !isMobileNavBarOpened },
         }}
@@ -274,7 +274,7 @@ export default function AppShellDemo() {
 
                   return (
                     <>
-                      <Stack gap="sm">
+                      <Stack gap="lg">
                         {!isEditingAllowed() && (
                           <Alert
                             mb={"lg"}
@@ -289,37 +289,113 @@ export default function AppShellDemo() {
                         <Title className={classes.pageTitle} order={2}>
                           {t("admin.config.category." + categoryId)}
                         </Title>
-                        {visibleConfigVariables.map((configVariable, index) => {
-                          if (
-                            configVariable.key ===
-                              "appearance.themePrimaryColorOverride" &&
-                            !shouldShowPrimaryColorOverride
-                          ) {
-                            return null;
-                          }
+                        <div className={classes.settingsPanel}>
+                          {visibleConfigVariables.map(
+                            (configVariable, index) => {
+                              if (
+                                configVariable.key ===
+                                  "appearance.themePrimaryColorOverride" &&
+                                !shouldShowPrimaryColorOverride
+                              ) {
+                                return null;
+                              }
 
-                          const provider = getOAuthProvider(configVariable.key);
-                          const previousProvider =
-                            index > 0
-                              ? getOAuthProvider(
-                                  visibleConfigVariables[index - 1].key,
-                                )
-                              : null;
-                          const showProviderDivider =
-                            provider !== null && provider !== previousProvider;
+                              const provider = getOAuthProvider(
+                                configVariable.key,
+                              );
+                              const previousProvider =
+                                index > 0
+                                  ? getOAuthProvider(
+                                      visibleConfigVariables[index - 1].key,
+                                    )
+                                  : null;
+                              const showProviderDivider =
+                                provider !== null &&
+                                provider !== previousProvider;
 
-                          return (
-                            <Box
-                              key={configVariable.key}
-                              className={classes.configRow}
+                              return (
+                                <Box
+                                  key={configVariable.key}
+                                  className={classes.configRow}
+                                >
+                                  {showProviderDivider && (
+                                    <Divider
+                                      className={classes.providerDivider}
+                                      label={provider?.toUpperCase()}
+                                      labelPosition="left"
+                                    />
+                                  )}
+                                  <div className={classes.configGrid}>
+                                    <Stack gap={4}>
+                                      <Title order={6}>
+                                        <FormattedMessage
+                                          id={`admin.config.${camelToKebab(
+                                            configVariable.key,
+                                          )}`}
+                                        />
+                                      </Title>
+
+                                      <Text
+                                        className={classes.description}
+                                        c="dimmed"
+                                        size="sm"
+                                      >
+                                        <FormattedMessage
+                                          id={`admin.config.${camelToKebab(
+                                            configVariable.key,
+                                          )}.description`}
+                                          values={{ br: <br /> }}
+                                        />
+                                      </Text>
+                                    </Stack>
+                                    <Box className={classes.configControl}>
+                                      <AdminConfigInput
+                                        key={configVariable.key}
+                                        configVariable={configVariable}
+                                        updateConfigVariable={
+                                          updateConfigVariable
+                                        }
+                                        allConfigVariables={configVariables}
+                                        updatedConfigVariables={
+                                          updatedConfigVariables
+                                        }
+                                        optionalConfigVariables={
+                                          optionalConfigVariables
+                                        }
+                                      />
+                                    </Box>
+                                  </div>
+                                </Box>
+                              );
+                            },
+                          )}
+                          {categoryId == "general" && (
+                            <LogoConfigInput
+                              logo={logo}
+                              setLogo={setLogo}
+                              darkLogo={darkLogo}
+                              setDarkLogo={setDarkLogo}
+                              rowClassName={classes.configRow}
+                              gridClassName={classes.configGrid}
+                              controlClassName={classes.configControl}
+                              descriptionClassName={classes.description}
+                            />
+                          )}
+                        </div>
+                        {categoryId == "appearance" &&
+                          customCssConfigVariable && (
+                            <div
+                              key={customCssConfigVariable.key}
+                              className={classes.settingsPanel}
                             >
-                              {showProviderDivider && <Divider mb="lg" />}
-                              <div className={classes.configGrid}>
+                              <div
+                                className={`${classes.configRow} ${classes.configGrid}`}
+                              >
                                 <Stack gap={4}>
                                   <Title order={6}>
                                     <FormattedMessage
                                       id={`admin.config.${camelToKebab(
-                                        configVariable.key,
+                                        customCssConfigVariable.key,
                                       )}`}
                                     />
                                   </Title>
@@ -331,7 +407,7 @@ export default function AppShellDemo() {
                                   >
                                     <FormattedMessage
                                       id={`admin.config.${camelToKebab(
-                                        configVariable.key,
+                                        customCssConfigVariable.key,
                                       )}.description`}
                                       values={{ br: <br /> }}
                                     />
@@ -339,8 +415,8 @@ export default function AppShellDemo() {
                                 </Stack>
                                 <Box className={classes.configControl}>
                                   <AdminConfigInput
-                                    key={configVariable.key}
-                                    configVariable={configVariable}
+                                    key={customCssConfigVariable.key}
+                                    configVariable={customCssConfigVariable}
                                     updateConfigVariable={updateConfigVariable}
                                     allConfigVariables={configVariables}
                                     updatedConfigVariables={
@@ -352,66 +428,13 @@ export default function AppShellDemo() {
                                   />
                                 </Box>
                               </div>
-                            </Box>
-                          );
-                        })}
-                        {categoryId == "general" && (
-                          <LogoConfigInput
-                            logo={logo}
-                            setLogo={setLogo}
-                            darkLogo={darkLogo}
-                            setDarkLogo={setDarkLogo}
-                          />
-                        )}
-                        {categoryId == "appearance" &&
-                          customCssConfigVariable && (
-                            <div
-                              key={customCssConfigVariable.key}
-                              className={`${classes.configRow} ${classes.configGrid}`}
-                            >
-                              <Stack gap={4}>
-                                <Title order={6}>
-                                  <FormattedMessage
-                                    id={`admin.config.${camelToKebab(
-                                      customCssConfigVariable.key,
-                                    )}`}
-                                  />
-                                </Title>
-
-                                <Text
-                                  className={classes.description}
-                                  c="dimmed"
-                                  size="sm"
-                                >
-                                  <FormattedMessage
-                                    id={`admin.config.${camelToKebab(
-                                      customCssConfigVariable.key,
-                                    )}.description`}
-                                    values={{ br: <br /> }}
-                                  />
-                                </Text>
-                              </Stack>
-                              <Box className={classes.configControl}>
-                                <AdminConfigInput
-                                  key={customCssConfigVariable.key}
-                                  configVariable={customCssConfigVariable}
-                                  updateConfigVariable={updateConfigVariable}
-                                  allConfigVariables={configVariables}
-                                  updatedConfigVariables={
-                                    updatedConfigVariables
-                                  }
-                                  optionalConfigVariables={
-                                    optionalConfigVariables
-                                  }
-                                />
-                              </Box>
                             </div>
                           )}
                       </Stack>
                     </>
                   );
                 })()}
-                <Group mt="lg" justify="flex-end">
+                <Group className={classes.saveBar} mt="lg" justify="flex-end">
                   {categoryId == "smtp" && (
                     <TestEmailButton
                       configVariablesChanged={

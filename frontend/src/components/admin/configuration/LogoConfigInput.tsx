@@ -1,6 +1,5 @@
 import { Upload } from "lucide-react";
-import { Box, FileInput, Group, Stack, Text, Title } from "@mantine/core";
-import { useMediaQuery } from "@mantine/hooks";
+import { FileInput, Stack, Text, Title } from "@mantine/core";
 import { Dispatch, SetStateAction } from "react";
 import FormattedMessage from "../../core/FormattedMessage";
 import useTranslate from "../../../hooks/useTranslate.hook";
@@ -10,61 +9,54 @@ const LogoConfigInput = ({
   setLogo,
   darkLogo,
   setDarkLogo,
+  rowClassName,
+  gridClassName,
+  controlClassName,
+  descriptionClassName,
 }: {
   logo: File | null;
   setLogo: Dispatch<SetStateAction<File | null>>;
   darkLogo: File | null;
   setDarkLogo: Dispatch<SetStateAction<File | null>>;
+  rowClassName: string;
+  gridClassName: string;
+  controlClassName: string;
+  descriptionClassName: string;
 }) => {
-  const isMobile = useMediaQuery("(max-width: 560px)");
   const t = useTranslate();
+  const entries = [
+    { key: "logo", value: logo, onChange: setLogo },
+    { key: "logo-dark", value: darkLogo, onChange: setDarkLogo },
+  ];
 
   return (
     <>
-      <Group justify="space-between">
-        <Stack style={{ maxWidth: isMobile ? "100%" : "40%" }} gap={0}>
-          <Title order={6}>
-            <FormattedMessage id="admin.config.general.logo" />
-          </Title>
-          <Text c="dimmed" size="sm" mb="xs">
-            <FormattedMessage id="admin.config.general.logo.description" />
-          </Text>
-        </Stack>
-        <Stack></Stack>
-        <Box style={{ width: isMobile ? "100%" : "50%" }}>
-          <FileInput
-            clearable
-            leftSection={<Upload size={14} />}
-            value={logo}
-            onChange={(v) => setLogo(v)}
-            accept=".png"
-            // @ts-ignore (https://github.com/mantinedev/mantine/issues/5401)
-            placeholder={t("admin.config.general.logo.placeholder")}
-          />
-        </Box>
-      </Group>
-      <Group justify="space-between">
-        <Stack style={{ maxWidth: isMobile ? "100%" : "40%" }} gap={0}>
-          <Title order={6}>
-            <FormattedMessage id="admin.config.general.logo-dark" />
-          </Title>
-          <Text c="dimmed" size="sm" mb="xs">
-            <FormattedMessage id="admin.config.general.logo-dark.description" />
-          </Text>
-        </Stack>
-        <Stack></Stack>
-        <Box style={{ width: isMobile ? "100%" : "50%" }}>
-          <FileInput
-            clearable
-            leftSection={<Upload size={14} />}
-            value={darkLogo}
-            onChange={(v) => setDarkLogo(v)}
-            accept=".png"
-            // @ts-ignore (https://github.com/mantinedev/mantine/issues/5401)
-            placeholder={t("admin.config.general.logo.placeholder")}
-          />
-        </Box>
-      </Group>
+      {entries.map((entry) => (
+        <div className={rowClassName} key={entry.key}>
+          <div className={gridClassName}>
+            <Stack gap={4}>
+              <Title order={6}>
+                <FormattedMessage id={`admin.config.general.${entry.key}`} />
+              </Title>
+              <Text className={descriptionClassName} c="dimmed" size="sm">
+                <FormattedMessage
+                  id={`admin.config.general.${entry.key}.description`}
+                />
+              </Text>
+            </Stack>
+            <div className={controlClassName}>
+              <FileInput
+                clearable
+                leftSection={<Upload size={16} />}
+                value={entry.value}
+                onChange={entry.onChange}
+                accept=".png"
+                placeholder={t("admin.config.general.logo.placeholder")}
+              />
+            </div>
+          </div>
+        </div>
+      ))}
     </>
   );
 };

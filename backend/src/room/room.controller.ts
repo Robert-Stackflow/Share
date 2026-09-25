@@ -168,22 +168,34 @@ export class RoomController {
     @Res({ passthrough: true }) response: Response,
     @GetUser() user?: User,
   ) {
-    const previewOnly = preview === "1";
+    const previewMode =
+      preview === "1"
+        ? "image"
+        : preview === "text"
+          ? "text"
+          : preview === "pdf"
+            ? "pdf"
+            : undefined;
     const file = await this.rooms.getFileDownload(
       roomId,
       assetId,
       this.token(request, roomId),
       user?.id,
-      previewOnly,
+      previewMode,
     );
     response.set({
-      "Content-Type": file.metaData.mimeType,
+      "Content-Type":
+        previewMode === "text"
+          ? "text/plain; charset=utf-8"
+          : file.metaData.mimeType,
       "Content-Length": file.metaData.size,
-      "Content-Security-Policy": "sandbox",
+      ...(previewMode === "pdf"
+        ? {}
+        : { "Content-Security-Policy": "sandbox" }),
       "X-Content-Type-Options": "nosniff",
       "Cache-Control": "private, no-store",
       "Content-Disposition": contentDisposition(file.metaData.name, {
-        type: previewOnly ? "inline" : "attachment",
+        type: previewMode ? "inline" : "attachment",
       }),
     });
     return new StreamableFile(file.file);
@@ -197,6 +209,25 @@ export class RoomController {
     @GetUser() user: User,
   ) {
     return this.rooms.removeAsset(roomId, assetId, user);
+  }
+
+  @Post(":roomId/assets/bulk-delete")
+  @UseGuards(AuthGuard("jwt"))
+  removeAssets(
+    @Param("roomId") roomId: string,
+    @Body() body: { all?: boolean; ids?: string[] },
+    @GetUser() user: User,
+  ) {
+    if (body?.all === true) return this.rooms.removeAssets(roomId, user);
+    if (
+      !Array.isArray(body?.ids) ||
+      body.ids.length === 0 ||
+      body.ids.length > 500 ||
+      body.ids.some((id) => typeof id !== "string" || !id)
+    ) {
+      throw new BadRequestException("Invalid asset selection");
+    }
+    return this.rooms.removeAssets(roomId, user, [...new Set(body.ids)]);
   }
 
   private cookieName(roomId: string) {

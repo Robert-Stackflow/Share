@@ -95,7 +95,10 @@ const AdminConfigInput = ({
   }));
 
   return (
-    <Stack align="end">
+    <Stack
+      align={configVariable.type === "boolean" ? "end" : "stretch"}
+      w="100%"
+    >
       {configVariable.type == "string" &&
         (configVariable.obscured ? (
           <PasswordInput
@@ -284,7 +287,7 @@ const AdminConfigInput = ({
           disabled={!configVariable.allowEdit}
           placeholder={configVariable.defaultValue}
           onChange={(number) => onValueChange(configVariable, number)}
-          w={201}
+          w="100%"
         />
       )}
       {configVariable.type == "filesize" && (
@@ -293,7 +296,7 @@ const AdminConfigInput = ({
           disabled={!configVariable.allowEdit}
           value={parseInt(configVariable.value ?? configVariable.defaultValue)}
           onChange={(bytes) => onValueChange(configVariable, bytes)}
-          w={201}
+          w="100%"
         />
       )}
       {configVariable.type == "boolean" && isEmailShareConfig && (
@@ -322,7 +325,7 @@ const AdminConfigInput = ({
           onChange={(timespan) =>
             onValueChange(configVariable, timespanToString(timespan))
           }
-          w={201}
+          w="100%"
         />
       )}
     </Stack>

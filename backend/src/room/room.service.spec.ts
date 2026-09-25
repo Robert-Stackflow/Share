@@ -1,4 +1,8 @@
-import { BadRequestException, ForbiddenException, NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  ForbiddenException,
+  NotFoundException,
+} from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import * as argon from "argon2";
 import { strict as assert } from "node:assert";
@@ -138,6 +142,8 @@ test("image preview keeps room access checks without granting file downloads", a
     roomId: room.id,
     shareId: null,
     mimeType: "image/png",
+    name: "photo.png",
+    size: "128",
   };
   const prisma = {
     room: { findFirst: async () => room },
@@ -146,8 +152,12 @@ test("image preview keeps room access checks without granting file downloads", a
   const stream = { metaData: { mimeType: "image/png" }, file: null };
   const assets = { getDownloadStream: async () => stream };
   const policy = {
-    assertAllowed: (_policy: unknown, context: { requireDownload?: boolean }) => {
-      if (context.requireDownload) throw new ForbiddenException("Downloads disabled");
+    assertAllowed: (
+      _policy: unknown,
+      context: { requireDownload?: boolean },
+    ) => {
+      if (context.requireDownload)
+        throw new ForbiddenException("Downloads disabled");
     },
   };
   const service = new RoomService(
@@ -159,16 +169,102 @@ test("image preview keeps room access checks without granting file downloads", a
   );
 
   await assert.rejects(
-    () => service.getFileDownload("shared-id", "image-id", undefined, "visitor"),
+    () =>
+      service.getFileDownload("shared-id", "image-id", undefined, "visitor"),
     ForbiddenException,
   );
   assert.equal(
-    await service.getFileDownload("shared-id", "image-id", undefined, "visitor", true),
+    await service.getFileDownload(
+      "shared-id",
+      "image-id",
+      undefined,
+      "visitor",
+      "image",
+    ),
     stream,
   );
-  image.mimeType = "image/svg+xml";
+  image.name = "sample.json";
+  image.size = "128";
+  image.mimeType = "application/json";
+  assert.equal(
+    await service.getFileDownload(
+      "shared-id",
+      "image-id",
+      undefined,
+      "visitor",
+      "text",
+    ),
+    stream,
+  );
+  image.size = String(1024 * 1024 + 1);
   await assert.rejects(
-    () => service.getFileDownload("shared-id", "image-id", undefined, "visitor", true),
+    () => service.getFileDownload("shared-id", "image-id", undefined, "visitor", "text"),
     BadRequestException,
   );
+  image.name = "sample.pdf";
+  image.mimeType = "application/pdf";
+  assert.equal(
+    await service.getFileDownload(
+      "shared-id",
+      "image-id",
+      undefined,
+      "visitor",
+      "pdf",
+    ),
+    stream,
+  );
+  image.name = "unsafe.svg";
+  image.size = "128";
+  image.mimeType = "image/svg+xml";
+  await assert.rejects(
+    () =>
+      service.getFileDownload(
+        "shared-id",
+        "image-id",
+        undefined,
+        "visitor",
+        "image",
+      ),
+    BadRequestException,
+  );
+  assert.equal(
+    await service.getFileDownload("shared-id", "image-id", undefined, "visitor", "text"),
+    stream,
+  );
+});
+
+test("bulk removal only removes selected assets from an owned room", async () => {
+  const room = {
+    id: "room-db",
+    roomId: "room-id",
+    ownerId: "owner",
+    assets: [
+      { id: "first", shareId: null },
+      { id: "second", shareId: null },
+      { id: "elsewhere", shareId: "share-id" },
+    ],
+  };
+  const removed: string[] = [];
+  const service = new RoomService(
+    {
+      room: {
+        findFirst: async ({ where }: { where: { ownerId: string } }) =>
+          where.ownerId === "owner" ? room : null,
+      },
+    } as any,
+    { remove: async (asset: { id: string }) => removed.push(asset.id) } as any,
+    new JwtService(),
+    {} as any,
+    {} as any,
+  );
+  await assert.rejects(
+    () => service.removeAssets("room-id", { id: "visitor" } as any),
+    NotFoundException,
+  );
+  assert.deepEqual(removed, []);
+  assert.deepEqual(
+    await service.removeAssets("room-id", { id: "owner" } as any, ["second"]),
+    { deletedIds: ["second"] },
+  );
+  assert.deepEqual(removed, ["second"]);
 });

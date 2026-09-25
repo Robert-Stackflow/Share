@@ -5,53 +5,83 @@
 }
 
 .content {
-  max-width: 1040px;
-  padding: 30px 22px 64px;
+  max-width: 1120px;
+  padding: 34px 30px 72px;
 }
 
 .pageTitle {
-  margin-bottom: 14px;
-  font-size: 27px;
-  letter-spacing: -0.025em;
+  font-size: 26px;
+  letter-spacing: -0.03em;
+}
+
+.settingsPanel {
+  background: var(--share-surface);
+  border: 1px solid var(--share-border);
+  border-radius: 18px;
+  box-shadow: var(--share-shadow);
+  overflow: hidden;
 }
 
 .configRow {
-  background: var(--share-surface);
-  border: 1px solid var(--share-border);
-  border-radius: 15px;
-  box-shadow: var(--share-shadow);
-  padding: 18px 20px;
+  padding: 22px 26px;
+}
+
+.configRow + .configRow {
+  border-top: 1px solid var(--share-border);
 }
 
 .configGrid {
   align-items: center;
   display: grid;
-  gap: 24px;
-  grid-template-columns: minmax(180px, 0.85fr) minmax(0, 1.15fr);
+  gap: 36px;
+  grid-template-columns: minmax(230px, 0.95fr) minmax(0, 1.05fr);
+}
+
+.configGrid :global(.mantine-Title-root) {
+  color: var(--mantine-color-text);
+  font-size: 14px;
+  font-weight: 620;
+  line-height: 1.4;
 }
 
 .description {
-  line-height: 1.5;
+  font-size: 12px;
+  line-height: 1.6;
   white-space: pre-line;
 }
 
 .configControl {
+  justify-self: stretch;
   min-width: 0;
   width: 100%;
 }
 
+.providerDivider {
+  margin: 0 0 20px;
+}
+
+.saveBar {
+  background: var(--share-canvas);
+  border-top: 1px solid var(--share-border);
+  bottom: 0;
+  margin-top: 22px;
+  padding: 14px 0 2px;
+  position: sticky;
+  z-index: 2;
+}
+
 @media (max-width: 700px) {
   .content {
-    padding: 20px 8px 44px;
+    padding: 24px 8px 48px;
   }
 
   .configRow {
-    padding: 16px;
+    padding: 18px;
   }
 
   .configGrid {
     align-items: stretch;
-    gap: 12px;
+    gap: 14px;
     grid-template-columns: minmax(0, 1fr);
   }
 }
