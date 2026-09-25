@@ -28,6 +28,7 @@ import {
   Box,
   Button,
   Group,
+  Loader,
   Menu,
   Modal,
   Stack,
@@ -41,7 +42,13 @@ import { useIntl } from "react-intl";
 import FormattedMessage from "../core/FormattedMessage";
 import useTranslate from "../../hooks/useTranslate.hook";
 import { Asset, AssetType } from "../../types/asset.type";
-import { isTextPreviewableFile } from "../../utils/filePreview.util";
+import {
+  exceedsPreviewLimit,
+  IMAGE_PREVIEW_LIMIT,
+  isTextPreviewableFile,
+  PDF_PREVIEW_LIMIT,
+  TEXT_PREVIEW_LIMIT,
+} from "../../utils/filePreview.util";
 import {
   getAssetLabel,
   getAssetSizeLabel,
@@ -215,6 +222,7 @@ const RoomFileContent = ({ asset, url }: { asset: Asset; url?: string }) => {
   const canPreviewImage =
     kind === "image" &&
     inlineImageTypes.has((asset.mimeType ?? "").toLowerCase()) &&
+    !exceedsPreviewLimit(asset.size, IMAGE_PREVIEW_LIMIT) &&
     Boolean(url);
   const previewUrl = url
     ? `${url}${url.includes("?") ? "&" : "?"}preview=1`
@@ -222,11 +230,13 @@ const RoomFileContent = ({ asset, url }: { asset: Asset; url?: string }) => {
   const [previewFailed, setPreviewFailed] = useState(false);
   const [previewAttempt, setPreviewAttempt] = useState(0);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [imageLoading, setImageLoading] = useState(true);
+  const [pdfLoading, setPdfLoading] = useState(true);
   const [dimensions, setDimensions] = useState<string>();
   const canPreviewText =
     Boolean(url) &&
     isTextPreviewableFile(asset.name, asset.mimeType) &&
-    Number(asset.size ?? 0) <= 1024 * 1024;
+    !exceedsPreviewLimit(asset.size, TEXT_PREVIEW_LIMIT);
 
   return (
     <div className={classes.fileContent}>
@@ -240,6 +250,11 @@ const RoomFileContent = ({ asset, url }: { asset: Asset; url?: string }) => {
             type="button"
             onClick={() => setPreviewOpen(true)}
           >
+            {imageLoading && (
+              <span className={classes.imageLoader}>
+                <Loader size="sm" />
+              </span>
+            )}
             <img
               alt={asset.name || ""}
               loading="lazy"
@@ -247,8 +262,12 @@ const RoomFileContent = ({ asset, url }: { asset: Asset; url?: string }) => {
               onLoad={(event) => {
                 const image = event.currentTarget;
                 setDimensions(`${image.naturalWidth} × ${image.naturalHeight}`);
+                setImageLoading(false);
               }}
-              onError={() => setPreviewFailed(true)}
+              onError={() => {
+                setImageLoading(false);
+                setPreviewFailed(true);
+              }}
             />
           </button>
           {previewOpen && (
@@ -276,6 +295,7 @@ const RoomFileContent = ({ asset, url }: { asset: Asset; url?: string }) => {
           onClick={() => {
             setPreviewAttempt((current) => current + 1);
             setPreviewFailed(false);
+            setImageLoading(true);
           }}
         >
           {t("room.file.retryPreview")}
@@ -296,44 +316,58 @@ const RoomFileContent = ({ asset, url }: { asset: Asset; url?: string }) => {
       {canPreviewText && url && (
         <RoomCodePreview name={asset.name || asset.id} url={url} />
       )}
-      {kind === "pdf" && url && (
-        <>
-          <Button
-            className={classes.pdfPreviewButton}
-            size="xs"
-            variant="light"
-            onClick={() => setPreviewOpen(true)}
-          >
-            {t("room.file.previewPdf")}
-          </Button>
-          <Modal
-            opened={previewOpen}
-            onClose={() => setPreviewOpen(false)}
-            title={asset.name}
-            size="90%"
-            centered
-          >
-            <Group justify="flex-end" mb="sm">
-              <Button
-                component="a"
-                href={`${url}?preview=pdf`}
-                target="_blank"
-                rel="noreferrer"
-                variant="subtle"
-                size="xs"
-                leftSection={<ExternalLink size={15} />}
-              >
-                {t("room.file.openPdf")}
-              </Button>
-            </Group>
-            <iframe
-              className={classes.pdfFrame}
-              title={asset.name || "PDF"}
-              src={`${url}?preview=pdf`}
-            />
-          </Modal>
-        </>
-      )}
+      {kind === "pdf" &&
+        url &&
+        !exceedsPreviewLimit(asset.size, PDF_PREVIEW_LIMIT) && (
+          <>
+            <Button
+              className={classes.pdfPreviewButton}
+              size="xs"
+              variant="light"
+              onClick={() => setPreviewOpen(true)}
+            >
+              {t("room.file.previewPdf")}
+            </Button>
+            <Modal
+              opened={previewOpen}
+              onClose={() => setPreviewOpen(false)}
+              title={asset.name}
+              size="90%"
+              centered
+            >
+              <Group justify="flex-end" mb="sm">
+                <Button
+                  component="a"
+                  href={`${url}?preview=pdf`}
+                  target="_blank"
+                  rel="noreferrer"
+                  variant="subtle"
+                  size="xs"
+                  leftSection={<ExternalLink size={15} />}
+                >
+                  {t("room.file.openPdf")}
+                </Button>
+              </Group>
+              <Box pos="relative">
+                {pdfLoading && (
+                  <div className={classes.pdfLoader}>
+                    <Loader size="sm" />
+                    <Text size="sm" c="dimmed">
+                      {t("room.file.loadingPreview")}
+                    </Text>
+                  </div>
+                )}
+                <iframe
+                  className={classes.pdfFrame}
+                  title={asset.name || "PDF"}
+                  src={`${url}?preview=pdf`}
+                  onLoad={() => setPdfLoading(false)}
+                  onError={() => setPdfLoading(false)}
+                />
+              </Box>
+            </Modal>
+          </>
+        )}
     </div>
   );
 };

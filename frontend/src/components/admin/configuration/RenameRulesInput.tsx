@@ -5,11 +5,11 @@ import {
   Group,
   Select,
   Stack,
-  Table,
   TextInput,
 } from "@mantine/core";
 import { useState } from "react";
 import useTranslate from "../../../hooks/useTranslate.hook";
+import classes from "./RenameRulesInput.module.css";
 import {
   parseRenameRules,
   RenameRule,
@@ -54,79 +54,59 @@ const RenameRulesInput = ({
 
   return (
     <Stack style={{ width: "100%" }} gap="xs">
-      <Table verticalSpacing="xs" horizontalSpacing="xs">
-        <thead>
-          <tr>
-            <th>{t("admin.config.s3.file-rename-rules.pattern")}</th>
-            <th>{t("admin.config.s3.file-rename-rules.replacement")}</th>
-            <th style={{ width: 110 }}>
-              {t("admin.config.s3.file-rename-rules.type")}
-            </th>
-            <th style={{ width: 40 }}></th>
-          </tr>
-        </thead>
-        <tbody>
-          {rules.map((rule, index) => (
-            <tr key={index}>
-              <td>
-                <TextInput
-                  variant="filled"
-                  disabled={disabled}
-                  placeholder="*.apk"
-                  value={rule.pattern}
-                  onChange={(e) =>
-                    updateRule(index, { pattern: e.target.value })
-                  }
-                />
-              </td>
-              <td>
-                <TextInput
-                  variant="filled"
-                  disabled={disabled}
-                  placeholder="*.apk.1"
-                  value={rule.replacement}
-                  onChange={(e) =>
-                    updateRule(index, { replacement: e.target.value })
-                  }
-                />
-              </td>
-              <td>
-                <Select
-                  variant="filled"
-                  disabled={disabled}
-                  data={[
-                    {
-                      value: "glob",
-                      label: t("admin.config.s3.file-rename-rules.glob"),
-                    },
-                    {
-                      value: "regex",
-                      label: t("admin.config.s3.file-rename-rules.regex"),
-                    },
-                  ]}
-                  value={rule.type}
-                  onChange={(v) =>
-                    updateRule(index, {
-                      type: (v as RenameRule["type"]) ?? "glob",
-                    })
-                  }
-                  allowDeselect={false}
-                />
-              </td>
-              <td>
-                <ActionIcon
-                  color="red"
-                  variant="light"
-                  disabled={disabled}
-                  onClick={() => removeRule(index)}
-                >
-                  <Trash2 size={16} />
-                </ActionIcon>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </Table>
+      <Stack gap="sm">
+        {rules.map((rule, index) => (
+          <div className={classes.rule} key={index}>
+            <TextInput
+              label={t("admin.config.s3.file-rename-rules.pattern")}
+              disabled={disabled}
+              placeholder="*.apk"
+              value={rule.pattern}
+              onChange={(e) => updateRule(index, { pattern: e.target.value })}
+            />
+            <TextInput
+              label={t("admin.config.s3.file-rename-rules.replacement")}
+              disabled={disabled}
+              placeholder="*.apk.1"
+              value={rule.replacement}
+              onChange={(e) =>
+                updateRule(index, { replacement: e.target.value })
+              }
+            />
+            <Select
+              label={t("admin.config.s3.file-rename-rules.type")}
+              disabled={disabled}
+              data={[
+                {
+                  value: "glob",
+                  label: t("admin.config.s3.file-rename-rules.glob"),
+                },
+                {
+                  value: "regex",
+                  label: t("admin.config.s3.file-rename-rules.regex"),
+                },
+              ]}
+              value={rule.type}
+              onChange={(v) =>
+                updateRule(index, {
+                  type: (v as RenameRule["type"]) ?? "glob",
+                })
+              }
+              allowDeselect={false}
+            />
+            <ActionIcon
+              className={classes.remove}
+              aria-label={t("common.button.delete")}
+              color="red"
+              variant="light"
+              disabled={disabled}
+              onClick={() => removeRule(index)}
+            >
+              <Trash2 size={16} />
+            </ActionIcon>
+          </div>
+        ))}
+      </Stack>
       <Group justify="flex-start">
         <Button
           variant="light"

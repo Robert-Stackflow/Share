@@ -1,5 +1,5 @@
 import { Expand } from "lucide-react";
-import { ActionIcon, Group, Modal, Text } from "@mantine/core";
+import { ActionIcon, Group, Loader, Modal, Text } from "@mantine/core";
 import hljs from "highlight.js/lib/common";
 import dockerfile from "highlight.js/lib/languages/dockerfile";
 import powershell from "highlight.js/lib/languages/powershell";
@@ -115,6 +115,7 @@ export default function RoomCodePreview({
   const [visible, setVisible] = useState(false);
   const [content, setContent] = useState<string>();
   const [failed, setFailed] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const extension = name.split(".").pop()?.toLowerCase() || "";
   const language = languageForExtension[extension];
@@ -142,6 +143,8 @@ export default function RoomCodePreview({
   useEffect(() => {
     if (!visible) return;
     const controller = new AbortController();
+    setLoading(true);
+    setFailed(false);
     const previewUrl = `${url}${url.includes("?") ? "&" : "?"}preview=text`;
     fetch(previewUrl, { signal: controller.signal, credentials: "same-origin" })
       .then((response) => {
@@ -151,6 +154,9 @@ export default function RoomCodePreview({
       .then(setContent)
       .catch((error) => {
         if (error?.name !== "AbortError") setFailed(true);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setLoading(false);
       });
     return () => controller.abort();
   }, [visible, url]);
@@ -185,7 +191,15 @@ export default function RoomCodePreview({
   }, [content, extension, language]);
 
   return (
-    <div ref={rootRef}>
+    <div ref={rootRef} className={classes.root}>
+      {loading && !preview && (
+        <Group gap="xs" className={classes.loading}>
+          <Loader size="xs" />
+          <Text size="xs" c="dimmed">
+            {t("room.file.loadingPreview")}
+          </Text>
+        </Group>
+      )}
       {failed && (
         <Text c="dimmed" size="sm">
           {t("room.file.previewUnavailable")}

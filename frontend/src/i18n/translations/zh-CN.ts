@@ -424,6 +424,8 @@ export default {
   "room.file.openPdf": "在浏览器中打开",
   "room.file.retryPreview": "重新加载图片",
   "room.file.previewUnavailable": "暂时无法预览此文件。",
+  "room.file.loadingPreview": "正在加载预览…",
+  "room.file.previewTooLarge": "文件超过 {limit} MB，请下载查看。",
   "room.selection.select": "多选",
   "room.selection.selectAll": "全选",
   "room.selection.toggle": "选择内容：{name}",

@@ -1,8 +1,20 @@
+.root {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.loading {
+  min-height: 60px;
+  justify-content: center;
+}
+
 .preview {
   border-top: 1px solid var(--share-border);
   margin-top: 2px;
   min-width: 0;
   padding-top: 9px;
+  max-width: 100%;
 }
 
 .previewHeader {
@@ -20,6 +32,8 @@
   line-height: 1.6;
   margin: 0;
   overflow: auto;
+  max-width: 100%;
+  box-sizing: border-box;
   padding: 10px 12px;
   tab-size: 2;
   white-space: pre;

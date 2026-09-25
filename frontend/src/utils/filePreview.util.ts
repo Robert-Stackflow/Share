@@ -75,6 +75,11 @@ export const textPreviewExtensions = new Set([
   "hs",
 ]);
 
+export const TEXT_PREVIEW_LIMIT = 1024 * 1024;
+export const IMAGE_PREVIEW_LIMIT = 20 * 1024 * 1024;
+export const PDF_PREVIEW_LIMIT = 25 * 1024 * 1024;
+export const MEDIA_PREVIEW_LIMIT = 50 * 1024 * 1024;
+
 export const isTextPreviewableFile = (
   name?: string | null,
   mimeType?: string | null,
@@ -95,3 +100,23 @@ export const isTextPreviewableFile = (
     mime.includes("yaml")
   );
 };
+
+export const previewLimitForFile = (
+  name?: string | null,
+  mimeType?: string | null,
+): number | undefined => {
+  const mime = (mimeType || "").toLowerCase();
+  if (mime === "application/pdf" || name?.toLowerCase().endsWith(".pdf"))
+    return PDF_PREVIEW_LIMIT;
+  if (mime.startsWith("image/") && mime !== "image/svg+xml")
+    return IMAGE_PREVIEW_LIMIT;
+  if (mime.startsWith("audio/") || mime.startsWith("video/"))
+    return MEDIA_PREVIEW_LIMIT;
+  if (isTextPreviewableFile(name, mimeType)) return TEXT_PREVIEW_LIMIT;
+  return undefined;
+};
+
+export const exceedsPreviewLimit = (
+  size: string | number | null | undefined,
+  limit: number,
+) => Number(size || 0) > limit;

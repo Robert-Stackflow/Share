@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Timespan } from "../../types/timespan.type";
-import { NativeSelect, NumberInput } from "@mantine/core";
+import { NumberInput, Select } from "@mantine/core";
 import useTranslate from "../../hooks/useTranslate.hook";
 
 const TimespanInput = ({
@@ -20,7 +20,7 @@ const TimespanInput = ({
 
   const version = inputValue == 1 ? "singular" : "plural";
   const unitSelect = (
-    <NativeSelect
+    <Select
       data={[
         {
           value: "minutes",
@@ -48,6 +48,9 @@ const TimespanInput = ({
         },
       ]}
       value={unit}
+      disabled={restProps.disabled}
+      allowDeselect={false}
+      comboboxProps={{ withinPortal: true, zIndex: 400 }}
       rightSectionWidth={28}
       styles={{
         input: {
@@ -55,13 +58,13 @@ const TimespanInput = ({
           borderTopLeftRadius: 0,
           borderBottomLeftRadius: 0,
           width: 120,
-          marginRight: -2,
         },
       }}
-      onChange={(event) => {
-        const unit = event.currentTarget.value as Timespan["unit"];
-        setUnit(unit);
-        onChange({ value: inputValue, unit });
+      onChange={(value) => {
+        if (!value) return;
+        const nextUnit = value as Timespan["unit"];
+        setUnit(nextUnit);
+        onChange({ value: inputValue, unit: nextUnit });
       }}
     />
   );

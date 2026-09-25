@@ -1,0 +1,40 @@
+.rule {
+  align-items: end;
+  background: light-dark(#f7f9fc, #1c2430);
+  border: 1px solid var(--share-border);
+  border-radius: 14px;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(110px, 0.5fr) 32px;
+  padding: 14px;
+}
+
+.rule > * {
+  min-width: 0;
+}
+
+.remove {
+  align-self: end;
+  margin-bottom: 6px;
+}
+
+@media (max-width: 700px) {
+  .rule {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .remove {
+    justify-self: end;
+  }
+}
+
+@media (max-width: 450px) {
+  .rule {
+    grid-template-columns: minmax(0, 1fr) 32px;
+  }
+
+  .rule > :first-child,
+  .rule > :nth-child(2) {
+    grid-column: 1 / -1;
+  }
+}

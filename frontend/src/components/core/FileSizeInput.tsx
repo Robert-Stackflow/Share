@@ -1,4 +1,4 @@
-import { NativeSelect, NumberInput } from "@mantine/core";
+import { NumberInput, Select } from "@mantine/core";
 import { useState } from "react";
 
 const multipliers = {
@@ -37,24 +37,26 @@ const FileSizeInput = ({
   const [unit, setUnit] = useState(getLargestApplicableUnit(value).value);
   const [inputValue, setInputValue] = useState(value / multipliers[unit]);
   const unitSelect = (
-    <NativeSelect
+    <Select
       data={units}
       value={unit}
+      disabled={restProps.disabled}
+      allowDeselect={false}
+      comboboxProps={{ withinPortal: true, zIndex: 400 }}
       rightSectionWidth={28}
       styles={{
         input: {
           fontWeight: 500,
           borderTopLeftRadius: 0,
           borderBottomLeftRadius: 0,
-          width: 76,
-          marginRight: -2,
+          width: 94,
         },
       }}
-      onChange={(event) => {
-        const unit = event.currentTarget
-          .value as (typeof units)[number]["value"];
-        setUnit(unit);
-        onChange(multipliers[unit] * inputValue);
+      onChange={(value) => {
+        if (!value) return;
+        const nextUnit = value as keyof typeof multipliers;
+        setUnit(nextUnit);
+        onChange(multipliers[nextUnit] * inputValue);
       }}
     />
   );
@@ -67,7 +69,7 @@ const FileSizeInput = ({
       max={999999}
       decimalScale={0}
       rightSection={unitSelect}
-      rightSectionWidth={76}
+      rightSectionWidth={94}
       onChange={(value) => {
         const inputVal = typeof value === "number" ? value : Number(value) || 0;
         setInputValue(inputVal);

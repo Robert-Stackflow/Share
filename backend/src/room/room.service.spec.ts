@@ -183,6 +183,18 @@ test("image preview keeps room access checks without granting file downloads", a
     ),
     stream,
   );
+  image.size = String(20 * 1024 * 1024 + 1);
+  await assert.rejects(
+    () =>
+      service.getFileDownload(
+        "shared-id",
+        "image-id",
+        undefined,
+        "visitor",
+        "image",
+      ),
+    BadRequestException,
+  );
   image.name = "sample.json";
   image.size = "128";
   image.mimeType = "application/json";
@@ -198,7 +210,14 @@ test("image preview keeps room access checks without granting file downloads", a
   );
   image.size = String(1024 * 1024 + 1);
   await assert.rejects(
-    () => service.getFileDownload("shared-id", "image-id", undefined, "visitor", "text"),
+    () =>
+      service.getFileDownload(
+        "shared-id",
+        "image-id",
+        undefined,
+        "visitor",
+        "text",
+      ),
     BadRequestException,
   );
   image.name = "sample.pdf";
@@ -212,6 +231,18 @@ test("image preview keeps room access checks without granting file downloads", a
       "pdf",
     ),
     stream,
+  );
+  image.size = String(25 * 1024 * 1024 + 1);
+  await assert.rejects(
+    () =>
+      service.getFileDownload(
+        "shared-id",
+        "image-id",
+        undefined,
+        "visitor",
+        "pdf",
+      ),
+    BadRequestException,
   );
   image.name = "unsafe.svg";
   image.size = "128";
@@ -228,7 +259,13 @@ test("image preview keeps room access checks without granting file downloads", a
     BadRequestException,
   );
   assert.equal(
-    await service.getFileDownload("shared-id", "image-id", undefined, "visitor", "text"),
+    await service.getFileDownload(
+      "shared-id",
+      "image-id",
+      undefined,
+      "visitor",
+      "text",
+    ),
     stream,
   );
 });

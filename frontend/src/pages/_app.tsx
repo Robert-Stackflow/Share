@@ -16,7 +16,6 @@ import { getCookie, setCookie } from "cookies-next";
 import moment from "moment";
 import type { AppProps } from "next/app";
 import Head from "next/head";
-import { useRouter } from "next/router";
 import { useCallback, useEffect, useState } from "react";
 import { IntlProvider } from "react-intl";
 import Header from "../components/header/Header";
@@ -39,7 +38,6 @@ import { getDefaultConfig } from "../utils/defaultConfig.util";
 import CenterLoader from "../components/core/CenterLoader";
 import englishMessages from "../i18n/translations/en-US";
 
-const excludeDefaultLayoutRoutes = ["/admin/config/[category]"];
 const availableMantineColors = [
   "dark",
   "gray",
@@ -125,10 +123,7 @@ const createMantineScaleFromHex = (hex: string) =>
   ];
 
 function App({ Component, pageProps }: AppProps) {
-  const router = useRouter();
-
   const [user, setUser] = useState<CurrentUser | null>(null);
-  const [route, setRoute] = useState<string>(router.pathname);
 
   const [configVariables, setConfigVariables] =
     useState<Config[]>(getDefaultConfig());
@@ -226,10 +221,6 @@ function App({ Component, pageProps }: AppProps) {
   const defaultColorScheme: MantineColorScheme = user
     ? toMantineColorScheme(userColorPreference)
     : toMantineColorScheme(adminDefaultColorScheme);
-
-  useEffect(() => {
-    setRoute(router.pathname);
-  }, [router.pathname]);
 
   useEffect(() => {
     let active = true;
@@ -353,10 +344,12 @@ function App({ Component, pageProps }: AppProps) {
                 >
                   {!localeState.ready ? (
                     <CenterLoader />
-                  ) : excludeDefaultLayoutRoutes.includes(route) ? (
-                    <Component {...pageProps} />
                   ) : (
-                    <Stack className="appShell" justify="space-between" mih="100vh">
+                    <Stack
+                      className="appShell"
+                      justify="space-between"
+                      mih="100vh"
+                    >
                       <div>
                         <Header />
                         <Container className="appContent" size={1200}>

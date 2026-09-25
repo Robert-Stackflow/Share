@@ -462,6 +462,8 @@ export default {
   "room.file.openPdf": "Open in browser",
   "room.file.retryPreview": "Reload image",
   "room.file.previewUnavailable": "This file preview is unavailable.",
+  "room.file.loadingPreview": "Loading preview…",
+  "room.file.previewTooLarge": "File exceeds {limit} MB. Download it to view.",
   "room.selection.select": "Select",
   "room.selection.selectAll": "Select all",
   "room.selection.toggle": "Select item: {name}",

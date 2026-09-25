@@ -113,6 +113,8 @@ const previewTextExtensions = new Set([
   "hs",
 ]);
 const maxTextPreviewBytes = 1024 * 1024;
+const maxImagePreviewBytes = 20 * 1024 * 1024;
+const maxPdfPreviewBytes = 25 * 1024 * 1024;
 
 type RoomWithContent = Prisma.RoomGetPayload<{
   include: { assets: true; accessPolicy: true };
@@ -416,7 +418,8 @@ export class RoomService {
     if (!asset) throw new NotFoundException("Asset not found");
     if (
       previewMode === "image" &&
-      !inlineImageTypes.has((asset.mimeType || "").toLowerCase())
+      (!inlineImageTypes.has((asset.mimeType || "").toLowerCase()) ||
+        Number(asset.size) > maxImagePreviewBytes)
     ) {
       throw new BadRequestException("Image preview unavailable");
     }
@@ -446,7 +449,8 @@ export class RoomService {
     if (
       previewMode === "pdf" &&
       (asset.mimeType !== "application/pdf" ||
-        !asset.name?.toLowerCase().endsWith(".pdf"))
+        !asset.name?.toLowerCase().endsWith(".pdf") ||
+        Number(asset.size) > maxPdfPreviewBytes)
     ) {
       throw new BadRequestException("PDF preview unavailable");
     }

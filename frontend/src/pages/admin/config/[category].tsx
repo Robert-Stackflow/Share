@@ -1,10 +1,8 @@
 import { Info } from "lucide-react";
 import {
   Alert,
-  AppShell,
   Box,
   Button,
-  Container,
   Divider,
   Group,
   Stack,
@@ -13,12 +11,10 @@ import {
 } from "@mantine/core";
 import { GetStaticPaths, GetStaticProps } from "next";
 
-import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import FormattedMessage from "../../../components/core/FormattedMessage";
 import Meta from "../../../components/Meta";
 import AdminConfigInput from "../../../components/admin/configuration/AdminConfigInput";
-import ConfigurationHeader from "../../../components/admin/configuration/ConfigurationHeader";
 import ConfigurationNavBar from "../../../components/admin/configuration/ConfigurationNavBar";
 import LogoConfigInput from "../../../components/admin/configuration/LogoConfigInput";
 import TestEmailButton from "../../../components/admin/configuration/TestEmailButton";
@@ -62,11 +58,9 @@ const getOAuthProvider = (key: string): string | null => {
   return OAUTH_PROVIDERS.includes(provider) ? provider : null;
 };
 
-export default function AppShellDemo() {
-  const router = useRouter();
+export default function ConfigurationPage() {
   const t = useTranslate();
 
-  const [isMobileNavBarOpened, setIsMobileNavBarOpened] = useState(false);
   const config = useConfig();
 
   const routeCategory = useStaticRouteParam("category", 2);
@@ -205,197 +199,103 @@ export default function AppShellDemo() {
   return (
     <>
       <Meta title={t("admin.config.title")} />
-      <AppShell
-        header={{ height: 64 }}
-        navbar={{
-          width: { sm: 220, lg: 260 },
-          breakpoint: "sm",
-          collapsed: { mobile: !isMobileNavBarOpened },
-        }}
-        padding="md"
-        className={classes.shell}
-        styles={{
-          main: {
-            background: "var(--share-canvas)",
-          },
-        }}
-      >
-        <AppShell.Header>
-          <ConfigurationHeader
-            isMobileNavBarOpened={isMobileNavBarOpened}
-            setIsMobileNavBarOpened={setIsMobileNavBarOpened}
-          />
-        </AppShell.Header>
-        <AppShell.Navbar>
+      <div className={classes.layout}>
+        <aside className={classes.sidebar}>
           <ConfigurationNavBar
             categoryId={categoryId}
             onCategoryChange={navigateCategory}
-            isMobileNavBarOpened={isMobileNavBarOpened}
-            setIsMobileNavBarOpened={setIsMobileNavBarOpened}
           />
-        </AppShell.Navbar>
-        <AppShell.Main>
-          <Container size="lg" className={classes.content}>
-            {!configVariables || loadedCategory !== categoryId ? (
-              <CenterLoader />
-            ) : (
-              <>
-                {/*
-                 * Keep custom CSS at the bottom in Appearance settings for better UX.
-                 */}
-                {(() => {
-                  const customCssConfigVariable = configVariables.find(
-                    (configVariable) =>
-                      configVariable.key === "appearance.customCss",
+        </aside>
+        <main className={classes.content}>
+          {!configVariables || loadedCategory !== categoryId ? (
+            <CenterLoader />
+          ) : (
+            <>
+              {/*
+               * Keep custom CSS at the bottom in Appearance settings for better UX.
+               */}
+              {(() => {
+                const customCssConfigVariable = configVariables.find(
+                  (configVariable) =>
+                    configVariable.key === "appearance.customCss",
+                );
+                const getEffectiveConfigValue = (key: string): string => {
+                  const updatedValue = updatedConfigVariables.find(
+                    (item) => item.key === key,
                   );
-                  const getEffectiveConfigValue = (key: string): string => {
-                    const updatedValue = updatedConfigVariables.find(
-                      (item) => item.key === key,
-                    );
-                    if (updatedValue) return updatedValue.value;
+                  if (updatedValue) return updatedValue.value;
 
-                    const configVariable = configVariables.find(
-                      (item) => item.key === key,
-                    );
-                    return (
-                      configVariable?.value ??
-                      configVariable?.defaultValue ??
-                      ""
-                    );
-                  };
-
-                  const shouldShowPrimaryColorOverride =
-                    getEffectiveConfigValue("appearance.themePrimaryColor") ===
-                    "custom";
-                  const visibleConfigVariables = configVariables.filter(
-                    (configVariable) =>
-                      configVariable.key !== "appearance.customCss",
+                  const configVariable = configVariables.find(
+                    (item) => item.key === key,
                   );
-
                   return (
-                    <>
-                      <Stack gap="lg">
-                        {!isEditingAllowed() && (
-                          <Alert
-                            mb={"lg"}
-                            variant="light"
-                            color="primary"
-                            title={t("admin.config.config-file-warning.title")}
-                            icon={<Info />}
-                          >
-                            <FormattedMessage id="admin.config.config-file-warning.description" />
-                          </Alert>
-                        )}
-                        <Title className={classes.pageTitle} order={2}>
-                          {t("admin.config.category." + categoryId)}
-                        </Title>
-                        <div className={classes.settingsPanel}>
-                          {visibleConfigVariables.map(
-                            (configVariable, index) => {
-                              if (
-                                configVariable.key ===
-                                  "appearance.themePrimaryColorOverride" &&
-                                !shouldShowPrimaryColorOverride
-                              ) {
-                                return null;
-                              }
+                    configVariable?.value ?? configVariable?.defaultValue ?? ""
+                  );
+                };
 
-                              const provider = getOAuthProvider(
-                                configVariable.key,
-                              );
-                              const previousProvider =
-                                index > 0
-                                  ? getOAuthProvider(
-                                      visibleConfigVariables[index - 1].key,
-                                    )
-                                  : null;
-                              const showProviderDivider =
-                                provider !== null &&
-                                provider !== previousProvider;
+                const shouldShowPrimaryColorOverride =
+                  getEffectiveConfigValue("appearance.themePrimaryColor") ===
+                  "custom";
+                const visibleConfigVariables = configVariables.filter(
+                  (configVariable) =>
+                    configVariable.key !== "appearance.customCss",
+                );
 
-                              return (
-                                <Box
-                                  key={configVariable.key}
-                                  className={classes.configRow}
-                                >
-                                  {showProviderDivider && (
-                                    <Divider
-                                      className={classes.providerDivider}
-                                      label={provider?.toUpperCase()}
-                                      labelPosition="left"
-                                    />
-                                  )}
-                                  <div className={classes.configGrid}>
-                                    <Stack gap={4}>
-                                      <Title order={6}>
-                                        <FormattedMessage
-                                          id={`admin.config.${camelToKebab(
-                                            configVariable.key,
-                                          )}`}
-                                        />
-                                      </Title>
+                return (
+                  <>
+                    <Stack gap="lg">
+                      {!isEditingAllowed() && (
+                        <Alert
+                          mb={"lg"}
+                          variant="light"
+                          color="primary"
+                          title={t("admin.config.config-file-warning.title")}
+                          icon={<Info />}
+                        >
+                          <FormattedMessage id="admin.config.config-file-warning.description" />
+                        </Alert>
+                      )}
+                      <Title className={classes.pageTitle} order={2}>
+                        {t("admin.config.category." + categoryId)}
+                      </Title>
+                      <div className={classes.settingsPanel}>
+                        {visibleConfigVariables.map((configVariable, index) => {
+                          if (
+                            configVariable.key ===
+                              "appearance.themePrimaryColorOverride" &&
+                            !shouldShowPrimaryColorOverride
+                          ) {
+                            return null;
+                          }
 
-                                      <Text
-                                        className={classes.description}
-                                        c="dimmed"
-                                        size="sm"
-                                      >
-                                        <FormattedMessage
-                                          id={`admin.config.${camelToKebab(
-                                            configVariable.key,
-                                          )}.description`}
-                                          values={{ br: <br /> }}
-                                        />
-                                      </Text>
-                                    </Stack>
-                                    <Box className={classes.configControl}>
-                                      <AdminConfigInput
-                                        key={configVariable.key}
-                                        configVariable={configVariable}
-                                        updateConfigVariable={
-                                          updateConfigVariable
-                                        }
-                                        allConfigVariables={configVariables}
-                                        updatedConfigVariables={
-                                          updatedConfigVariables
-                                        }
-                                        optionalConfigVariables={
-                                          optionalConfigVariables
-                                        }
-                                      />
-                                    </Box>
-                                  </div>
-                                </Box>
-                              );
-                            },
-                          )}
-                          {categoryId == "general" && (
-                            <LogoConfigInput
-                              logo={logo}
-                              setLogo={setLogo}
-                              darkLogo={darkLogo}
-                              setDarkLogo={setDarkLogo}
-                              rowClassName={classes.configRow}
-                              gridClassName={classes.configGrid}
-                              controlClassName={classes.configControl}
-                              descriptionClassName={classes.description}
-                            />
-                          )}
-                        </div>
-                        {categoryId == "appearance" &&
-                          customCssConfigVariable && (
-                            <div
-                              key={customCssConfigVariable.key}
-                              className={classes.settingsPanel}
+                          const provider = getOAuthProvider(configVariable.key);
+                          const previousProvider =
+                            index > 0
+                              ? getOAuthProvider(
+                                  visibleConfigVariables[index - 1].key,
+                                )
+                              : null;
+                          const showProviderDivider =
+                            provider !== null && provider !== previousProvider;
+
+                          return (
+                            <Box
+                              key={configVariable.key}
+                              className={`${classes.configRow} ${configVariable.key === "s3.fileRenameRules" ? classes.wideConfigRow : ""}`}
                             >
-                              <div
-                                className={`${classes.configRow} ${classes.configGrid}`}
-                              >
+                              {showProviderDivider && (
+                                <Divider
+                                  className={classes.providerDivider}
+                                  label={provider?.toUpperCase()}
+                                  labelPosition="left"
+                                />
+                              )}
+                              <div className={classes.configGrid}>
                                 <Stack gap={4}>
                                   <Title order={6}>
                                     <FormattedMessage
                                       id={`admin.config.${camelToKebab(
-                                        customCssConfigVariable.key,
+                                        configVariable.key,
                                       )}`}
                                     />
                                   </Title>
@@ -407,7 +307,7 @@ export default function AppShellDemo() {
                                   >
                                     <FormattedMessage
                                       id={`admin.config.${camelToKebab(
-                                        customCssConfigVariable.key,
+                                        configVariable.key,
                                       )}.description`}
                                       values={{ br: <br /> }}
                                     />
@@ -415,8 +315,8 @@ export default function AppShellDemo() {
                                 </Stack>
                                 <Box className={classes.configControl}>
                                   <AdminConfigInput
-                                    key={customCssConfigVariable.key}
-                                    configVariable={customCssConfigVariable}
+                                    key={configVariable.key}
+                                    configVariable={configVariable}
                                     updateConfigVariable={updateConfigVariable}
                                     allConfigVariables={configVariables}
                                     updatedConfigVariables={
@@ -428,38 +328,95 @@ export default function AppShellDemo() {
                                   />
                                 </Box>
                               </div>
+                            </Box>
+                          );
+                        })}
+                        {categoryId == "general" && (
+                          <LogoConfigInput
+                            logo={logo}
+                            setLogo={setLogo}
+                            darkLogo={darkLogo}
+                            setDarkLogo={setDarkLogo}
+                            rowClassName={classes.configRow}
+                            gridClassName={classes.configGrid}
+                            controlClassName={classes.configControl}
+                            descriptionClassName={classes.description}
+                          />
+                        )}
+                      </div>
+                      {categoryId == "appearance" &&
+                        customCssConfigVariable && (
+                          <div
+                            key={customCssConfigVariable.key}
+                            className={classes.settingsPanel}
+                          >
+                            <div
+                              className={`${classes.configRow} ${classes.configGrid}`}
+                            >
+                              <Stack gap={4}>
+                                <Title order={6}>
+                                  <FormattedMessage
+                                    id={`admin.config.${camelToKebab(
+                                      customCssConfigVariable.key,
+                                    )}`}
+                                  />
+                                </Title>
+
+                                <Text
+                                  className={classes.description}
+                                  c="dimmed"
+                                  size="sm"
+                                >
+                                  <FormattedMessage
+                                    id={`admin.config.${camelToKebab(
+                                      customCssConfigVariable.key,
+                                    )}.description`}
+                                    values={{ br: <br /> }}
+                                  />
+                                </Text>
+                              </Stack>
+                              <Box className={classes.configControl}>
+                                <AdminConfigInput
+                                  key={customCssConfigVariable.key}
+                                  configVariable={customCssConfigVariable}
+                                  updateConfigVariable={updateConfigVariable}
+                                  allConfigVariables={configVariables}
+                                  updatedConfigVariables={
+                                    updatedConfigVariables
+                                  }
+                                  optionalConfigVariables={
+                                    optionalConfigVariables
+                                  }
+                                />
+                              </Box>
                             </div>
-                          )}
-                      </Stack>
-                    </>
-                  );
-                })()}
-                <Group className={classes.saveBar} mt="lg" justify="flex-end">
-                  {categoryId == "smtp" && (
-                    <TestEmailButton
-                      configVariablesChanged={
-                        updatedConfigVariables.length != 0
-                      }
-                      saveConfigVariables={saveConfigVariables}
-                    />
-                  )}
-                  {categoryId == "cache" && (
-                    <TestRedisButton
-                      configVariablesChanged={
-                        updatedConfigVariables.length != 0
-                      }
-                      saveConfigVariables={saveConfigVariables}
-                    />
-                  )}
-                  <Button onClick={saveConfigVariables}>
-                    <FormattedMessage id="common.button.save" />
-                  </Button>
-                </Group>
-              </>
-            )}
-          </Container>
-        </AppShell.Main>
-      </AppShell>
+                          </div>
+                        )}
+                    </Stack>
+                  </>
+                );
+              })()}
+              <Group className={classes.saveBar} justify="flex-end">
+                {categoryId == "smtp" && (
+                  <TestEmailButton
+                    configVariablesChanged={updatedConfigVariables.length != 0}
+                    saveConfigVariables={saveConfigVariables}
+                  />
+                )}
+                {categoryId == "cache" && (
+                  <TestRedisButton
+                    configVariablesChanged={updatedConfigVariables.length != 0}
+                    saveConfigVariables={saveConfigVariables}
+                  />
+                )}
+                <Button onClick={saveConfigVariables}>
+                  <FormattedMessage id="common.button.save" />
+                </Button>
+              </Group>
+            </>
+          )}
+        </main>
+      </div>
     </>
   );
 }

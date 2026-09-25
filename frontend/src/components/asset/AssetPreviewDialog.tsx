@@ -5,6 +5,7 @@ import {
   Button,
   Group,
   Image,
+  LoadingOverlay,
   Modal,
   Stack,
   Text,
@@ -13,11 +14,15 @@ import {
 import { useClipboard } from "@mantine/hooks";
 import mime from "mime-types";
 import dynamic from "next/dynamic";
-import { useMemo } from "react";
+import { ReactNode, useEffect, useMemo, useState } from "react";
 import useTranslate from "../../hooks/useTranslate.hook";
 import assetService from "../../services/asset.service";
 import { Asset } from "../../types/asset.type";
-import { isTextPreviewableFile } from "../../utils/filePreview.util";
+import {
+  exceedsPreviewLimit,
+  isTextPreviewableFile,
+  previewLimitForFile,
+} from "../../utils/filePreview.util";
 import toast from "../../utils/toast.util";
 import { getAssetLabel } from "./AssetTable";
 
@@ -50,6 +55,7 @@ const AssetPreviewDialog = ({
 }: AssetPreviewDialogProps) => {
   const t = useTranslate();
   const clipboard = useClipboard();
+  const [mediaLoading, setMediaLoading] = useState(true);
 
   const fileUrl = useMemo(() => {
     if (asset.type !== "FILE" || !allowFileDownload) return undefined;
@@ -57,6 +63,8 @@ const AssetPreviewDialog = ({
   }, [allowFileDownload, asset.id, asset.type, providedFileUrl]);
 
   const fileMimeType = useMemo(() => getFileMimeType(asset), [asset]);
+
+  useEffect(() => setMediaLoading(true), [asset.id, opened]);
 
   const copy = (value?: string) => {
     if (!value) return;
@@ -70,47 +78,80 @@ const AssetPreviewDialog = ({
       fileUrl.includes("/rooms/")
         ? `${fileUrl}${fileUrl.includes("?") ? "&" : "?"}preview=${mode}`
         : fileUrl;
+    const limit = previewLimitForFile(asset.name, fileMimeType);
+    if (limit && exceedsPreviewLimit(asset.size, limit)) {
+      return (
+        <Text c="dimmed" size="sm">
+          {t("room.file.previewTooLarge", {
+            limit: Math.round(limit / 1024 / 1024),
+          })}
+        </Text>
+      );
+    }
+
+    const withLoading = (content: ReactNode) => (
+      <Box pos="relative" mih={120}>
+        <LoadingOverlay
+          visible={mediaLoading}
+          loaderProps={{ size: "sm" }}
+          overlayProps={{ blur: 1 }}
+          zIndex={1}
+        />
+        {content}
+      </Box>
+    );
 
     if (fileMimeType.startsWith("image/") && fileMimeType !== "image/svg+xml") {
-      return (
+      return withLoading(
         <Image
           alt={asset.name || asset.id}
           fit="contain"
           mah="60vh"
           src={previewUrl("1")}
-        />
+          onLoad={() => setMediaLoading(false)}
+          onError={() => setMediaLoading(false)}
+        />,
       );
     }
 
     if (fileMimeType.startsWith("audio/")) {
-      return <audio controls src={fileUrl} style={{ width: "100%" }} />;
+      return withLoading(
+        <audio
+          controls
+          src={fileUrl}
+          style={{ width: "100%" }}
+          onLoadedMetadata={() => setMediaLoading(false)}
+          onError={() => setMediaLoading(false)}
+        />,
+      );
     }
 
     if (fileMimeType.startsWith("video/")) {
-      return (
+      return withLoading(
         <video
           controls
           src={fileUrl}
           style={{ maxHeight: "60vh", width: "100%" }}
-        />
+          onLoadedMetadata={() => setMediaLoading(false)}
+          onError={() => setMediaLoading(false)}
+        />,
       );
     }
 
     if (fileMimeType === "application/pdf") {
-      return (
+      return withLoading(
         <Box
           component="iframe"
           src={previewUrl("pdf")}
           style={{ border: 0, height: "60vh", width: "100%" }}
           title={asset.name || asset.id}
-        />
+          onLoad={() => setMediaLoading(false)}
+          onError={() => setMediaLoading(false)}
+        />,
       );
     }
 
-    if (
-      isTextPreviewableFile(asset.name, fileMimeType) &&
-      Number(asset.size ?? 0) <= 1024 * 1024
-    ) {
+    if (isTextPreviewableFile(asset.name, fileMimeType)) {
       return (
         <RoomCodePreview full name={asset.name || asset.id} url={fileUrl} />
       );

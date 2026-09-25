@@ -1,41 +1,48 @@
-@media (max-width: $mantine-breakpoint-sm) {
-  .navbar {
-    height: calc(100dvh - 64px);
-    max-height: calc(100dvh - 64px);
-    overflow-y: auto;
-  }
+.navbar {
+  padding: 16px 12px;
 }
-
-.activeLink {
-  background: var(--share-accent-soft);
-  color: var(--share-accent-ink);
-  border-radius: 11px;
-  font-weight: 600;
-}
-
 .navLink {
-  border-radius: 10px;
-  color: var(--mantine-color-text);
+  border-radius: 12px;
+  color: var(--mantine-color-dimmed);
   display: block;
-  padding: 10px 12px;
-  transition: background 150ms ease;
+  padding: 12px 14px;
+  text-decoration: none;
+  transition:
+    background 150ms ease,
+    color 150ms ease;
 }
-
 .navLink:hover {
-  background: light-dark(#f2f5fa, #252d39);
+  background: light-dark(#f1f5f7, #252d39);
+  color: var(--mantine-color-text);
 }
-
 .navLink.activeLink,
 .navLink.activeLink:hover {
   background: var(--share-accent-soft);
   color: var(--share-accent-ink);
+  font-weight: 650;
 }
-
-.navLink :global(.mantine-ThemeIcon-root) {
-  border-radius: 9px;
+.navIcon {
+  align-items: center;
+  display: inline-flex;
+  flex: 0 0 20px;
+  justify-content: center;
 }
-
-.navLink :global(.mantine-ThemeIcon-root) svg {
-  height: 17px;
-  width: 17px;
+.navIcon svg {
+  height: 18px;
+  stroke-width: 1.8;
+  width: 18px;
+}
+@media (max-width: 760px) {
+  .navbar {
+    overflow-x: auto;
+    padding: 8px;
+  }
+  .navbar :global(.mantine-Stack-root) {
+    flex-direction: row;
+    width: max-content;
+  }
+  .navLink {
+    padding: 10px 12px;
+    white-space: nowrap;
+  }
 }
