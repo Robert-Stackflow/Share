@@ -28,6 +28,45 @@ const typeIcon: Record<AssetType, ReactNode> = {
   LINK: <Link2 />,
 };
 
+const RoomTextContent = ({ value }: { value: string }) => {
+  const t = useTranslate();
+  const [expanded, setExpanded] = useState(false);
+  const [canExpand, setCanExpand] = useState(false);
+  const textRef = useRef<HTMLParagraphElement>(null);
+
+  useEffect(() => {
+    if (expanded || !textRef.current) return;
+    const element = textRef.current;
+    const measure = () =>
+      setCanExpand(element.scrollHeight > element.clientHeight + 1);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [value, expanded]);
+
+  return (
+    <div>
+      <Text
+        ref={textRef}
+        className={`${classes.messageText} ${!expanded ? classes.messageTextClamped : ""}`}
+      >
+        {value}
+      </Text>
+      {canExpand && (
+        <Button
+          className={classes.expandButton}
+          size="compact-xs"
+          variant="subtle"
+          onClick={() => setExpanded((current) => !current)}
+        >
+          {t(expanded ? "room.assets.collapse" : "room.assets.expand")}
+        </Button>
+      )}
+    </div>
+  );
+};
+
 type RoomConversationPanelProps = {
   assets: Asset[];
   badge?: ReactNode;
@@ -121,7 +160,7 @@ const RoomConversationPanel = ({
       );
     }
 
-    return <Text>{getAssetLabel(asset)}</Text>;
+    return <RoomTextContent value={getAssetLabel(asset)} />;
   };
 
   const renderActions = (asset: Asset) => (

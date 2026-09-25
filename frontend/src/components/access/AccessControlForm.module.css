@@ -1,3 +1,9 @@
+.form :global(.mantine-InputWrapper-label) {
+  color: var(--mantine-color-dimmed);
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
 .switchList {
   display: grid;
   gap: var(--mantine-spacing-xs);
@@ -5,8 +11,9 @@
 
 .switchRow {
   align-items: center;
-  border: 1px solid light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
-  border-radius: 8px;
+  background: light-dark(#fafbfe, #222936);
+  border: 1px solid var(--share-border);
+  border-radius: 11px;
   display: flex;
   gap: var(--mantine-spacing-md);
   justify-content: space-between;

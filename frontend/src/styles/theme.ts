@@ -3,19 +3,24 @@ import { createTheme, MantineThemeOverride } from "@mantine/core";
 const theme: MantineThemeOverride = createTheme({
   colors: {
     victoria: [
-      "#E2E1F1",
-      "#C2C0E7",
-      "#A19DE4",
-      "#7D76E8",
-      "#544AF4",
-      "#4940DE",
-      "#4239C8",
-      "#463FA8",
-      "#47428E",
-      "#464379",
+      "#edf1fb",
+      "#dce4f7",
+      "#bdcbee",
+      "#98ace0",
+      "#718bd1",
+      "#526dc0",
+      "#4059aa",
+      "#354b91",
+      "#2c3f78",
+      "#25355f",
     ],
   },
   primaryColor: "victoria",
+  fontFamily: 'Inter, "Segoe UI", "Noto Sans SC", sans-serif',
+  headings: {
+    fontFamily: 'Inter, "Segoe UI", "Noto Sans SC", sans-serif',
+    fontWeight: "650",
+  },
   components: {
     Modal: {
       styles: {

@@ -3,6 +3,274 @@ a {
   text-decoration: none;
 }
 
+:root {
+  --share-border: #e5e9f0;
+  --share-surface: #ffffff;
+  --share-canvas: #f7f8fb;
+  --share-muted: #667085;
+  --share-placeholder: #94a0b1;
+  --share-shadow: 0 12px 36px rgba(29, 44, 75, 0.045);
+  --share-accent-soft: #edf2fd;
+  --share-accent-ink: #4059aa;
+}
+
+:root[data-mantine-color-scheme="dark"] {
+  --share-border: #303744;
+  --share-surface: #1d222c;
+  --share-canvas: #141820;
+  --share-muted: #a3afc1;
+  --share-placeholder: #8896aa;
+  --share-shadow: 0 12px 36px rgba(0, 0, 0, 0.16);
+  --share-accent-soft: #314367;
+  --share-accent-ink: #b6c9ff;
+}
+
+body {
+  background: var(--share-canvas);
+}
+
+.appShell {
+  background: var(--share-canvas);
+}
+
+.appContent {
+  width: 100%;
+  padding-top: 34px;
+  padding-bottom: 64px;
+}
+
+.appContent h1,
+.appContent h2,
+.appContent h3 {
+  letter-spacing: -0.025em;
+}
+
+.mantine-Paper-root[data-with-border] {
+  background: var(--share-surface);
+  border-color: var(--share-border);
+  border-radius: 16px;
+  box-shadow: var(--share-shadow);
+}
+
+.mantine-Button-root,
+.mantine-ActionIcon-root {
+  border-radius: 10px;
+  font-weight: 600;
+  transition:
+    transform 150ms ease,
+    box-shadow 150ms ease,
+    background-color 150ms ease;
+}
+
+.mantine-Button-root:not(:disabled):active,
+.mantine-ActionIcon-root:not(:disabled):active {
+  transform: translateY(1px);
+}
+
+.mantine-Input-input,
+.mantine-Textarea-input {
+  border-radius: 10px;
+  border-color: var(--share-border);
+}
+
+.mantine-Input-wrapper:not([data-variant="unstyled"]) {
+  --input-radius: 11px;
+  --input-height-sm: 42px;
+}
+
+.mantine-Input-wrapper[data-variant="default"] {
+  --input-bd: var(--share-border);
+  --input-bg: var(--share-surface);
+}
+
+.mantine-Input-wrapper[data-variant="filled"] {
+  --input-bd: var(--share-border);
+  --input-bg: light-dark(#f7f9fc, #252d39);
+}
+
+:root[data-mantine-color-scheme="dark"]
+  .mantine-Input-wrapper[data-variant="default"],
+:root[data-mantine-color-scheme="dark"]
+  .mantine-Input-wrapper[data-variant="filled"] {
+  --input-bd: #384354;
+  --input-bg: #252d39;
+  --input-bd-focus: #87a3e8;
+}
+
+input::placeholder,
+textarea::placeholder,
+.mantine-Input-input::placeholder,
+.mantine-Textarea-input::placeholder,
+.mantine-PasswordInput-innerInput::placeholder {
+  color: var(--share-placeholder);
+  font-weight: 400;
+  opacity: 1;
+}
+
+.mantine-Input-input:not([data-size="xs"]),
+.mantine-Textarea-input:not([data-size="xs"]) {
+  min-height: 42px;
+}
+
+.mantine-InputWrapper-label {
+  color: var(--share-muted);
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.mantine-Input-input:focus,
+.mantine-Textarea-input:focus {
+  border-color: var(--mantine-primary-color-5);
+  box-shadow: 0 0 0 3px var(--mantine-primary-color-light);
+}
+
+.mantine-Tabs-tab {
+  border-radius: 9px 9px 0 0;
+  font-weight: 600;
+  color: var(--share-muted);
+  padding: 11px 16px;
+}
+
+.mantine-Tabs-tab[data-active] {
+  color: var(--mantine-primary-color-6);
+  border-color: var(--mantine-primary-color-5);
+}
+
+.mantine-SegmentedControl-root {
+  --sc-radius: 9px;
+  --sc-shadow: 0 2px 7px rgba(33, 50, 80, 0.08);
+  background: light-dark(#edf1f7, #252d39);
+  border: 1px solid var(--share-border);
+  border-radius: 13px;
+  padding: 4px;
+}
+
+.mantine-SegmentedControl-label {
+  color: var(--share-muted);
+  font-weight: 600;
+  padding: 8px 13px;
+}
+
+.mantine-SegmentedControl-label[data-active] {
+  color: var(--mantine-primary-color-7);
+}
+
+.mantine-SegmentedControl-indicator {
+  border: 1px solid var(--share-border);
+  border-radius: 9px;
+}
+
+:root[data-mantine-color-scheme="dark"] .mantine-SegmentedControl-root {
+  --sc-color: #34466c;
+  --sc-label-color: #f5f7ff;
+  background: #252d39;
+}
+
+:root[data-mantine-color-scheme="dark"]
+  .mantine-SegmentedControl-label[data-active] {
+  color: #f5f7ff;
+}
+
+:root[data-mantine-color-scheme="dark"] .mantine-Tabs-tab[data-active] {
+  color: #a9bdff;
+  border-color: #7894df;
+}
+
+.mantine-Popover-dropdown,
+.mantine-Combobox-dropdown,
+.mantine-Menu-dropdown {
+  background: var(--share-surface);
+  border: 1px solid var(--share-border);
+  border-radius: 13px;
+  box-shadow: 0 14px 38px
+    light-dark(rgba(30, 45, 75, 0.14), rgba(0, 0, 0, 0.35));
+  padding: 6px;
+}
+
+.mantine-Menu-item,
+.mantine-Combobox-option {
+  border-radius: 8px;
+  min-height: 36px;
+  padding: 8px 10px;
+}
+
+.mantine-Menu-item:hover,
+.mantine-Combobox-option:hover:not([data-combobox-selected]) {
+  background: light-dark(#f0f4fb, #2b3543);
+}
+
+.mantine-Badge-root {
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.mantine-Switch-root {
+  --switch-height-sm: 24px;
+  --switch-width-sm: 44px;
+  --switch-thumb-size-sm: 18px;
+  --switch-track-label-padding-sm: 3px;
+  --switch-color: var(--mantine-primary-color-6);
+}
+
+.mantine-Switch-track {
+  box-shadow: inset 0 0 0 1px
+    light-dark(rgba(77, 91, 116, 0.1), rgba(0, 0, 0, 0.14));
+}
+
+:root[data-mantine-color-scheme="light"] .mantine-Switch-track {
+  --switch-bg: #d9e1ec;
+}
+
+:root[data-mantine-color-scheme="dark"] .mantine-Switch-track {
+  --switch-bg: #465365;
+}
+
+:root[data-mantine-color-scheme]
+  .mantine-Switch-input:checked
+  + .mantine-Switch-track {
+  --switch-bg: var(--mantine-primary-color-6);
+}
+
+.mantine-Switch-thumb {
+  box-shadow: 0 1px 4px rgba(24, 38, 62, 0.22);
+}
+
+.mantine-Switch-thumb[data-with-thumb-indicator]::before {
+  display: none;
+}
+
+.mantine-Switch-label {
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 500;
+}
+
+.mantine-Modal-content {
+  border-radius: 18px;
+  box-shadow: 0 24px 72px light-dark(rgba(20, 32, 55, 0.18), rgba(0, 0, 0, 0.5));
+}
+
+.mantine-Modal-header {
+  padding: 22px 24px 14px;
+}
+
+.mantine-Modal-body {
+  padding: 0 24px 24px;
+}
+
+@media (max-width: 48em) {
+  .appContent {
+    padding-top: 22px;
+    padding-bottom: 44px;
+  }
+  .mantine-Modal-header {
+    padding: 18px 18px 12px;
+  }
+  .mantine-Modal-body {
+    padding: 0 18px 18px;
+  }
+}
+
 /* Lucide defaults to 24px, which crowds compact controls and list rows. */
 svg.lucide[width="24"][height="24"] {
   width: 16px;
@@ -10,7 +278,10 @@ svg.lucide[width="24"][height="24"] {
 }
 
 * {
-  scrollbar-color: light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-4))
+  scrollbar-color: light-dark(
+      var(--mantine-color-gray-4),
+      var(--mantine-color-dark-4)
+    )
     transparent;
   scrollbar-width: thin;
 }

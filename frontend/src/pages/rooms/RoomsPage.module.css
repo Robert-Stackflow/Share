@@ -1,20 +1,26 @@
 .shell {
   display: grid;
-  grid-template-columns: 280px minmax(0, 1fr);
+  grid-template-columns: 300px minmax(0, 1fr);
   height: min(760px, calc(100vh - 180px));
   min-height: 560px;
-  border: 1px solid
-    light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
-  border-radius: 8px;
+  background: var(--share-surface);
+  border: 1px solid var(--share-border);
+  border-radius: 20px;
+  box-shadow: var(--share-shadow);
   overflow: hidden;
 }
 .sidebar {
   display: flex;
   flex-direction: column;
   min-height: 0;
-  padding: var(--mantine-spacing-sm);
-  border-right: 1px solid
-    light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
+  padding: 18px 12px;
+  background: light-dark(#f9fafd, #1a202a);
+  border-right: 1px solid var(--share-border);
+}
+
+.sidebar :global(.mantine-SegmentedControl-root) {
+  border-radius: 11px;
+  background: light-dark(#eef1f7, #252c38);
 }
 .roomList {
   overflow-y: auto;
@@ -23,23 +29,29 @@
 .roomEntry {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   width: 100%;
-  padding: 10px;
-  margin-top: 4px;
-  border: 0;
-  border-radius: 6px;
+  padding: 13px 12px;
+  margin-top: 6px;
+  border: 1px solid transparent;
+  border-radius: 12px;
   color: var(--mantine-color-text);
   background: transparent;
   text-align: left;
   cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
 }
-.roomEntry:hover,
-.selected {
-  background: light-dark(
-    var(--mantine-color-gray-1),
-    var(--mantine-color-dark-6)
-  );
+.roomEntry:hover {
+  background: light-dark(#eef2f8, #252d39);
+}
+.selected,
+.selected:hover {
+  background: var(--share-surface);
+  border-color: light-dark(#dae4f8, #465a84);
+  box-shadow: 0 3px 12px light-dark(rgba(42, 75, 135, 0.08), rgba(0, 0, 0, 0.12));
+}
+.selected :global(svg) {
+  color: var(--mantine-primary-color-6);
 }
 .entryText {
   display: flex;
@@ -63,10 +75,9 @@
   min-height: 0;
 }
 .toolbar {
-  min-height: 48px;
-  padding: 0 var(--mantine-spacing-sm);
-  border-bottom: 1px solid
-    light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
+  min-height: 62px;
+  padding: 0 20px;
+  border-bottom: 1px solid var(--share-border);
 }
 .empty {
   flex: 1;
@@ -74,6 +85,11 @@
 }
 .mobileBack {
   display: none;
+}
+.roomForm :global(.mantine-InputWrapper-label) {
+  color: var(--mantine-color-dimmed);
+  font-weight: 500;
+  margin-bottom: 8px;
 }
 @media (max-width: 48em) {
   .shell {

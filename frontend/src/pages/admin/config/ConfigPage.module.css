@@ -1,0 +1,57 @@
+.shell :global(.mantine-AppShell-header),
+.shell :global(.mantine-AppShell-navbar) {
+  background: var(--share-surface);
+  border-color: var(--share-border);
+}
+
+.content {
+  max-width: 1040px;
+  padding: 30px 22px 64px;
+}
+
+.pageTitle {
+  margin-bottom: 14px;
+  font-size: 27px;
+  letter-spacing: -0.025em;
+}
+
+.configRow {
+  background: var(--share-surface);
+  border: 1px solid var(--share-border);
+  border-radius: 15px;
+  box-shadow: var(--share-shadow);
+  padding: 18px 20px;
+}
+
+.configGrid {
+  align-items: center;
+  display: grid;
+  gap: 24px;
+  grid-template-columns: minmax(180px, 0.85fr) minmax(0, 1.15fr);
+}
+
+.description {
+  line-height: 1.5;
+  white-space: pre-line;
+}
+
+.configControl {
+  min-width: 0;
+  width: 100%;
+}
+
+@media (max-width: 700px) {
+  .content {
+    padding: 20px 8px 44px;
+  }
+
+  .configRow {
+    padding: 16px;
+  }
+
+  .configGrid {
+    align-items: stretch;
+    gap: 12px;
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

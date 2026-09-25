@@ -30,7 +30,7 @@ import { useClipboard } from "@mantine/hooks";
 import { useModals } from "@mantine/modals";
 import { AxiosError } from "axios";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import FormattedMessage from "../../components/core/FormattedMessage";
 import AccessControlForm from "../../components/access/AccessControlForm";
 import AssetContentComposer from "../../components/content/AssetContentComposer";
@@ -75,6 +75,7 @@ export default function RoomsPage() {
   const [selection, setSelection] = useState<Selection>(null);
   const selectionRef = useRef(selection);
   selectionRef.current = selection;
+  const initialSelectionDone = useRef(false);
   const [activeVisited, setActiveVisited] = useState<Room>();
   const [locked, setLocked] = useState(false);
   const [filter, setFilter] = useState<Filter>("all");
@@ -153,7 +154,8 @@ export default function RoomsPage() {
         : null;
   const syncStatus = useLiveSync(eventsUrl, refreshActive);
 
-  const selectVisited = (room: VisitedRoom) => {
+  const selectVisited = useCallback((room: VisitedRoom) => {
+    initialSelectionDone.current = true;
     setActiveVisited(undefined);
     setLocked(false);
     setSelection({ kind: "visited", roomId: room.roomId });
@@ -174,7 +176,21 @@ export default function RoomsPage() {
           setLocked(true);
         else toast.axiosError(error);
       });
-  };
+  }, []);
+
+  useEffect(() => {
+    if (!user || !owned || initialSelectionDone.current || selectionRef.current)
+      return;
+    const firstOwned =
+      owned.find((room) => room.visibility === "PRIVATE") ?? owned[0];
+    if (firstOwned) {
+      initialSelectionDone.current = true;
+      setSelection({ kind: "owned", roomId: firstOwned.roomId });
+      return;
+    }
+    const firstVisited = visited[0];
+    if (firstVisited) selectVisited(firstVisited);
+  }, [owned, visited, user, selectVisited]);
 
   const create = createForm.onSubmit((values) => {
     void roomService
@@ -190,6 +206,7 @@ export default function RoomsPage() {
             : [room, ...(current ?? [])],
         );
         setFilter("all");
+        initialSelectionDone.current = true;
         setSelection({ kind: "owned", roomId: room.roomId });
         setCreateOpen(false);
         createForm.reset();
@@ -346,7 +363,9 @@ export default function RoomsPage() {
           <FormattedMessage id="room.rooms.create" />
         </Button>
       </Group>
-      <div className={`${classes.shell} ${selection ? classes.selectedShell : ""}`}>
+      <div
+        className={`${classes.shell} ${selection ? classes.selectedShell : ""}`}
+      >
         <aside className={classes.sidebar}>
           <SegmentedControl
             fullWidth
@@ -369,6 +388,7 @@ export default function RoomsPage() {
                 className={`${classes.roomEntry} ${selection?.kind === "owned" && selection.roomId === room.roomId ? classes.selected : ""}`}
                 key={room.id}
                 onClick={() => {
+                  initialSelectionDone.current = true;
                   setSelection({ kind: "owned", roomId: room.roomId });
                   setLocked(false);
                 }}
@@ -592,7 +612,7 @@ export default function RoomsPage() {
         onClose={() => setCreateOpen(false)}
         title={t("room.rooms.create.title")}
       >
-        <form onSubmit={create}>
+        <form className={classes.roomForm} onSubmit={create}>
           <Stack>
             <TextInput
               label={t("room.rooms.name")}
@@ -621,7 +641,7 @@ export default function RoomsPage() {
         onClose={() => setEditing(undefined)}
         title={t("room.rooms.edit.title")}
       >
-        <form onSubmit={update}>
+        <form className={classes.roomForm} onSubmit={update}>
           <Stack>
             <TextInput
               label={t("room.rooms.name")}

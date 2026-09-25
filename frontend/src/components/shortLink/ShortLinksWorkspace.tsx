@@ -284,7 +284,7 @@ const ShortLinksWorkspace = () => {
         </Group>
       </Group>
 
-      <Group gap="sm" mb="lg" align="flex-end">
+      <Group className={classes.quickCreate} gap="sm" mb="lg" align="flex-end">
         <TextInput
           aria-label={t("account.shortLinks.quick-url")}
           placeholder={t("account.shortLinks.quick-url")}
@@ -408,7 +408,7 @@ const ShortLinksWorkspace = () => {
       </Modal>
 
       {links.length > 0 && (
-        <Group align="flex-end" gap="sm" mb="md" wrap="wrap">
+        <Group className={classes.filters} align="flex-end" gap="sm" mb="md" wrap="wrap">
           <TextInput
             aria-label={t("account.shortLinks.filter.search")}
             leftSection={<Search size={16} />}

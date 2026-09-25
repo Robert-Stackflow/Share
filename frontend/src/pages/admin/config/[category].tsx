@@ -11,7 +11,6 @@ import {
   Text,
   Title,
 } from "@mantine/core";
-import { useMediaQuery } from "@mantine/hooks";
 import { GetStaticPaths, GetStaticProps } from "next";
 
 import { useRouter } from "next/router";
@@ -30,6 +29,7 @@ import useTranslate from "../../../hooks/useTranslate.hook";
 import useStaticRouteParam from "../../../hooks/staticRouteParam.hook";
 import configService from "../../../services/config.service";
 import { AdminConfig, UpdateConfig } from "../../../types/config.type";
+import classes from "./ConfigPage.module.css";
 
 export const getStaticPaths: GetStaticPaths = async () => ({
   paths: [{ params: { category: "_" } }],
@@ -67,7 +67,6 @@ export default function AppShellDemo() {
   const t = useTranslate();
 
   const [isMobileNavBarOpened, setIsMobileNavBarOpened] = useState(false);
-  const isMobile = useMediaQuery("(max-width: 560px)");
   const config = useConfig();
 
   const routeCategory = useStaticRouteParam("category", 2);
@@ -155,18 +154,15 @@ export default function AppShellDemo() {
       configVariable.value = sanitizeUrl(configVariable.value);
     }
 
-    const index = updatedConfigVariables.findIndex(
-      (item) => item.key === configVariable.key,
-    );
-
-    if (index > -1) {
-      updatedConfigVariables[index] = {
-        ...updatedConfigVariables[index],
-        ...configVariable,
-      };
-    } else {
-      setUpdatedConfigVariables([...updatedConfigVariables, configVariable]);
-    }
+    setUpdatedConfigVariables((current) => {
+      const index = current.findIndex(
+        (item) => item.key === configVariable.key,
+      );
+      if (index < 0) return [...current, configVariable];
+      return current.map((item, itemIndex) =>
+        itemIndex === index ? { ...item, ...configVariable } : item,
+      );
+    });
   };
 
   const sanitizeUrl = (url: string): string => {
@@ -217,10 +213,10 @@ export default function AppShellDemo() {
           collapsed: { mobile: !isMobileNavBarOpened },
         }}
         padding="md"
+        className={classes.shell}
         styles={{
           main: {
-            background:
-              "light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-8))",
+            background: "var(--share-canvas)",
           },
         }}
       >
@@ -239,7 +235,7 @@ export default function AppShellDemo() {
           />
         </AppShell.Navbar>
         <AppShell.Main>
-          <Container size="lg">
+          <Container size="lg" className={classes.content}>
             {!configVariables || loadedCategory !== categoryId ? (
               <CenterLoader />
             ) : (
@@ -278,7 +274,7 @@ export default function AppShellDemo() {
 
                   return (
                     <>
-                      <Stack>
+                      <Stack gap="sm">
                         {!isEditingAllowed() && (
                           <Alert
                             mb={"lg"}
@@ -290,7 +286,7 @@ export default function AppShellDemo() {
                             <FormattedMessage id="admin.config.config-file-warning.description" />
                           </Alert>
                         )}
-                        <Title mb="md" order={3}>
+                        <Title className={classes.pageTitle} order={2}>
                           {t("admin.config.category." + categoryId)}
                         </Title>
                         {visibleConfigVariables.map((configVariable, index) => {
@@ -313,15 +309,13 @@ export default function AppShellDemo() {
                             provider !== null && provider !== previousProvider;
 
                           return (
-                            <Box key={configVariable.key}>
+                            <Box
+                              key={configVariable.key}
+                              className={classes.configRow}
+                            >
                               {showProviderDivider && <Divider mb="lg" />}
-                              <Group justify="space-between" align="flex-start">
-                                <Stack
-                                  style={{
-                                    maxWidth: isMobile ? "100%" : "40%",
-                                  }}
-                                  gap={0}
-                                >
+                              <div className={classes.configGrid}>
+                                <Stack gap={4}>
                                   <Title order={6}>
                                     <FormattedMessage
                                       id={`admin.config.${camelToKebab(
@@ -331,12 +325,9 @@ export default function AppShellDemo() {
                                   </Title>
 
                                   <Text
-                                    style={{
-                                      whiteSpace: "pre-line",
-                                    }}
+                                    className={classes.description}
                                     c="dimmed"
                                     size="sm"
-                                    mb="xs"
                                   >
                                     <FormattedMessage
                                       id={`admin.config.${camelToKebab(
@@ -346,13 +337,7 @@ export default function AppShellDemo() {
                                     />
                                   </Text>
                                 </Stack>
-                                <Stack></Stack>
-                                <Box
-                                  style={{
-                                    width: isMobile ? "100%" : "50%",
-                                    alignSelf: "center",
-                                  }}
-                                >
+                                <Box className={classes.configControl}>
                                   <AdminConfigInput
                                     key={configVariable.key}
                                     configVariable={configVariable}
@@ -366,7 +351,7 @@ export default function AppShellDemo() {
                                     }
                                   />
                                 </Box>
-                              </Group>
+                              </div>
                             </Box>
                           );
                         })}
@@ -380,15 +365,11 @@ export default function AppShellDemo() {
                         )}
                         {categoryId == "appearance" &&
                           customCssConfigVariable && (
-                            <Group
+                            <div
                               key={customCssConfigVariable.key}
-                              justify="space-between"
-                              align="flex-start"
+                              className={`${classes.configRow} ${classes.configGrid}`}
                             >
-                              <Stack
-                                style={{ maxWidth: isMobile ? "100%" : "40%" }}
-                                gap={0}
-                              >
+                              <Stack gap={4}>
                                 <Title order={6}>
                                   <FormattedMessage
                                     id={`admin.config.${camelToKebab(
@@ -398,12 +379,9 @@ export default function AppShellDemo() {
                                 </Title>
 
                                 <Text
-                                  style={{
-                                    whiteSpace: "pre-line",
-                                  }}
+                                  className={classes.description}
                                   c="dimmed"
                                   size="sm"
-                                  mb="xs"
                                 >
                                   <FormattedMessage
                                     id={`admin.config.${camelToKebab(
@@ -413,8 +391,7 @@ export default function AppShellDemo() {
                                   />
                                 </Text>
                               </Stack>
-                              <Stack></Stack>
-                              <Box style={{ width: isMobile ? "100%" : "50%" }}>
+                              <Box className={classes.configControl}>
                                 <AdminConfigInput
                                   key={customCssConfigVariable.key}
                                   configVariable={customCssConfigVariable}
@@ -428,7 +405,7 @@ export default function AppShellDemo() {
                                   }
                                 />
                               </Box>
-                            </Group>
+                            </div>
                           )}
                       </Stack>
                     </>

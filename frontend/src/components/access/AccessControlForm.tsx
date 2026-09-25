@@ -1,11 +1,4 @@
-import {
-  NumberInput,
-  PasswordInput,
-  Stack,
-  Switch,
-  Text,
-  TextInput,
-} from "@mantine/core";
+import { NumberInput, PasswordInput, Stack, Switch, Text } from "@mantine/core";
 import { ReactNode } from "react";
 import useTranslate from "../../hooks/useTranslate.hook";
 import {
@@ -14,6 +7,7 @@ import {
   toAccessControlPayload,
 } from "../../types/accessControl.type";
 import classes from "./AccessControlForm.module.css";
+import DateTimeField from "../core/DateTimeField";
 
 export { toAccessControlPayload };
 export type { AccessControl };
@@ -27,6 +21,7 @@ type AccessControlFormProps = {
    * their existing passcode field.
    */
   fields?: AccessControlField[];
+  showTitle?: boolean;
 };
 
 const ALL_FIELDS: AccessControlField[] = [
@@ -42,6 +37,7 @@ const AccessControlForm = ({
   value,
   onChange,
   fields,
+  showTitle = true,
 }: AccessControlFormProps) => {
   const t = useTranslate();
 
@@ -74,10 +70,12 @@ const AccessControlForm = ({
   );
 
   return (
-    <Stack gap="sm">
-      <Text size="sm" fw={500}>
-        {t("accessControl.title")}
-      </Text>
+    <Stack className={classes.form} gap="sm">
+      {showTitle && (
+        <Text size="sm" fw={500} c="dimmed" mt="xs">
+          {t("accessControl.title")}
+        </Text>
+      )}
 
       {visible("password") && (
         <PasswordInput
@@ -91,12 +89,10 @@ const AccessControlForm = ({
       )}
 
       {visible("expiresAt") && (
-        <TextInput
+        <DateTimeField
           label={t("accessControl.expiresAt")}
-          type="datetime-local"
           value={value.expiresAt ?? ""}
-          variant="filled"
-          onChange={(event) => set("expiresAt", event.currentTarget.value)}
+          onChange={(next) => set("expiresAt", next)}
         />
       )}
 

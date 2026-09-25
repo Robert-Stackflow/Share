@@ -29,7 +29,7 @@ import {
   isRouteWithin,
 } from "./navigation.util";
 
-const HEADER_HEIGHT = 60;
+const HEADER_HEIGHT = 68;
 
 type NavLink = {
   link?: string;
@@ -271,7 +271,7 @@ const Header = () => {
   return (
     <>
       <Box component="header" h={HEADER_HEIGHT} mb={0} className={classes.root}>
-        <Container size={1080} className={classes.header}>
+        <Container size={1200} className={classes.header}>
           <Link href="/" passHref>
             <Group>
               <Logo height={35} width={35} />
@@ -316,7 +316,6 @@ const Header = () => {
           </Paper>
         )}
       </Transition>
-      {!opened && <Box mb={40} />}
     </>
   );
 };

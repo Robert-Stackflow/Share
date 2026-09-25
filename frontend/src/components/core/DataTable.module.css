@@ -1,7 +1,8 @@
 .tablePanel {
-  background: var(--mantine-color-body);
-  border: 1px solid light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
-  border-radius: 8px;
+  background: var(--share-surface);
+  border: 1px solid var(--share-border);
+  border-radius: 16px;
+  box-shadow: var(--share-shadow);
   overflow-x: auto;
 }
 
@@ -11,18 +12,19 @@
 }
 
 .table :global(th) {
-  color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-0));
+  background: light-dark(#fafbfe, #202630);
+  color: var(--share-muted);
   font-size: var(--mantine-font-size-xs);
   font-weight: 700;
   line-height: 1.2;
-  padding: 14px var(--mantine-spacing-md);
+  padding: 17px var(--mantine-spacing-md);
   text-align: left;
   white-space: nowrap;
 }
 
 .table :global(td) {
-  border-top: 1px solid light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
-  padding: 12px var(--mantine-spacing-md);
+  border-top: 1px solid var(--share-border);
+  padding: 16px var(--mantine-spacing-md);
   vertical-align: middle;
 }
 

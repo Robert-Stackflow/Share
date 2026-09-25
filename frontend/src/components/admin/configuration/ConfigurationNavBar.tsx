@@ -53,7 +53,6 @@ const ConfigurationNavBar = ({
         <Stack gap="xs">
           {categories.map((category) => (
             <Box
-              p="xs"
               component="a"
               onClick={(event) => {
                 if (
@@ -69,11 +68,11 @@ const ConfigurationNavBar = ({
                 onCategoryChange(category.name.toLowerCase());
                 setIsMobileNavBarOpened(false);
               }}
-              className={
+              className={`${classes.navLink} ${
                 categoryId == category.name.toLowerCase()
                   ? classes.activeLink
-                  : undefined
-              }
+                  : ""
+              }`}
               key={category.name}
               href={`/admin/config/${category.name.toLowerCase()}/`}
             >

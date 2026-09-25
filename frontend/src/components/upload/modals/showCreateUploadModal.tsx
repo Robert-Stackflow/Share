@@ -3,11 +3,9 @@ import {
   CircleAlert,
   FileIcon,
   Link2,
-  Plus,
   RefreshCw,
   Send,
   Share2,
-  Trash2,
 } from "lucide-react";
 import {
   ActionIcon,
@@ -99,7 +97,7 @@ const showCreateUploadModal = (
   return modals.openModal({
     title: t(options.isInbox ? "inbox.submit.review" : "upload.modal.title"),
     centered: true,
-    size: 760,
+    size: 860,
     children: (
       <CreateUploadModalBody
         options={options}
@@ -171,16 +169,12 @@ const CreateUploadModalBody = ({
       ? "files"
       : (initialAssets[0]?.type.toLowerCase() ?? "files"),
   );
-  const [pendingTextAssets, setPendingTextAssets] = useState<string[]>(
-    initialAssets
-      .filter((asset) => asset.type === "TEXT")
-      .map((asset) => asset.content),
-  );
-  const [pendingLinkAssets, setPendingLinkAssets] = useState<string[]>(
-    initialAssets
-      .filter((asset) => asset.type === "LINK")
-      .map((asset) => asset.url),
-  );
+  const pendingTextAssets = initialAssets
+    .filter((asset) => asset.type === "TEXT")
+    .map((asset) => asset.content);
+  const pendingLinkAssets = initialAssets
+    .filter((asset) => asset.type === "LINK")
+    .map((asset) => asset.url);
   const [accessControl, setAccessControl] = useState<AccessControl>({});
 
   const validationSchema = yup.object().shape({
@@ -227,8 +221,6 @@ const CreateUploadModalBody = ({
     expiration_num: number;
     expiration_unit: string;
     never_expires: boolean;
-    textContent: string;
-    linkUrl: string;
   }>({
     initialValues: {
       name: undefined,
@@ -240,8 +232,6 @@ const CreateUploadModalBody = ({
       expiration_num: defaultTimespan.value,
       expiration_unit: `-${defaultTimespan.unit}` as string,
       never_expires: false,
-      textContent: "",
-      linkUrl: "",
     },
     validate: yupResolver(validationSchema),
   });
@@ -258,30 +248,6 @@ const CreateUploadModalBody = ({
   ];
   const totalFileSize = files.reduce((sum, file) => sum + file.size, 0);
   const contentCount = files.length + pendingAssets.length;
-
-  const addPendingTextAsset = () => {
-    const content = form.values.textContent.trim();
-    if (!content) return;
-
-    setPendingTextAssets((current) => [...current, content]);
-    form.setFieldValue("textContent", "");
-  };
-
-  const addPendingLinkAsset = () => {
-    const url = form.values.linkUrl.trim();
-    if (!url) return;
-
-    try {
-      new URL(url);
-    } catch {
-      form.setFieldError("linkUrl", t("upload.modal.content.link.invalid"));
-      return;
-    }
-
-    setPendingLinkAssets((current) => [...current, url]);
-    form.setFieldValue("linkUrl", "");
-    form.clearFieldError("linkUrl");
-  };
 
   const onSubmit = form.onSubmit(async (values) => {
     if (
@@ -415,13 +381,11 @@ const CreateUploadModalBody = ({
                         : "upload.modal.content.title",
                     )}
                   </Text>
-                  <Text className={modalClasses.sectionDescription}>
-                    {t(
-                      options.isInbox
-                        ? "inbox.submit.contentDescription"
-                        : "upload.modal.content.description",
-                    )}
-                  </Text>
+                  {options.isInbox && (
+                    <Text className={modalClasses.sectionDescription}>
+                      {t("inbox.submit.contentDescription")}
+                    </Text>
+                  )}
                 </div>
                 <Badge
                   className={modalClasses.countBadge}
@@ -438,15 +402,24 @@ const CreateUploadModalBody = ({
                 onChange={setActiveContentTab}
               >
                 <Tabs.List>
-                  <Tabs.Tab value="files" leftSection={<FileIcon size={15} />}>
-                    {t("upload.modal.content.files")}
-                  </Tabs.Tab>
-                  <Tabs.Tab value="text" leftSection={<Captions size={15} />}>
-                    {t("upload.modal.content.text")}
-                  </Tabs.Tab>
-                  <Tabs.Tab value="link" leftSection={<Link2 size={15} />}>
-                    {t("upload.modal.content.link")}
-                  </Tabs.Tab>
+                  {files.length > 0 && (
+                    <Tabs.Tab
+                      value="files"
+                      leftSection={<FileIcon size={15} />}
+                    >
+                      {t("upload.modal.content.files")}
+                    </Tabs.Tab>
+                  )}
+                  {pendingTextAssets.length > 0 && (
+                    <Tabs.Tab value="text" leftSection={<Captions size={15} />}>
+                      {t("upload.modal.content.text")}
+                    </Tabs.Tab>
+                  )}
+                  {pendingLinkAssets.length > 0 && (
+                    <Tabs.Tab value="link" leftSection={<Link2 size={15} />}>
+                      {t("upload.modal.content.link")}
+                    </Tabs.Tab>
+                  )}
                 </Tabs.List>
 
                 <Tabs.Panel
@@ -498,139 +471,48 @@ const CreateUploadModalBody = ({
                   className={modalClasses.contentTabPanel}
                   value="text"
                 >
-                  <Stack gap="sm">
-                    <Textarea
-                      autosize
-                      label={t("upload.modal.content.text.label")}
-                      minRows={3}
-                      placeholder={t("upload.modal.content.text.placeholder")}
-                      variant="filled"
-                      {...form.getInputProps("textContent")}
-                    />
-                    <Group justify="flex-end">
-                      <Button
-                        color="gray"
-                        disabled={!form.values.textContent.trim()}
-                        leftSection={<Plus />}
-                        type="button"
-                        variant="default"
-                        onClick={addPendingTextAsset}
+                  <div className={modalClasses.pendingAssetList}>
+                    {pendingTextAssets.map((content, index) => (
+                      <div
+                        className={modalClasses.assetSummaryRow}
+                        key={`${content}-${index}`}
                       >
-                        {t("upload.modal.content.text.add")}
-                      </Button>
-                    </Group>
-                    <div className={modalClasses.pendingAssetList}>
-                      {pendingTextAssets.length === 0 ? (
-                        <Text className={modalClasses.emptyState}>
-                          {t("upload.modal.content.text.empty")}
-                        </Text>
-                      ) : (
-                        pendingTextAssets.map((content, index) => (
-                          <div
-                            className={modalClasses.assetSummaryRow}
-                            key={`${content}-${index}`}
+                        <div className={modalClasses.assetSummaryMain}>
+                          <Captions size={16} />
+                          <Text
+                            className={modalClasses.pendingAssetValue}
+                            lineClamp={2}
                           >
-                            <div className={modalClasses.assetSummaryMain}>
-                              <Captions size={16} />
-                              <Text
-                                className={modalClasses.pendingAssetValue}
-                                lineClamp={1}
-                              >
-                                {content}
-                              </Text>
-                            </div>
-                            <HoverTip label={t("common.button.delete")}>
-                              <ActionIcon
-                                aria-label={t("common.button.delete")}
-                                color="gray"
-                                size="sm"
-                                type="button"
-                                variant="subtle"
-                                onClick={() =>
-                                  setPendingTextAssets((current) =>
-                                    current.filter(
-                                      (_, itemIndex) => itemIndex !== index,
-                                    ),
-                                  )
-                                }
-                              >
-                                <Trash2 />
-                              </ActionIcon>
-                            </HoverTip>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </Stack>
+                            {content}
+                          </Text>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </Tabs.Panel>
 
                 <Tabs.Panel
                   className={modalClasses.contentTabPanel}
                   value="link"
                 >
-                  <Stack gap="sm">
-                    <div className={modalClasses.inlineActionRow}>
-                      <TextInput
-                        error={form.errors.linkUrl}
-                        label={t("upload.modal.content.link.label")}
-                        placeholder="https://example.com"
-                        variant="filled"
-                        {...form.getInputProps("linkUrl")}
-                      />
-                      <Button
-                        color="gray"
-                        disabled={!form.values.linkUrl.trim()}
-                        leftSection={<Plus />}
-                        type="button"
-                        variant="default"
-                        onClick={addPendingLinkAsset}
+                  <div className={modalClasses.pendingAssetList}>
+                    {pendingLinkAssets.map((url, index) => (
+                      <div
+                        className={modalClasses.assetSummaryRow}
+                        key={`${url}-${index}`}
                       >
-                        {t("upload.modal.content.link.add")}
-                      </Button>
-                    </div>
-                    <div className={modalClasses.pendingAssetList}>
-                      {pendingLinkAssets.length === 0 ? (
-                        <Text className={modalClasses.emptyState}>
-                          {t("upload.modal.content.link.empty")}
-                        </Text>
-                      ) : (
-                        pendingLinkAssets.map((url, index) => (
-                          <div
-                            className={modalClasses.assetSummaryRow}
-                            key={`${url}-${index}`}
+                        <div className={modalClasses.assetSummaryMain}>
+                          <Link2 size={16} />
+                          <Text
+                            className={modalClasses.pendingAssetValue}
+                            lineClamp={2}
                           >
-                            <div className={modalClasses.assetSummaryMain}>
-                              <Link2 size={16} />
-                              <Text
-                                className={modalClasses.pendingAssetValue}
-                                lineClamp={1}
-                              >
-                                {url}
-                              </Text>
-                            </div>
-                            <HoverTip label={t("common.button.delete")}>
-                              <ActionIcon
-                                aria-label={t("common.button.delete")}
-                                color="gray"
-                                size="sm"
-                                type="button"
-                                variant="subtle"
-                                onClick={() =>
-                                  setPendingLinkAssets((current) =>
-                                    current.filter(
-                                      (_, itemIndex) => itemIndex !== index,
-                                    ),
-                                  )
-                                }
-                              >
-                                <Trash2 />
-                              </ActionIcon>
-                            </HoverTip>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </Stack>
+                            {url}
+                          </Text>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </Tabs.Panel>
               </Tabs>
             </section>
@@ -759,7 +641,9 @@ const CreateUploadModalBody = ({
             </section>
 
             {options.enableEmailRecepients && !options.isInbox && (
-              <section className={modalClasses.flatSection}>
+              <section
+                className={`${modalClasses.flatSection} ${modalClasses.createShareWide}`}
+              >
                 <div className={modalClasses.sectionHeader}>
                   <Text className={modalClasses.sectionTitle}>
                     {t("upload.modal.access.email.title")}
@@ -796,43 +680,49 @@ const CreateUploadModalBody = ({
             )}
 
             {!options.isInbox && (
-              <section className={modalClasses.flatSection}>
+              <section
+                className={`${modalClasses.flatSection} ${modalClasses.createShareWide}`}
+              >
                 <div className={modalClasses.sectionHeader}>
                   <Text className={modalClasses.sectionTitle}>
                     {t("upload.modal.access.security.title")}
                   </Text>
                 </div>
-                <Stack align="stretch" gap="sm">
-                  <PasswordInput
-                    autoComplete="new-password"
-                    label={t("upload.modal.access.security.password.label")}
-                    placeholder={t(
-                      "upload.modal.access.security.password.placeholder",
-                    )}
-                    variant="filled"
-                    {...form.getInputProps("password")}
-                  />
-                  <NumberInput
-                    hideControls
-                    label={t("upload.modal.access.security.max-views.label")}
-                    min={1}
-                    placeholder={t(
-                      "upload.modal.access.security.max-views.placeholder",
-                    )}
-                    variant="filled"
-                    {...form.getInputProps("maxViews")}
-                  />
+                <div className={modalClasses.shareAccessGrid}>
+                  <Stack className={modalClasses.shareAccessColumn} gap="md">
+                    <PasswordInput
+                      autoComplete="new-password"
+                      label={t("upload.modal.access.security.password.label")}
+                      placeholder={t(
+                        "upload.modal.access.security.password.placeholder",
+                      )}
+                      variant="filled"
+                      {...form.getInputProps("password")}
+                    />
+                    <NumberInput
+                      hideControls
+                      label={t("upload.modal.access.security.max-views.label")}
+                      min={1}
+                      placeholder={t(
+                        "upload.modal.access.security.max-views.placeholder",
+                      )}
+                      variant="filled"
+                      {...form.getInputProps("maxViews")}
+                    />
+                    <AccessControlForm
+                      value={accessControl}
+                      onChange={setAccessControl}
+                      fields={["expiresAt"]}
+                      showTitle={false}
+                    />
+                  </Stack>
                   <AccessControlForm
                     value={accessControl}
                     onChange={setAccessControl}
-                    fields={[
-                      "expiresAt",
-                      "allowDownload",
-                      "allowAnonymous",
-                      "oneTime",
-                    ]}
+                    fields={["allowDownload", "allowAnonymous", "oneTime"]}
+                    showTitle={false}
                   />
-                </Stack>
+                </div>
               </section>
             )}
           </div>

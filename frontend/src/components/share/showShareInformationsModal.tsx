@@ -25,6 +25,7 @@ import { Timespan } from "../../types/timespan.type";
 import { byteToHumanSizeString } from "../../utils/fileSize.util";
 import toast from "../../utils/toast.util";
 import modalClasses from "../core/ModalForm.module.css";
+import DateTimeField from "../core/DateTimeField";
 import CopyTextField from "../upload/CopyTextField";
 import QRCode from "./QRCode";
 
@@ -328,12 +329,12 @@ const EditShareBody = ({
             </Text>
           </div>
           <Stack gap="sm">
-            <TextInput
+            <DateTimeField
               disabled={form.values.never_expires}
               label={t("account.shares.table.expiresAt")}
-              type="datetime-local"
-              variant="filled"
-              {...form.getInputProps("expiration")}
+              value={form.values.expiration}
+              error={form.errors.expiration as string | undefined}
+              onChange={(next) => form.setFieldValue("expiration", next ?? "")}
             />
             {(!maxExpiration || maxExpiration.value === 0) && (
               <Checkbox

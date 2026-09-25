@@ -12,6 +12,7 @@ import {
   TextInput,
   Title,
 } from "@mantine/core";
+import classes from "./AccountPage.module.css";
 import { useForm, yupResolver } from "@mantine/form";
 import { useModals } from "@mantine/modals";
 import { useEffect, useState } from "react";
@@ -136,10 +137,11 @@ const Account = () => {
   return (
     <>
       <Meta title={t("account.title")} />
-      <Title order={3} mb="xs">
+      <Title order={3} mb="lg">
         <FormattedMessage id="account.title" />
       </Title>
-      <Paper withBorder p="xl">
+      <div className={classes.primaryGrid}>
+      <Paper withBorder p="xl" className={classes.card}>
         <Title order={5} mb="xs">
           <FormattedMessage id="account.card.info.title" />
           {user?.isLdap ? (
@@ -179,7 +181,7 @@ const Account = () => {
         </form>
       </Paper>
       {user?.isLdap ? null : (
-        <Paper withBorder p="xl" mt="lg">
+        <Paper withBorder p="xl" className={classes.card}>
           <Title order={5} mb="xs">
             <FormattedMessage id="account.card.password.title" />
           </Title>
@@ -219,8 +221,9 @@ const Account = () => {
           </form>
         </Paper>
       )}
+      </div>
       {oauth.length > 0 && (
-        <Paper withBorder p="xl" mt="lg">
+        <Paper withBorder p="xl" mt="lg" className={classes.card}>
           <Title order={5} mb="xs">
             <FormattedMessage id="account.card.oauth.title" />
           </Title>
@@ -293,7 +296,7 @@ const Account = () => {
           </Tabs>
         </Paper>
       )}
-      <Paper withBorder p="xl" mt="lg">
+      <Paper withBorder p="xl" mt="lg" className={`${classes.card} ${classes.security}`}>
         <Title order={5} mb="xs">
           <FormattedMessage id="account.card.security.title" />
         </Title>
@@ -389,18 +392,20 @@ const Account = () => {
           </Tabs.Panel>
         </Tabs>
       </Paper>
-      <Paper withBorder p="xl" mt="lg">
+      <div className={classes.preferenceGrid}>
+      <Paper withBorder p="xl" className={classes.card}>
         <Title order={5} mb="xs">
           <FormattedMessage id="account.card.language.title" />
         </Title>
         <LanguagePicker />
       </Paper>
-      <Paper withBorder p="xl" mt="lg">
+      <Paper withBorder p="xl" className={classes.card}>
         <Title order={5} mb="xs">
           <FormattedMessage id="account.card.color.title" />
         </Title>
         <ThemeSwitcher />
       </Paper>
+      </div>
       <Center mt={80} mb="lg">
         <Stack>
           <Button

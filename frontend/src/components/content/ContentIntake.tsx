@@ -1,17 +1,22 @@
-import { Clipboard, FileIcon, Plus, Trash2, Upload } from "lucide-react";
+import {
+  Clipboard,
+  FileIcon,
+  Link2,
+  Plus,
+  Trash2,
+  Type,
+  Upload,
+} from "lucide-react";
 import {
   ActionIcon,
   Alert,
-  Badge,
   Button,
   FileButton,
   Group,
   Paper,
-  Select,
   Stack,
   Text,
   Textarea,
-  TextInput,
 } from "@mantine/core";
 import { useEffect, useRef, useState } from "react";
 import useTranslate from "../../hooks/useTranslate.hook";
@@ -58,6 +63,7 @@ export default function ContentIntake({
   maxFiles = Number.POSITIVE_INFINITY,
   disabled = false,
   resetSignal = 0,
+  presentation = "standard",
   onSubmit,
 }: {
   target: string;
@@ -66,6 +72,7 @@ export default function ContentIntake({
   maxFiles?: number;
   disabled?: boolean;
   resetSignal?: number;
+  presentation?: "standard" | "immersive";
   onSubmit: (
     items: PendingContent[],
   ) => Promise<boolean | string[] | void> | boolean | string[] | void;
@@ -73,13 +80,11 @@ export default function ContentIntake({
   const t = useTranslate();
   const [items, setItems] = useState<PendingContent[]>([]);
   const [draft, setDraft] = useState("");
-  const [draftOverride, setDraftOverride] = useState<"TEXT" | "LINK" | null>(
-    null,
-  );
   const [dragging, setDragging] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [pasteShortcut, setPasteShortcut] = useState("");
+  const [showEditor, setShowEditor] = useState(false);
   const draftRef = useRef<HTMLTextAreaElement>(null);
   const dragDepth = useRef(0);
   const internalDrag = useRef(false);
@@ -94,11 +99,12 @@ export default function ContentIntake({
     if (!resetSignal) return;
     setItems([]);
     setDraft("");
-    setDraftOverride(null);
     setError("");
+    setShowEditor(false);
   }, [resetSignal]);
 
   const addFiles = (files: File[]) => {
+    if (files.length && !draft.trim()) setShowEditor(false);
     setItems((previous) => {
       const currentSize = previous.reduce(
         (sum, item) =>
@@ -227,16 +233,24 @@ export default function ContentIntake({
     };
   }, [disabled, dragging, maxSize, maxFiles, t]);
 
-  const draftItem: PendingContent | null = draft.trim()
-    ? {
-        id: "draft",
-        type: draftOverride ?? (isSingleUrl(draft) ? "LINK" : "TEXT"),
-        value: draft,
-      }
-    : null;
+  const draftItem: PendingContent | null =
+    presentation === "standard" && draft.trim()
+      ? {
+          id: "draft",
+          type: isSingleUrl(draft) ? "LINK" : "TEXT",
+          value: draft.trim(),
+        }
+      : null;
   const validCount =
     items.filter((item) => !itemError(item, t)).length +
-    Number(Boolean(draftItem && !itemError(draftItem, t)));
+    Number(Boolean(draftItem));
+
+  const addDraft = () => {
+    if (!draft.trim()) return;
+    addText(draft.trim());
+    setDraft("");
+    draftRef.current?.focus();
+  };
 
   const pasteFromClipboard = async () => {
     try {
@@ -273,7 +287,7 @@ export default function ContentIntake({
     if (submitting || disabled || validCount === 0) return;
     const pending = [
       ...items.filter((item) => !itemError(item, t)),
-      ...(draftItem && !itemError(draftItem, t) ? [draftItem] : []),
+      ...(draftItem ? [draftItem] : []),
     ];
     setSubmitting(true);
     setError("");
@@ -284,10 +298,7 @@ export default function ContentIntake({
           completed === true ? pending.map((item) => item.id) : completed,
         );
         setItems((current) => current.filter((item) => !ids.has(item.id)));
-        if (ids.has("draft")) {
-          setDraft("");
-          setDraftOverride(null);
-        }
+        if (ids.has("draft")) setDraft("");
       }
     } catch {
       setError(t("content.error.submit"));
@@ -296,8 +307,33 @@ export default function ContentIntake({
     }
   };
 
+  const immersive = presentation === "immersive";
+  const compactHero = immersive && (showEditor || items.length > 0);
+  const draftEditor = (
+    <Textarea
+      ref={draftRef}
+      aria-label={t("content.input")}
+      placeholder={t("content.placeholder")}
+      minRows={immersive ? 4 : 3}
+      autosize
+      value={draft}
+      disabled={disabled || submitting}
+      onChange={(event) => {
+        setDraft(event.currentTarget.value);
+      }}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
+          event.preventDefault();
+          addDraft();
+        }
+      }}
+    />
+  );
+
   return (
-    <div className={classes.container}>
+    <div
+      className={`${classes.container} ${immersive ? classes.immersive : ""}`}
+    >
       {dragging && (
         <div className={classes.overlay} aria-hidden="true">
           <Upload size={36} />
@@ -306,153 +342,156 @@ export default function ContentIntake({
         </div>
       )}
       <Stack gap="xs">
-        <Group justify="space-between" align="center">
-          <Text size="sm" fw={600}>
-            {t("content.target", { target })}
-          </Text>
-          <Badge variant="light">
-            {t("content.pending", {
-              count: items.length + Number(Boolean(draftItem)),
-            })}
-          </Badge>
-        </Group>
-        <Textarea
-          ref={draftRef}
-          aria-label={t("content.input")}
-          placeholder={t("content.placeholder")}
-          minRows={3}
-          autosize
-          value={draft}
-          disabled={disabled || submitting}
-          onChange={(event) => {
-            setDraft(event.currentTarget.value);
-            if (!event.currentTarget.value) setDraftOverride(null);
-          }}
-        />
-        {pasteShortcut && (
-          <Text size="xs" c="dimmed">
-            {t("content.shortcut", { shortcut: pasteShortcut })}
-          </Text>
-        )}
-        <Group justify="space-between">
-          <Group gap="xs">
-            <FileButton multiple onChange={(files) => addFiles(files)}>
-              {(props) => (
-                <Button
-                  variant="light"
-                  leftSection={<FileIcon />}
-                  disabled={disabled || submitting || maxFiles === 0}
-                  {...props}
-                >
-                  {t("content.choose-file")}
-                </Button>
-              )}
-            </FileButton>
-            <Button
-              variant="subtle"
-              leftSection={<Clipboard />}
-              disabled={disabled || submitting}
-              onClick={() => void pasteFromClipboard()}
+        {immersive ? (
+          <>
+            <div
+              className={`${classes.hero} ${compactHero ? classes.heroCompact : ""}`}
             >
-              {t("content.paste")}
-            </Button>
-          </Group>
-          <Button
-            leftSection={<Plus />}
-            disabled={!validCount || disabled}
-            loading={submitting}
-            onClick={() => void submit()}
-          >
-            {buttonLabel}
-          </Button>
-        </Group>
-        {draftItem && (
-          <Group gap="xs">
-            <Text size="xs" c="dimmed">
-              {t("content.detected", {
-                type: t(`room.asset.type.${draftItem.type.toLowerCase()}`),
-              })}
-            </Text>
-            <Select
-              size="xs"
-              w={120}
-              aria-label={t("content.type")}
-              data={[
-                { value: "TEXT", label: t("room.asset.type.text") },
-                { value: "LINK", label: t("room.asset.type.link") },
-              ]}
-              value={draftItem.type}
-              onChange={(value) => setDraftOverride(value as "TEXT" | "LINK")}
-            />
-            {itemError(draftItem, t) && (
-              <Text size="xs" c="red">
-                {itemError(draftItem, t)}
+              <div className={classes.heroIcon}>
+                <Upload size={30} strokeWidth={1.7} />
+              </div>
+              <Text className={classes.heroTitle} fw={700}>
+                {t(
+                  compactHero ? "upload.intake.addMore" : "upload.intake.title",
+                )}
               </Text>
+              {!compactHero && (
+                <Text c="dimmed" ta="center" size="sm">
+                  {t("upload.intake.description")}
+                </Text>
+              )}
+              <Group
+                className={classes.heroActions}
+                justify="center"
+                gap="sm"
+                mt={compactHero ? 0 : "md"}
+              >
+                <FileButton multiple onChange={(files) => addFiles(files)}>
+                  {(props) => (
+                    <Button
+                      size={compactHero ? "sm" : "md"}
+                      leftSection={<FileIcon size={18} />}
+                      disabled={disabled || submitting || maxFiles === 0}
+                      {...props}
+                    >
+                      {t("content.choose-file")}
+                    </Button>
+                  )}
+                </FileButton>
+                <Button
+                  size={compactHero ? "sm" : "md"}
+                  variant="light"
+                  leftSection={<Type size={18} />}
+                  disabled={disabled || submitting}
+                  onClick={() => {
+                    setShowEditor(true);
+                    requestAnimationFrame(() => draftRef.current?.focus());
+                  }}
+                >
+                  {t("upload.intake.write")}
+                </Button>
+                <Button
+                  size={compactHero ? "sm" : "md"}
+                  variant="subtle"
+                  leftSection={<Clipboard size={18} />}
+                  disabled={disabled || submitting}
+                  onClick={() => void pasteFromClipboard()}
+                >
+                  {t("content.paste")}
+                </Button>
+              </Group>
+              {!compactHero && pasteShortcut && (
+                <Text size="xs" c="dimmed" mt="lg">
+                  {t("content.shortcut", { shortcut: pasteShortcut })}
+                </Text>
+              )}
+            </div>
+            {showEditor && (
+              <div className={classes.heroEditor}>
+                {draftEditor}
+                <Group justify="flex-end" mt="xs">
+                  <Button
+                    size="sm"
+                    disabled={!draft.trim() || disabled || submitting}
+                    onClick={addDraft}
+                  >
+                    {t("content.add")}
+                  </Button>
+                </Group>
+              </div>
             )}
-          </Group>
+          </>
+        ) : (
+          <>
+            {draftEditor}
+            <Group justify="space-between">
+              <Group gap="xs">
+                <FileButton multiple onChange={(files) => addFiles(files)}>
+                  {(props) => (
+                    <Button
+                      variant="light"
+                      leftSection={<FileIcon />}
+                      disabled={disabled || submitting || maxFiles === 0}
+                      {...props}
+                    >
+                      {t("content.choose-file")}
+                    </Button>
+                  )}
+                </FileButton>
+                <Button
+                  variant="subtle"
+                  leftSection={<Clipboard />}
+                  disabled={disabled || submitting}
+                  onClick={() => void pasteFromClipboard()}
+                >
+                  {t("content.paste")}
+                </Button>
+              </Group>
+              <Button
+                leftSection={<Plus />}
+                disabled={!validCount || disabled}
+                loading={submitting}
+                onClick={() => void submit()}
+              >
+                {buttonLabel}
+              </Button>
+            </Group>
+          </>
         )}
         {items.map((item) => (
-          <Paper key={item.id} withBorder p="xs">
+          <Paper key={item.id} className={classes.itemRow} withBorder p="xs">
             <Group align="flex-start" wrap="nowrap">
               <div className={classes.preview}>
                 {item.type === "FILE" ? (
-                  <Text size="sm">
-                    {item.file.name} · {byteToHumanSizeString(item.file.size)}
-                  </Text>
+                  <Group gap="sm" wrap="nowrap" className={classes.fileSummary}>
+                    <span className={classes.fileIcon}>
+                      <FileIcon size={17} />
+                    </span>
+                    <Text size="sm" fw={600} lineClamp={1}>
+                      {item.file.name}
+                    </Text>
+                    <Text size="xs" c="dimmed" className={classes.fileSize}>
+                      {byteToHumanSizeString(item.file.size)}
+                    </Text>
+                  </Group>
                 ) : (
-                  <>
-                    <Select
-                      size="xs"
-                      aria-label={t("content.type")}
-                      data={[
-                        { value: "TEXT", label: t("room.asset.type.text") },
-                        { value: "LINK", label: t("room.asset.type.link") },
-                      ]}
-                      value={item.type}
-                      onChange={(value) =>
-                        setItems((current) =>
-                          current.map((entry) =>
-                            entry.id === item.id && entry.type !== "FILE"
-                              ? { ...entry, type: value as "TEXT" | "LINK" }
-                              : entry,
-                          ),
-                        )
-                      }
-                    />
-                    {item.type === "TEXT" ? (
-                      <Textarea
-                        size="xs"
-                        autosize
-                        minRows={2}
-                        aria-label={t("content.value")}
-                        value={item.value}
-                        onChange={(event) =>
-                          setItems((current) =>
-                            current.map((entry) =>
-                              entry.id === item.id && entry.type !== "FILE"
-                                ? { ...entry, value: event.currentTarget.value }
-                                : entry,
-                            ),
-                          )
-                        }
-                      />
-                    ) : (
-                      <TextInput
-                        size="xs"
-                        aria-label={t("content.value")}
-                        value={item.value}
-                        onChange={(event) =>
-                          setItems((current) =>
-                            current.map((entry) =>
-                              entry.id === item.id && entry.type !== "FILE"
-                                ? { ...entry, value: event.currentTarget.value }
-                                : entry,
-                            ),
-                          )
-                        }
-                      />
-                    )}
-                  </>
+                  <Group gap="sm" wrap="nowrap" className={classes.fileSummary}>
+                    <span className={classes.fileIcon}>
+                      {item.type === "LINK" ? (
+                        <Link2 size={17} />
+                      ) : (
+                        <Type size={17} />
+                      )}
+                    </span>
+                    <Text
+                      size="sm"
+                      fw={600}
+                      lineClamp={2}
+                      className={classes.contentValue}
+                    >
+                      {item.value}
+                    </Text>
+                  </Group>
                 )}
                 {itemError(item, t) && (
                   <Text size="xs" c="red">
@@ -475,6 +514,19 @@ export default function ContentIntake({
             </Group>
           </Paper>
         ))}
+        {immersive && validCount > 0 && (
+          <Group justify="flex-end" mt="sm">
+            <Button
+              size="md"
+              leftSection={<Plus size={18} />}
+              disabled={disabled}
+              loading={submitting}
+              onClick={() => void submit()}
+            >
+              {buttonLabel}
+            </Button>
+          </Group>
+        )}
         {error && <Alert color="red">{error}</Alert>}
       </Stack>
     </div>

@@ -2,10 +2,16 @@
   gap: var(--mantine-spacing-md);
 }
 
+.modalStack :global(.mantine-InputWrapper-label) {
+  color: var(--mantine-color-dimmed);
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
 .section {
-  border: 1px solid light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
-  border-radius: 8px;
-  padding: var(--mantine-spacing-md);
+  border: 1px solid var(--share-border);
+  border-radius: 14px;
+  padding: 20px;
 }
 
 .sectionHeader {
@@ -46,15 +52,29 @@
   grid-column: 1 / -1;
 }
 
+.shareAccessGrid {
+  display: grid;
+  gap: var(--mantine-spacing-lg);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.shareAccessColumn {
+  min-width: 0;
+}
+
 .flatSection {
-  border: 1px solid light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
-  border-radius: 8px;
-  padding: var(--mantine-spacing-md);
+  border: 1px solid var(--share-border);
+  border-radius: 14px;
+  padding: 20px;
 }
 
 .previewBar {
-  background: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-6));
-  border: 1px solid light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
+  background: light-dark(
+    var(--mantine-color-gray-0),
+    var(--mantine-color-dark-6)
+  );
+  border: 1px solid
+    light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
   border-radius: 6px;
   color: var(--mantine-color-dimmed);
   font-size: var(--mantine-font-size-xs);
@@ -69,11 +89,17 @@
 }
 
 .contentTabs {
-  --tabs-color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-0));
+  --tabs-color: light-dark(
+    var(--mantine-color-gray-7),
+    var(--mantine-color-dark-0)
+  );
 }
 
 .contentTabs :global(.mantine-Tabs-list) {
-  border-bottom-color: light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
+  border-bottom-color: light-dark(
+    var(--mantine-color-gray-2),
+    var(--mantine-color-dark-4)
+  );
   gap: 4px;
 }
 
@@ -86,8 +112,14 @@
 }
 
 .contentTabs :global(.mantine-Tabs-tab[data-active]) {
-  background: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-6));
-  border-color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-0));
+  background: light-dark(
+    var(--mantine-color-gray-0),
+    var(--mantine-color-dark-6)
+  );
+  border-color: light-dark(
+    var(--mantine-color-gray-7),
+    var(--mantine-color-dark-0)
+  );
   color: var(--mantine-color-text);
 }
 
@@ -101,7 +133,8 @@
 }
 
 .pendingAssetList {
-  border: 1px solid light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
+  border: 1px solid
+    light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
   border-radius: 8px;
   display: grid;
   overflow: hidden;
@@ -118,7 +151,8 @@
 }
 
 .assetSummaryRow + .assetSummaryRow {
-  border-top: 1px solid light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
+  border-top: 1px solid
+    light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
 }
 
 .assetSummaryMain {
@@ -148,7 +182,8 @@
 }
 
 .metaGrid {
-  border: 1px solid light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
+  border: 1px solid
+    light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
   border-radius: 8px;
   overflow: hidden;
 }
@@ -161,7 +196,8 @@
 }
 
 .metaRow + .metaRow {
-  border-top: 1px solid light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
+  border-top: 1px solid
+    light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
 }
 
 .metaLabel {
@@ -213,7 +249,8 @@
 }
 
 .switchRow {
-  border: 1px solid light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
+  border: 1px solid
+    light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
   border-radius: 8px;
   padding: var(--mantine-spacing-sm);
 }
@@ -226,7 +263,8 @@
 
 .footer {
   align-items: center;
-  border-top: 1px solid light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
+  border-top: 1px solid
+    light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
   display: flex;
   gap: var(--mantine-spacing-sm);
   justify-content: flex-end;
@@ -235,6 +273,7 @@
 
 @media (max-width: 40em) {
   .createShareGrid,
+  .shareAccessGrid,
   .fieldGrid,
   .inlineActionRow,
   .metaRow {

@@ -1,10 +1,12 @@
 .root {
-  background: var(--mantine-color-body);
-  z-index: 1;
+  background: light-dark(rgba(255, 255, 255, 0.96), rgba(24, 29, 38, 0.96));
+  border-bottom: 1px solid var(--share-border);
+  position: relative;
+  z-index: 100;
 }
 
 .mobilePanel {
-  margin-bottom: var(--mantine-spacing-md);
+  margin-bottom: 0;
   border-top-right-radius: 0;
   border-top-left-radius: 0;
   overflow: hidden;
@@ -24,6 +26,16 @@
   height: 100%;
 }
 
+.header > :global(a) :global(.mantine-Group-root) {
+  gap: 10px;
+}
+
+.header > :global(a) :global(.mantine-Text-root) {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
 @media (max-width: $mantine-breakpoint-sm) {
   .links {
     display: none;
@@ -39,27 +51,28 @@
 .link {
   display: block;
   line-height: 1;
-  padding: 8px 12px;
-  border-radius: var(--mantine-radius-sm);
+  padding: 10px 15px;
+  border-radius: 10px;
   text-decoration: none;
-  color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-0));
+  color: light-dark(#5c6575, #c2cbd9);
   font-size: var(--mantine-font-size-sm);
-  font-weight: 500;
+  font-weight: 600;
+  transition: color 150ms ease, background-color 150ms ease;
 }
 
 .link:hover,
 .iconLink:hover {
   background-color: light-dark(
-    var(--mantine-color-gray-0),
+    #f2f5fa,
     var(--mantine-color-dark-6)
   );
 }
 
 .iconLink {
   color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-0));
-  border-radius: var(--mantine-radius-sm);
-  height: 34px;
-  width: 34px;
+  border-radius: 10px;
+  height: 38px;
+  width: 38px;
 }
 
 .link:focus-visible,
@@ -115,9 +128,6 @@
 
 .linkActive,
 .linkActive:hover {
-  background-color: light-dark(
-    var(--mantine-color-gray-1),
-    var(--mantine-color-dark-6)
-  );
-  color: light-dark(var(--mantine-color-gray-9), var(--mantine-color-dark-0));
+  background-color: var(--mantine-primary-color-light);
+  color: var(--mantine-primary-color-light-color);
 }

@@ -28,6 +28,7 @@ import {
   CreateAsset,
 } from "../../types/asset.type";
 import toast from "../../utils/toast.util";
+import classes from "./assets.module.css";
 
 type SortValue =
   | "createdAt_desc"
@@ -119,7 +120,7 @@ const Assets = () => {
       </Stack>
 
       {showFilters && (
-        <Group gap="sm" align="flex-end" wrap="wrap" mb="md">
+        <Group className={classes.filters} gap="sm" align="center" wrap="wrap" mb="md">
           <TextInput
             leftSection={<Search />}
             placeholder={t("account.assets.filter.search")}
@@ -193,6 +194,7 @@ const Assets = () => {
             w={170}
           />
           <Switch
+            className={classes.favoriteFilter}
             label={t("account.assets.filter.favorite")}
             checked={favoriteOnly}
             onChange={(event) => setFavoriteOnly(event.currentTarget.checked)}

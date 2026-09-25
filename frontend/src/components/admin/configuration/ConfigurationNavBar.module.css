@@ -7,8 +7,30 @@
 }
 
 .activeLink {
-  background-color: var(--mantine-primary-color-light);
-  color: var(--mantine-primary-color-light-color);
-  border-radius: var(--mantine-radius-sm);
+  background: var(--share-accent-soft);
+  color: var(--share-accent-ink);
+  border-radius: 11px;
   font-weight: 600;
+}
+
+.navLink {
+  border-radius: 11px;
+  color: var(--mantine-color-text);
+  display: block;
+  padding: 9px 10px;
+  transition: background 150ms ease;
+}
+
+.navLink:hover {
+  background: light-dark(#f2f5fa, #252d39);
+}
+
+.navLink.activeLink,
+.navLink.activeLink:hover {
+  background: var(--share-accent-soft);
+  color: var(--share-accent-ink);
+}
+
+.navLink :global(.mantine-ThemeIcon-root) {
+  border-radius: 9px;
 }

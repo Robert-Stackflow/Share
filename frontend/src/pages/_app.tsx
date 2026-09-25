@@ -356,10 +356,10 @@ function App({ Component, pageProps }: AppProps) {
                   ) : excludeDefaultLayoutRoutes.includes(route) ? (
                     <Component {...pageProps} />
                   ) : (
-                    <Stack justify="space-between" mih="100vh">
+                    <Stack className="appShell" justify="space-between" mih="100vh">
                       <div>
                         <Header />
-                        <Container size={1080}>
+                        <Container className="appContent" size={1200}>
                           <Component {...pageProps} />
                         </Container>
                       </div>

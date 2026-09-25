@@ -1,0 +1,28 @@
+.filters {
+  min-height: 44px;
+}
+
+.favoriteFilter {
+  align-items: center;
+  background: var(--share-surface);
+  border: 1px solid var(--share-border);
+  border-radius: 11px;
+  display: flex;
+  height: 42px;
+  padding: 0 12px;
+}
+
+.favoriteFilter :global(.mantine-Switch-body) {
+  align-items: center;
+  gap: 10px;
+}
+
+.favoriteFilter :global(.mantine-Switch-labelWrapper) {
+  padding: 0;
+}
+
+@media (max-width: 48em) {
+  .favoriteFilter {
+    width: 100%;
+  }
+}

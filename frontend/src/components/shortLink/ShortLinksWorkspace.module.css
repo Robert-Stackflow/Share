@@ -2,6 +2,18 @@
   width: 100%;
 }
 
+.quickCreate {
+  background: var(--share-surface);
+  border: 1px solid var(--share-border);
+  border-radius: 16px;
+  box-shadow: var(--share-shadow);
+  padding: 20px;
+}
+
+.filters {
+  padding: 0 2px;
+}
+
 .shortLinkTable {
   table-layout: fixed;
 }
@@ -12,7 +24,7 @@
 }
 
 .shortLinkTableRow:hover {
-  background: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-5));
+  background: light-dark(#f7f9fd, #252c38);
 }
 
 .targetCell {
@@ -72,9 +84,10 @@
 }
 
 .statsHeaderPanel {
-  background: var(--mantine-color-body);
-  border: 1px solid light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
-  border-radius: 8px;
+  background: var(--share-surface);
+  border: 1px solid var(--share-border);
+  border-radius: 16px;
+  box-shadow: var(--share-shadow);
   margin-bottom: var(--mantine-spacing-md);
   padding: var(--mantine-spacing-md);
 }
@@ -108,7 +121,7 @@
 }
 
 .shortLinkDetails {
-  background: var(--mantine-color-body);
+  background: transparent;
   display: flex;
   flex-direction: column;
   gap: var(--mantine-spacing-md);
@@ -123,14 +136,16 @@
 
 .kpiCard {
   align-items: center;
-  background: var(--mantine-color-body);
-  border: 1px solid light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
-  border-radius: 10px;
+  background: var(--share-surface);
+  border: 1px solid var(--share-border);
+  border-radius: 14px;
   display: flex;
   gap: var(--mantine-spacing-sm);
   min-width: 0;
   padding: var(--mantine-spacing-md);
-  transition: border-color 150ms ease, box-shadow 150ms ease;
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease;
 }
 
 .kpiCard:hover {
@@ -174,9 +189,10 @@
 
 .analyticsPanel,
 .recentVisitsPanel {
-  background: var(--mantine-color-body);
-  border: 1px solid light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
-  border-radius: 8px;
+  background: var(--share-surface);
+  border: 1px solid var(--share-border);
+  border-radius: 16px;
+  box-shadow: var(--share-shadow);
   display: flex;
   flex-direction: column;
   gap: var(--mantine-spacing-md);
@@ -217,8 +233,12 @@
 
 .trendBarColumn {
   align-items: flex-end;
-  background: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-6));
-  border: 1px solid light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
+  background: light-dark(
+    var(--mantine-color-gray-0),
+    var(--mantine-color-dark-6)
+  );
+  border: 1px solid
+    light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
   border-radius: 6px;
   display: flex;
   height: 150px;
@@ -263,7 +283,10 @@
 }
 
 .distributionTrack {
-  background: light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-5));
+  background: light-dark(
+    var(--mantine-color-gray-1),
+    var(--mantine-color-dark-5)
+  );
   border-radius: 999px;
   height: 6px;
   overflow: hidden;

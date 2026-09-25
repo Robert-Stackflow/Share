@@ -23,6 +23,7 @@ import { FileUpload, FileUploadResponse } from "../../types/File.type";
 import { InboxSubmission } from "../../types/inbox.type";
 import { CreateShare, Share } from "../../types/share.type";
 import toast from "../../utils/toast.util";
+import classes from "./UploadPage.module.css";
 
 const promiseLimit = pLimit(3);
 let errorToastShown = false;
@@ -426,31 +427,34 @@ const Upload = ({
           </Stack>
         </Alert>
       )}
-      <ContentIntake
-        target={
-          isInboxUpload
-            ? inboxName || t("content.target.inbox")
-            : t("content.target.upload")
-        }
-        buttonLabel={t(
-          isInboxUpload ? "inbox.submit.review" : "content.continue",
+      <div className={isInboxUpload ? undefined : classes.stage}>
+        <ContentIntake
+          target={
+            isInboxUpload
+              ? inboxName || t("content.target.inbox")
+              : t("content.target.upload")
+          }
+          buttonLabel={t(
+            isInboxUpload ? "inbox.submit.review" : "content.continue",
+          )}
+          maxSize={maxShareSize}
+          maxFiles={maxFileCount}
+          presentation={isInboxUpload ? "standard" : "immersive"}
+          disabled={
+            isUploading || !!unfinishedSubmissionId || modals.modals.length > 0
+          }
+          resetSignal={resetSignal}
+          onSubmit={(items) => {
+            showCreateUploadModalCallback(items);
+            return false;
+          }}
+        />
+        {isUploading && files.length > 0 && (
+          <Stack mt="md">
+            <FileList<FileUpload> files={files} setFiles={setFiles} />
+          </Stack>
         )}
-        maxSize={maxShareSize}
-        maxFiles={maxFileCount}
-        disabled={
-          isUploading || !!unfinishedSubmissionId || modals.modals.length > 0
-        }
-        resetSignal={resetSignal}
-        onSubmit={(items) => {
-          showCreateUploadModalCallback(items);
-          return false;
-        }}
-      />
-      {isUploading && files.length > 0 && (
-        <Stack mt="md">
-          <FileList<FileUpload> files={files} setFiles={setFiles} />
-        </Stack>
-      )}
+      </div>
     </>
   );
 };
