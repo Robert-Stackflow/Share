@@ -9,12 +9,14 @@ import ContentIntake, { PendingContent } from "./ContentIntake";
 export default function AssetContentComposer({
   target,
   buttonLabel,
+  sendAction = false,
   onCreate,
   onFilesUploaded,
   uploadFile,
 }: {
   target: string;
   buttonLabel: string;
+  sendAction?: boolean;
   onCreate: (asset: CreateAsset) => Promise<void>;
   onFilesUploaded: (assets: Asset[]) => void;
   uploadFile: (
@@ -26,7 +28,9 @@ export default function AssetContentComposer({
 }) {
   const config = useConfig();
   const maxSize = parseInt(config.get("share.maxSize"));
-  const uploads = useRef(new Map<string, { fileId?: string; nextChunk: number }>());
+  const uploads = useRef(
+    new Map<string, { fileId?: string; nextChunk: number }>(),
+  );
 
   const submit = async (items: PendingContent[]) => {
     const completed: string[] = [];
@@ -40,7 +44,10 @@ export default function AssetContentComposer({
           while (upload.nextChunk < total) {
             try {
               const result = await uploadFile(
-                item.file.slice(upload.nextChunk * chunkSize, (upload.nextChunk + 1) * chunkSize),
+                item.file.slice(
+                  upload.nextChunk * chunkSize,
+                  (upload.nextChunk + 1) * chunkSize,
+                ),
                 { id: upload.fileId, name: item.file.name },
                 upload.nextChunk,
                 total,
@@ -49,11 +56,18 @@ export default function AssetContentComposer({
               upload.nextChunk += 1;
               if (result.type === "FILE") onFilesUploaded([result as Asset]);
             } catch (error) {
-              const expected = error instanceof AxiosError &&
+              const expected =
+                error instanceof AxiosError &&
                 error.response?.data?.error === "unexpected_chunk_index"
-                ? Number(error.response.data.expectedChunkIndex)
-                : NaN;
-              if (upload.fileId && Number.isInteger(expected) && expected >= 0 && expected < total && expected !== upload.nextChunk) {
+                  ? Number(error.response.data.expectedChunkIndex)
+                  : NaN;
+              if (
+                upload.fileId &&
+                Number.isInteger(expected) &&
+                expected >= 0 &&
+                expected < total &&
+                expected !== upload.nextChunk
+              ) {
                 upload.nextChunk = expected;
                 continue;
               }
@@ -80,6 +94,7 @@ export default function AssetContentComposer({
     <ContentIntake
       target={target}
       buttonLabel={buttonLabel}
+      sendAction={sendAction}
       maxSize={maxSize}
       onSubmit={submit}
     />

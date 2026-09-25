@@ -29,6 +29,14 @@ const createRoomId = customAlphabet(
   8,
 );
 
+const inlineImageTypes = new Set([
+  "image/avif",
+  "image/gif",
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+]);
+
 type RoomWithContent = Prisma.RoomGetPayload<{
   include: { assets: true; accessPolicy: true };
 }>;
@@ -314,9 +322,10 @@ export class RoomService {
     assetId: string,
     token?: string,
     userId?: string | null,
+    previewOnly = false,
   ) {
     const room = await this.getForRead(roomId, token, userId, {
-      requireDownload: true,
+      requireDownload: !previewOnly,
       allowOwner: true,
     });
     const asset = await this.prisma.asset.findFirst({
@@ -328,6 +337,9 @@ export class RoomService {
       },
     });
     if (!asset) throw new NotFoundException("Asset not found");
+    if (previewOnly && !inlineImageTypes.has((asset.mimeType || "").toLowerCase())) {
+      throw new BadRequestException("Image preview unavailable");
+    }
     return this.assetService.getDownloadStream(asset);
   }
 

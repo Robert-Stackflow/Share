@@ -1,4 +1,4 @@
-import { ForbiddenException, NotFoundException } from "@nestjs/common";
+import { BadRequestException, ForbiddenException, NotFoundException } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import * as argon from "argon2";
 import { strict as assert } from "node:assert";
@@ -118,4 +118,57 @@ test("visitor needs a valid passcode session before reading or writing", async (
   );
   assert.equal(asset.roomId, "shared-db");
   assert.equal(asset.ownerId, "visitor");
+});
+
+test("image preview keeps room access checks without granting file downloads", async () => {
+  const room = {
+    id: "shared-db",
+    roomId: "shared-id",
+    visibility: "SHARED",
+    ownerId: "owner",
+    passcodeHash: null,
+    assets: [],
+    accessPolicy: { allowDownload: false, oneTime: false, maxViews: null },
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+  const image = {
+    id: "image-id",
+    type: "FILE",
+    roomId: room.id,
+    shareId: null,
+    mimeType: "image/png",
+  };
+  const prisma = {
+    room: { findFirst: async () => room },
+    asset: { findFirst: async () => image },
+  };
+  const stream = { metaData: { mimeType: "image/png" }, file: null };
+  const assets = { getDownloadStream: async () => stream };
+  const policy = {
+    assertAllowed: (_policy: unknown, context: { requireDownload?: boolean }) => {
+      if (context.requireDownload) throw new ForbiddenException("Downloads disabled");
+    },
+  };
+  const service = new RoomService(
+    prisma as any,
+    assets as any,
+    new JwtService(),
+    { get: () => "local-test-secret" } as any,
+    policy as any,
+  );
+
+  await assert.rejects(
+    () => service.getFileDownload("shared-id", "image-id", undefined, "visitor"),
+    ForbiddenException,
+  );
+  assert.equal(
+    await service.getFileDownload("shared-id", "image-id", undefined, "visitor", true),
+    stream,
+  );
+  image.mimeType = "image/svg+xml";
+  await assert.rejects(
+    () => service.getFileDownload("shared-id", "image-id", undefined, "visitor", true),
+    BadRequestException,
+  );
 });

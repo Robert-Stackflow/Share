@@ -567,7 +567,8 @@ export default function RoomsPage() {
                       ? t("room.private.title")
                       : active.name || active.roomId
                   }
-                  buttonLabel={t("room.asset.create")}
+                  buttonLabel={t("room.asset.send")}
+                  sendAction
                   onCreate={addAsset}
                   onFilesUploaded={addFiles}
                   uploadFile={(chunk, file, index, total) =>

@@ -3,6 +3,7 @@ import {
   FileIcon,
   Link2,
   Plus,
+  Send,
   Trash2,
   Type,
   Upload,
@@ -64,6 +65,7 @@ export default function ContentIntake({
   disabled = false,
   resetSignal = 0,
   presentation = "standard",
+  sendAction = false,
   onSubmit,
 }: {
   target: string;
@@ -73,6 +75,7 @@ export default function ContentIntake({
   disabled?: boolean;
   resetSignal?: number;
   presentation?: "standard" | "immersive";
+  sendAction?: boolean;
   onSubmit: (
     items: PendingContent[],
   ) => Promise<boolean | string[] | void> | boolean | string[] | void;
@@ -448,7 +451,7 @@ export default function ContentIntake({
                 </Button>
               </Group>
               <Button
-                leftSection={<Plus />}
+                leftSection={sendAction ? <Send /> : <Plus />}
                 disabled={!validCount || disabled}
                 loading={submitting}
                 onClick={() => void submit()}

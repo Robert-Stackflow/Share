@@ -200,7 +200,8 @@ const RoomPage = () => {
             isLoggedIn ? (
               <AssetContentComposer
                 target={room.name || room.roomId}
-                buttonLabel={t("room.asset.create")}
+                buttonLabel={t("room.asset.send")}
+                sendAction
                 onCreate={addAsset}
                 onFilesUploaded={addFiles}
                 uploadFile={uploadFile}

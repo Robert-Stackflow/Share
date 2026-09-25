@@ -50,14 +50,10 @@
 
 .messageIcon {
   align-items: center;
-  background: light-dark(
-    var(--mantine-color-gray-0),
-    var(--mantine-color-dark-6)
-  );
-  border: 1px solid
-    light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
+  background: light-dark(#edf2fc, #293755);
+  border: 1px solid var(--share-border);
   border-radius: 999px;
-  color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-0));
+  color: var(--share-accent-ink);
   display: flex;
   flex: 0 0 28px;
   height: 28px;
@@ -66,16 +62,59 @@
   width: 28px;
 }
 
+.messageIcon[data-type="link"] {
+  background: light-dark(#eaf6f4, #223c3b);
+  color: light-dark(#167968, #82d8c1);
+}
+
+.messageIcon[data-type="file"] {
+  background: light-dark(#f3f1fd, #363052);
+  color: light-dark(#6a58a9, #c0adff);
+}
+
+.messageIcon[data-kind="image"] {
+  background: light-dark(#eaf1ff, #263b61);
+  color: light-dark(#4265af, #a8c2ff);
+}
+
+.messageIcon[data-kind="pdf"] {
+  background: light-dark(#fff0ed, #49302f);
+  color: light-dark(#c94f42, #ffad9f);
+}
+
+.messageIcon[data-kind="spreadsheet"] {
+  background: light-dark(#e9f7ee, #263e32);
+  color: light-dark(#258455, #93d9ae);
+}
+
+.messageIcon[data-kind="archive"] {
+  background: light-dark(#fff4e5, #493b2b);
+  color: light-dark(#ae7422, #edc47f);
+}
+
 .roomMessageBubble {
   background: var(--share-surface);
   border: 1px solid var(--share-border);
-  border-radius: 14px;
-  box-shadow: 0 2px 9px light-dark(rgba(34, 48, 75, 0.035), rgba(0, 0, 0, 0.12));
+  border-radius: 15px;
+  box-shadow: 0 8px 26px
+    light-dark(rgba(34, 48, 75, 0.045), rgba(0, 0, 0, 0.13));
   flex: 0 1 auto;
   max-width: min(740px, calc(100% - 44px));
   min-width: 0;
-  padding: 10px 12px;
+  padding: 12px 14px;
   width: min(740px, calc(100% - 44px));
+}
+
+.roomMessageBubble[data-type="link"] {
+  background: light-dark(#f9fbff, #1e2938);
+}
+
+.roomMessageBubble[data-type="file"] {
+  padding: 13px 16px;
+}
+
+.roomMessageBubble[data-kind="image"] {
+  padding: 13px 16px;
 }
 
 .bubbleHeader {
@@ -93,6 +132,109 @@
   white-space: pre-wrap;
 }
 
+.fileContent {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.imagePreview {
+  align-items: center;
+  background: light-dark(#f2f5fa, #171d27);
+  border: 0;
+  border-radius: 16px;
+  cursor: zoom-in;
+  display: flex;
+  justify-content: center;
+  min-height: 150px;
+  overflow: hidden;
+  padding: 0;
+  width: 100%;
+}
+
+.imagePreview img {
+  display: block;
+  max-height: 360px;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+.imageExpanded {
+  display: block;
+  margin-inline: auto;
+  max-height: 76vh;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+.fileDetails {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  min-width: 0;
+  padding: 3px 0 1px;
+}
+
+.roomMessageBubble[data-kind="image"] .fileDetails {
+  padding: 2px 0;
+}
+
+.fileDescription {
+  min-width: 0;
+}
+
+.fileName {
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.fileMetadata {
+  color: var(--share-muted);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 12px;
+  gap: 5px;
+  margin-top: 3px;
+}
+
+.fileMetadata span + span::before {
+  content: "·";
+  margin-right: 5px;
+}
+
+.linkCard {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  min-width: 0;
+  text-decoration: none;
+}
+
+.linkDetails {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.linkHostname {
+  color: var(--mantine-color-text);
+  font-weight: 650;
+}
+
+.linkUrl {
+  color: var(--share-muted);
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.linkExternal {
+  color: var(--share-muted);
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+
 .messageText {
   overflow-wrap: anywhere;
   white-space: pre-wrap;
@@ -105,9 +247,23 @@
   -webkit-line-clamp: 5;
 }
 
+.expandAction {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
 .expandButton {
-  margin-top: 6px;
-  padding-inline: 0;
+  background: var(--share-accent-soft);
+  border-radius: 999px;
+  color: var(--share-accent-ink);
+  font-size: 12px;
+  min-height: 30px;
+  padding-inline: 10px;
+}
+
+.expandButton:hover {
+  background: light-dark(#e3eafb, #3a4d73);
 }
 
 .bubbleActions {

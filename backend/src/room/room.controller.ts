@@ -163,21 +163,28 @@ export class RoomController {
   async download(
     @Param("roomId") roomId: string,
     @Param("assetId") assetId: string,
+    @Query("preview") preview: string | undefined,
     @Req() request: Request,
     @Res({ passthrough: true }) response: Response,
     @GetUser() user?: User,
   ) {
+    const previewOnly = preview === "1";
     const file = await this.rooms.getFileDownload(
       roomId,
       assetId,
       this.token(request, roomId),
       user?.id,
+      previewOnly,
     );
     response.set({
       "Content-Type": file.metaData.mimeType,
       "Content-Length": file.metaData.size,
       "Content-Security-Policy": "sandbox",
-      "Content-Disposition": contentDisposition(file.metaData.name),
+      "X-Content-Type-Options": "nosniff",
+      "Cache-Control": "private, no-store",
+      "Content-Disposition": contentDisposition(file.metaData.name, {
+        type: previewOnly ? "inline" : "attachment",
+      }),
     });
     return new StreamableFile(file.file);
   }

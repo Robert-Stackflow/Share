@@ -1,10 +1,26 @@
-import { FileIcon, FileText, Link2 } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronUp,
+  ExternalLink,
+  FileArchive,
+  FileCode2,
+  FileIcon,
+  FileSpreadsheet,
+  FileText,
+  FileType2,
+  Film,
+  Image as ImageIcon,
+  Link2,
+  Music2,
+  Presentation,
+} from "lucide-react";
 import {
   Anchor,
   Badge,
   Box,
   Button,
   Group,
+  Modal,
   Stack,
   Text,
   Title,
@@ -22,10 +38,101 @@ import {
 import AssetActionMenu from "../asset/AssetActionMenu";
 import classes from "./RoomConversationPanel.module.css";
 
+type FileKind =
+  | "image"
+  | "pdf"
+  | "document"
+  | "spreadsheet"
+  | "presentation"
+  | "text"
+  | "code"
+  | "archive"
+  | "audio"
+  | "video"
+  | "other";
+
+const inlineImageTypes = new Set([
+  "image/avif",
+  "image/gif",
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+]);
+
+const getFileKind = (asset: Asset): FileKind => {
+  const mime = (asset.mimeType ?? "").toLowerCase();
+  const extension = asset.name?.split(".").pop()?.toLowerCase() ?? "";
+  if (
+    mime.startsWith("image/") ||
+    ["png", "jpg", "jpeg", "gif", "webp", "avif", "svg"].includes(extension)
+  )
+    return "image";
+  if (mime === "application/pdf" || extension === "pdf") return "pdf";
+  if (["doc", "docx", "odt", "rtf"].includes(extension)) return "document";
+  if (["xls", "xlsx", "ods", "csv", "tsv"].includes(extension))
+    return "spreadsheet";
+  if (["ppt", "pptx", "odp"].includes(extension)) return "presentation";
+  if (["zip", "rar", "7z", "tar", "gz", "bz2"].includes(extension))
+    return "archive";
+  if (
+    mime.startsWith("audio/") ||
+    ["mp3", "wav", "ogg", "m4a", "flac"].includes(extension)
+  )
+    return "audio";
+  if (
+    mime.startsWith("video/") ||
+    ["mp4", "webm", "mov", "mkv", "avi"].includes(extension)
+  )
+    return "video";
+  if (
+    [
+      "js",
+      "jsx",
+      "ts",
+      "tsx",
+      "py",
+      "java",
+      "go",
+      "rs",
+      "html",
+      "css",
+      "json",
+      "xml",
+      "yaml",
+      "yml",
+      "sh",
+    ].includes(extension)
+  )
+    return "code";
+  if (mime.startsWith("text/") || ["txt", "md", "log"].includes(extension))
+    return "text";
+  return "other";
+};
+
+const fileKindIcons = {
+  image: ImageIcon,
+  pdf: FileText,
+  document: FileType2,
+  spreadsheet: FileSpreadsheet,
+  presentation: Presentation,
+  text: FileText,
+  code: FileCode2,
+  archive: FileArchive,
+  audio: Music2,
+  video: Film,
+  other: FileIcon,
+};
+
 const typeIcon: Record<AssetType, ReactNode> = {
   FILE: <FileIcon />,
   TEXT: <FileText />,
   LINK: <Link2 />,
+};
+
+const renderTypeIcon = (asset: Asset) => {
+  if (asset.type !== "FILE") return typeIcon[asset.type];
+  const Icon = fileKindIcons[getFileKind(asset)];
+  return <Icon />;
 };
 
 const RoomTextContent = ({ value }: { value: string }) => {
@@ -54,15 +161,91 @@ const RoomTextContent = ({ value }: { value: string }) => {
         {value}
       </Text>
       {canExpand && (
-        <Button
-          className={classes.expandButton}
-          size="compact-xs"
-          variant="subtle"
-          onClick={() => setExpanded((current) => !current)}
-        >
-          {t(expanded ? "room.assets.collapse" : "room.assets.expand")}
-        </Button>
+        <div className={classes.expandAction}>
+          <Button
+            className={classes.expandButton}
+            rightSection={
+              expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />
+            }
+            size="xs"
+            variant="subtle"
+            onClick={() => setExpanded((current) => !current)}
+          >
+            {t(expanded ? "room.assets.collapse" : "room.assets.expand")}
+          </Button>
+        </div>
       )}
+    </div>
+  );
+};
+
+const RoomFileContent = ({ asset, url }: { asset: Asset; url?: string }) => {
+  const t = useTranslate();
+  const kind = getFileKind(asset);
+  const extension = asset.name?.match(/\.([^.]+)$/)?.[1]?.toUpperCase();
+  const canPreviewImage =
+    kind === "image" &&
+    inlineImageTypes.has((asset.mimeType ?? "").toLowerCase()) &&
+    Boolean(url);
+  const previewUrl = url
+    ? `${url}${url.includes("?") ? "&" : "?"}preview=1`
+    : undefined;
+  const [previewFailed, setPreviewFailed] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [dimensions, setDimensions] = useState<string>();
+
+  return (
+    <div className={classes.fileContent}>
+      {canPreviewImage && !previewFailed && previewUrl && (
+        <>
+          <button
+            aria-label={t("room.file.openImage", {
+              name: asset.name || asset.id,
+            })}
+            className={classes.imagePreview}
+            type="button"
+            onClick={() => setPreviewOpen(true)}
+          >
+            <img
+              alt={asset.name || ""}
+              loading="lazy"
+              src={previewUrl}
+              onLoad={(event) => {
+                const image = event.currentTarget;
+                setDimensions(`${image.naturalWidth} × ${image.naturalHeight}`);
+              }}
+              onError={() => setPreviewFailed(true)}
+            />
+          </button>
+          {previewOpen && (
+            <Modal
+              opened
+              centered
+              size="xl"
+              title={asset.name || t("room.file.kind.image")}
+              onClose={() => setPreviewOpen(false)}
+            >
+              <img
+                className={classes.imageExpanded}
+                alt={asset.name || ""}
+                src={previewUrl}
+              />
+            </Modal>
+          )}
+        </>
+      )}
+      <div className={classes.fileDetails}>
+        <div className={classes.fileDescription}>
+          <Text className={classes.fileName} fw={650} lineClamp={2}>
+            {getAssetLabel(asset)}
+          </Text>
+          <div className={classes.fileMetadata}>
+            {extension && <span>{extension}</span>}
+            {asset.size && <span>{getAssetSizeLabel(asset)}</span>}
+            {dimensions && <span>{dimensions}</span>}
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
@@ -140,23 +323,31 @@ const RoomConversationPanel = ({
 
   const renderValue = (asset: Asset) => {
     if (asset.type === "LINK") {
+      let hostname = asset.url || "";
+      try {
+        hostname = new URL(asset.url || "").hostname;
+      } catch {
+        // Keep the original link when a legacy item has no valid host.
+      }
       return (
-        <Anchor href={asset.url} target="_blank" rel="noreferrer">
-          {asset.url}
+        <Anchor
+          className={classes.linkCard}
+          href={asset.url}
+          target="_blank"
+          rel="noreferrer"
+        >
+          <span className={classes.linkDetails}>
+            <span className={classes.linkHostname}>{hostname}</span>
+            <span className={classes.linkUrl}>{asset.url}</span>
+          </span>
+          <ExternalLink size={16} className={classes.linkExternal} />
         </Anchor>
       );
     }
 
     if (asset.type === "FILE") {
       return (
-        <Stack gap={2}>
-          <Text fw={500}>{getAssetLabel(asset)}</Text>
-          {asset.size && (
-            <Text c="dimmed" size="xs">
-              {getAssetSizeLabel(asset)}
-            </Text>
-          )}
-        </Stack>
+        <RoomFileContent asset={asset} url={getFileDownloadUrl?.(asset)} />
       );
     }
 
@@ -222,10 +413,22 @@ const RoomConversationPanel = ({
                   className={`${classes.messageRow} ${classes.messageListItem}`}
                   wrap="nowrap"
                 >
-                  <Box className={classes.messageIcon}>
-                    {typeIcon[asset.type]}
+                  <Box
+                    className={classes.messageIcon}
+                    data-type={asset.type.toLowerCase()}
+                    data-kind={
+                      asset.type === "FILE" ? getFileKind(asset) : undefined
+                    }
+                  >
+                    {renderTypeIcon(asset)}
                   </Box>
-                  <Box className={classes.roomMessageBubble}>
+                  <Box
+                    className={classes.roomMessageBubble}
+                    data-type={asset.type.toLowerCase()}
+                    data-kind={
+                      asset.type === "FILE" ? getFileKind(asset) : undefined
+                    }
+                  >
                     <div className={classes.bubbleHeader}>
                       <Group
                         className={classes.messageMeta}
@@ -233,7 +436,9 @@ const RoomConversationPanel = ({
                         wrap="nowrap"
                       >
                         <Badge color="gray" variant="light">
-                          {t(`room.asset.type.${asset.type.toLowerCase()}`)}
+                          {asset.type === "FILE"
+                            ? t(`room.file.kind.${getFileKind(asset)}`)
+                            : t(`room.asset.type.${asset.type.toLowerCase()}`)}
                         </Badge>
                         <Text c="dimmed" size="xs">
                           {intl.formatDate(asset.createdAt, {
