@@ -165,7 +165,7 @@ export class ShareService {
     const writeStream = fs.createWriteStream(`${path}/archive.zip`);
 
     for (const file of files) {
-      archive.append(fs.createReadStream(`${ASSET_DIRECTORY}/${file.id}`), {
+      archive.append(fs.createReadStream(`${ASSET_DIRECTORY}/${file.storageKey ?? file.id}`), {
         name: file.name,
       });
     }

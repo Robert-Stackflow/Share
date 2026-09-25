@@ -10,7 +10,6 @@ import {
   CompleteMultipartUploadCommand,
   CreateMultipartUploadCommand,
   DeleteObjectCommand,
-  DeleteObjectsCommand,
   GetObjectCommand,
   HeadObjectCommand,
   S3Client,
@@ -187,7 +186,7 @@ export class S3FileService {
     if (!asset) throw new NotFoundException(this.i18n.t("file.notFound"));
 
     const s3Instance = this.getS3Instance();
-    const key = this.getAssetKey(fileId);
+    const key = this.getAssetKey(asset.storageKey ?? fileId);
     const response = await s3Instance.send(
       new GetObjectCommand({
         Bucket: this.config.get("s3.bucketName"),
@@ -219,79 +218,36 @@ export class S3FileService {
     if (!fileMetaData)
       throw new NotFoundException(this.i18n.t("file.notFound"));
 
-    const key = this.getAssetKey(fileId);
-    const s3Instance = this.getS3Instance();
-
-    try {
-      await s3Instance.send(
-        new DeleteObjectCommand({
-          Bucket: this.config.get("s3.bucketName"),
-          Key: key,
-        }),
-      );
-    } catch {
-      throw new Error(this.i18n.t("file.s3DeleteError"));
-    }
-
     await this.prisma.asset.delete({ where: { id: fileId } });
+    const storageKey = fileMetaData.storageKey ?? fileId;
+    const references = await this.prisma.asset.count({
+      where: {
+        type: AssetType.FILE,
+        OR: [{ id: storageKey }, { storageKey }],
+      },
+    });
+    if (references === 0) {
+      try {
+        await this.getS3Instance().send(
+          new DeleteObjectCommand({
+            Bucket: this.config.get("s3.bucketName"),
+            Key: this.getAssetKey(storageKey),
+          }),
+        );
+      } catch {
+        throw new Error(this.i18n.t("file.s3DeleteError"));
+      }
+    }
   }
 
   async deleteAllFiles(shareId: string) {
-    const s3Instance = this.getS3Instance();
-    const bucketName = this.config.get("s3.bucketName");
-
-    const fallbackDeleteByDb = async (reason: string) => {
-      const files = await this.prisma.asset.findMany({
-        where: { shareId, type: AssetType.FILE },
-        select: { id: true },
-      });
-      void reason;
-
-      for (const f of files) {
-        const key = this.getAssetKey(f.id);
-        try {
-          await s3Instance.send(
-            new DeleteObjectCommand({
-              Bucket: bucketName,
-              Key: key,
-            }),
-          );
-        } catch {
-          // ignore per-object failure
-        }
-      }
-    };
-
-    try {
-      const files = await this.prisma.asset.findMany({
-        where: { shareId, type: AssetType.FILE },
-        select: { id: true },
-      });
-
-      if (files.length === 0) return;
-
-      const objectsToDelete = files.map((file) => ({
-        Key: this.getAssetKey(file.id),
-      }));
-
-      // Delete all files in a single request (up to 1000 objects at once)
-      await s3Instance.send(
-        new DeleteObjectsCommand({
-          Bucket: bucketName,
-          Delete: {
-            Objects: objectsToDelete,
-          },
-        }),
-      );
-    } catch (error) {
-      // try deleting by known file names from DB instead.
-      await fallbackDeleteByDb("list_or_bulk_delete_failed");
-      void error;
-    }
-
-    await this.prisma.asset.deleteMany({
+    const files = await this.prisma.asset.findMany({
       where: { shareId, type: AssetType.FILE },
+      select: { id: true },
     });
+    for (const file of files) {
+      await this.remove(shareId, file.id);
+    }
   }
 
   async getFileSize(assetId: string): Promise<number> {
@@ -353,7 +309,7 @@ export class S3FileService {
 
     const processFiles = async () => {
       for (const file of files) {
-        const key = this.getAssetKey(file.id);
+        const key = this.getAssetKey(file.storageKey ?? file.id);
         try {
           const response = await s3Instance.send(
             new GetObjectCommand({

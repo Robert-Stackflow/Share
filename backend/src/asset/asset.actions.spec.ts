@@ -153,7 +153,7 @@ const config = {
   },
 };
 
-test("cloneOwned copies file storage and creates a standalone cloned asset", async () => {
+test("cloneOwned reuses file storage and creates a standalone asset", async () => {
   const { prisma } = createPrismaMock();
   const { calls: storageCalls, storage } = createStorageMock();
   const { service: shortLinkService } = createShortLinkServiceMock();
@@ -170,7 +170,8 @@ test("cloneOwned copies file storage and creates a standalone cloned asset", asy
   assert.equal(clone.type, "FILE");
   assert.equal(clone.ownerId, "user-1");
   assert.equal(clone.source, "UPLOAD");
-  assert.deepEqual(storageCalls[0], ["copy", "asset-file", clone.id]);
+  assert.equal(clone.storageKey, "asset-file");
+  assert.deepEqual(storageCalls, []);
 });
 
 test("createShareFromAsset creates a completed single-asset share with a cloned asset", async () => {

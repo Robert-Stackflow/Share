@@ -41,9 +41,19 @@ function createPrismaMock(records: any[] = []) {
             }) ?? null
           );
         },
+        findUnique: async (args: any) =>
+          records.find((record) => record.id === args.where.id) ?? null,
+        count: async (args: any) =>
+          records.filter(
+            (record) =>
+              record.type === args.where.type &&
+              (record.id === args.where.OR[0].id ||
+                record.storageKey === args.where.OR[1].storageKey),
+          ).length,
         delete: async (args: any) => {
           calls.delete = args;
-          return records.find((record) => record.id === args.where.id);
+          const index = records.findIndex((record) => record.id === args.where.id);
+          return index < 0 ? null : records.splice(index, 1)[0];
         },
       },
       assetTag: {
@@ -388,6 +398,28 @@ test("remove deletes file bytes from the asset storage provider", async () => {
   assert.deepEqual(calls.delete, { where: { id: "asset-file" } });
 });
 
+test("shared file bytes remain until the final asset reference is removed", async () => {
+  const original = {
+    id: "original-file",
+    type: "FILE",
+    storage: "LOCAL",
+  };
+  const clone = {
+    id: "cloned-file",
+    type: "FILE",
+    storage: "LOCAL",
+    storageKey: "original-file",
+  };
+  const { prisma } = createPrismaMock([original, clone]);
+  const { calls, storage } = createStorageMock();
+  const service = new AssetService(prisma as any, storage as any);
+
+  await service.remove(original as any);
+  assert.deepEqual(calls, []);
+  await service.remove(clone as any);
+  assert.deepEqual(calls, [["remove", "original-file"]]);
+});
+
 test("remove deletes non-file asset metadata without touching storage", async () => {
   const textAsset = {
     id: "asset-text",
@@ -584,7 +616,7 @@ test("getDownloadStream rejects provided non-file assets", async () => {
   );
 });
 
-test("saveToLibrary copies an owned room file into the private library", async () => {
+test("saveToLibrary reuses an owned room file in the private library", async () => {
   const { prisma, created } = createPrismaMock();
   const { calls, storage } = createStorageMock();
   const source = {
@@ -614,7 +646,8 @@ test("saveToLibrary copies an owned room file into the private library", async (
   assert.equal(saved.source, "ROOM");
   assert.equal(created[0].room, undefined);
   assert.equal(created[0].share, undefined);
-  assert.deepEqual(calls, [["copy", fileId, created[0].id]]);
+  assert.equal(saved.storageKey, fileId);
+  assert.deepEqual(calls, []);
 });
 
 test("saveToLibrary rejects an asset outside owned rooms and shares", async () => {

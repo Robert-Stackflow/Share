@@ -228,6 +228,7 @@ model Asset {
   size     String?
   mimeType String?
   storage  StorageProvider?
+  storageKey String?
   content  String?
   url      String?
   favorite Boolean @default(false)
@@ -240,6 +241,7 @@ model Asset {
   @@index([shareId])
   @@index([roomId])
   @@index([inboxSubmissionId])
+  @@index([storageKey])
   @@index([source])
   @@index([favorite])
   @@index([lastAccessedAt])

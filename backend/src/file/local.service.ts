@@ -139,7 +139,7 @@ export class LocalFileService {
     if (!fileMetaData)
       throw new NotFoundException(this.i18n.t("file.notFound"));
 
-    const file = createReadStream(`${ASSET_DIRECTORY}/${fileId}`);
+    const file = createReadStream(`${ASSET_DIRECTORY}/${fileMetaData.storageKey ?? fileId}`);
 
     return {
       metaData: {
@@ -159,9 +159,18 @@ export class LocalFileService {
     if (!fileMetaData)
       throw new NotFoundException(this.i18n.t("file.notFound"));
 
-    await fs.unlink(`${ASSET_DIRECTORY}/${fileId}`);
-
     await this.prisma.asset.delete({ where: { id: fileId } });
+    const storageKey = fileMetaData.storageKey ?? fileId;
+    const references = await this.prisma.asset.count({
+      where: {
+        type: AssetType.FILE,
+        OR: [{ id: storageKey }, { storageKey }],
+      },
+    });
+    if (references === 0) {
+      await fs.rm(`${ASSET_DIRECTORY}/${storageKey}`, { force: true });
+      await fs.rm(`${ASSET_DIRECTORY}/${storageKey}.tmp-chunk`, { force: true });
+    }
   }
 
   async deleteAllFiles(shareId: string) {
@@ -171,13 +180,8 @@ export class LocalFileService {
     });
 
     for (const asset of assets) {
-      await fs.rm(`${ASSET_DIRECTORY}/${asset.id}`, { force: true });
-      await fs.rm(`${ASSET_DIRECTORY}/${asset.id}.tmp-chunk`, { force: true });
+      await this.remove(shareId, asset.id);
     }
-
-    await this.prisma.asset.deleteMany({
-      where: { shareId, type: AssetType.FILE },
-    });
 
     await fs.rm(`${SHARE_DIRECTORY}/${shareId}`, {
       recursive: true,

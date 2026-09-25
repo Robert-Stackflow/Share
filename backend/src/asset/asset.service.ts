@@ -378,7 +378,12 @@ export class AssetService {
         isZipReady: sourceAsset.type !== AssetType.FILE,
         expiration: this.getDefaultShareExpiration(),
         creator: { connect: { id: owner.id } },
-        storageProvider: this.config?.get("s3.enabled") ? "S3" : "LOCAL",
+        storageProvider:
+          sourceAsset.type === AssetType.FILE
+            ? sourceAsset.storage
+            : this.config?.get("s3.enabled")
+              ? "S3"
+              : "LOCAL",
       },
     });
     const asset = await this.cloneAsset(sourceAsset, owner, {
@@ -434,10 +439,23 @@ export class AssetService {
   }
 
   async remove(asset: Pick<Asset, "id" | "type" | "storage">) {
-    if (asset.type === AssetType.FILE) {
-      await this.getStorage(asset.storage).remove(asset.id);
-    }
+    const current = await this.prisma.asset.findUnique({
+      where: { id: asset.id },
+    });
+    if (!current) return;
     await this.prisma.asset.delete({ where: { id: asset.id } });
+    if (current.type === AssetType.FILE) {
+      const storageKey = current.storageKey ?? current.id;
+      const references = await this.prisma.asset.count({
+        where: {
+          type: AssetType.FILE,
+          OR: [{ id: storageKey }, { storageKey }],
+        },
+      });
+      if (references === 0) {
+        await this.getStorage(current.storage).remove(storageKey);
+      }
+    }
   }
 
   async getOwnedDownloadStream(
@@ -461,7 +479,7 @@ export class AssetService {
     asset: Pick<
       Asset,
       "createdAt" | "id" | "mimeType" | "name" | "size" | "storage" | "type"
-    >,
+    > & { storageKey?: string | null },
   ): Promise<{
     metaData: {
       id: string;
@@ -484,7 +502,7 @@ export class AssetService {
         mimeType: asset.mimeType || "application/octet-stream",
         name: asset.name,
       },
-      file: await this.getStorage(asset.storage).getStream(asset.id),
+      file: await this.getStorage(asset.storage).getStream(asset.storageKey ?? asset.id),
     };
   }
 
@@ -538,9 +556,6 @@ export class AssetService {
     options: { container?: AssetContainer; source?: AssetSource } = {},
   ) {
     const id = crypto.randomUUID();
-    if (asset.type === AssetType.FILE) {
-      await this.getStorage(asset.storage).copy(asset.id, id);
-    }
 
     return this.prisma.asset.create({
       data: {
@@ -550,6 +565,8 @@ export class AssetService {
         size: asset.size,
         mimeType: asset.mimeType,
         storage: asset.storage,
+        storageKey:
+          asset.type === AssetType.FILE ? asset.storageKey ?? asset.id : null,
         content: asset.content,
         url: asset.url,
         source:

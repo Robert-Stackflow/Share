@@ -100,12 +100,12 @@ export class ClamScanService {
 
     const files = await this.prisma.asset.findMany({
       where: { shareId, type: AssetType.FILE },
-      select: { id: true, name: true },
+      select: { id: true, name: true, storageKey: true },
     });
 
     for (const file of files) {
       const { isInfected } = await clamScan
-        .isInfected(`${ASSET_DIRECTORY}/${file.id}`)
+        .isInfected(`${ASSET_DIRECTORY}/${file.storageKey ?? file.id}`)
         .catch(() => {
           this.logger.log("ClamAV is not active");
           return { isInfected: false };
