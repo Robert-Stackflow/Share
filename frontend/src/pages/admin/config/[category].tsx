@@ -255,9 +255,6 @@ export default function ConfigurationPage() {
                           <FormattedMessage id="admin.config.config-file-warning.description" />
                         </Alert>
                       )}
-                      <Title className={classes.pageTitle} order={2}>
-                        {t("admin.config.category." + categoryId)}
-                      </Title>
                       <div className={classes.settingsPanel}>
                         {visibleConfigVariables.map((configVariable, index) => {
                           if (

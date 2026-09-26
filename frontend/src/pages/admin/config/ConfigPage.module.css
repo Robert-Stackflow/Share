@@ -21,10 +21,6 @@
 .content {
   min-width: 0;
 }
-.pageTitle {
-  font-size: 26px;
-  letter-spacing: -0.03em;
-}
 .settingsPanel {
   overflow: hidden;
 }
