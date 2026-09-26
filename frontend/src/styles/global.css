@@ -88,6 +88,10 @@ body {
   --input-bg: light-dark(#f7f9fc, #252d39);
 }
 
+.mantine-PasswordInput-innerInput {
+  font-size: var(--mantine-font-size-sm);
+}
+
 :root[data-mantine-color-scheme="dark"]
   .mantine-Input-wrapper[data-variant="default"],
 :root[data-mantine-color-scheme="dark"]
@@ -103,6 +107,8 @@ textarea::placeholder,
 .mantine-Textarea-input::placeholder,
 .mantine-PasswordInput-innerInput::placeholder {
   color: var(--share-placeholder);
+  font-family: var(--mantine-font-family);
+  font-size: var(--mantine-font-size-sm);
   font-weight: 400;
   opacity: 1;
 }

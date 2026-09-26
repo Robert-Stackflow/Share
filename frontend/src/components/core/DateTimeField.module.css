@@ -7,7 +7,7 @@
   cursor: pointer;
   display: flex;
   font-family: var(--mantine-font-family);
-  font-size: var(--mantine-font-size-md);
+  font-size: var(--mantine-font-size-sm);
   gap: 10px;
   justify-content: space-between;
   min-height: 42px;
@@ -33,7 +33,6 @@
 
 .placeholder {
   color: var(--share-placeholder);
-  font-size: var(--mantine-font-size-md);
   font-weight: 400;
 }
 
