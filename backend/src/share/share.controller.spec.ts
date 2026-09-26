@@ -38,3 +38,25 @@ test("removeAsset delegates share asset deletion to ShareService", async () => {
 
   assert.deepEqual(calls, [["removeAsset", "share-1", "asset-text-1"]]);
 });
+
+test("pickup exchange sets the same secure share cookie used by normal share reads", async () => {
+  const cookies: any[] = [];
+  const controller = new ShareController(
+    {
+      redeemPickupCode: async () => ({
+        id: "pickup-share",
+        token: "share-token",
+      }),
+    } as any,
+    { decode: () => ({ exp: 9999999999 }) } as any,
+  );
+  const result = await controller.redeemPickupCode(
+    { code: "012345" },
+    { cookies: {} } as any,
+    { cookie: (...args: any[]) => cookies.push(args) } as any,
+  );
+  assert.deepEqual(result, { id: "pickup-share" });
+  assert.deepEqual(cookies, [
+    ["share_pickup-share_token", "share-token", { path: "/", httpOnly: true }],
+  ]);
+});

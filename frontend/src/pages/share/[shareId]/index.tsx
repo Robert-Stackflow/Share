@@ -106,6 +106,8 @@ const Share = () => {
           );
         } else if (error == "share_password_required") {
           showEnterPasswordModal(modals, getShareToken);
+        } else if (error == "pickup_code_required") {
+          void router.push("/pickup");
         } else {
           toast.axiosError(e);
         }
@@ -145,6 +147,8 @@ const Share = () => {
           );
         } else if (error == "share_password_required") {
           showEnterPasswordModal(modals, getShareToken);
+        } else if (error == "pickup_code_required") {
+          void router.push("/pickup");
         } else if (error == "share_token_required") {
           getShareToken();
         } else {

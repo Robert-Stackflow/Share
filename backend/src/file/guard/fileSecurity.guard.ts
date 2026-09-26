@@ -72,6 +72,12 @@ export class FileSecurityGuard extends ShareSecurityGuard {
         throw new NotFoundException(this._i18n.t("file.notFound"));
       }
 
+      if (share.pickupCode)
+        throw new ForbiddenException(
+          "Pickup code required",
+          "pickup_code_required",
+        );
+
       if (share.security?.password)
         throw new ForbiddenException(this._i18n.t("file.passwordProtected"));
 

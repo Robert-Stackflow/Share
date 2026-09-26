@@ -728,6 +728,16 @@ export default {
     "Expiration date exceeds the maximum of {max}.",
 
   "upload.modal.link.label": "Link",
+  "upload.modal.delivery.title": "Share method",
+  "upload.modal.delivery.link": "Share by link",
+  "upload.modal.delivery.pickup": "Pickup code",
+  "upload.modal.delivery.linkDescription": "Send a unique link to your recipients.",
+  "upload.modal.delivery.pickupDescription": "Recipients enter a code on the Pickup page to access the share. No unique link is needed.",
+  "upload.modal.delivery.randomCode": "Generate code",
+  "upload.modal.delivery.customCode": "Choose my own",
+  "upload.modal.delivery.customPlaceholder": "Enter 6 digits",
+  "upload.modal.delivery.customInvalid": "Enter a 6-digit pickup code",
+  "upload.modal.delivery.customTaken": "This code is already in use. Choose another.",
   "upload.modal.expires.label": "Expiration",
   "upload.modal.expires.unit-label": "Unit",
   "upload.modal.expires.minute-singular": "Minute",
@@ -815,6 +825,16 @@ export default {
   "upload.modal.completed.expires-on":
     "This share will expire on {expiration}.",
   "upload.modal.completed.share-ready": "Share ready",
+  "upload.modal.completed.pickupInstructions": "Send this code to your recipients and ask them to enter it on the Pickup page.",
+  "pickup.nav": "Pickup",
+  "pickup.title": "Pickup",
+  "pickup.description": "Enter the pickup code you received to open a share.",
+  "pickup.code": "Pickup code",
+  "pickup.placeholder": "Enter the 6-digit code",
+  "pickup.invalid": "This code is invalid, expired, or has reached its view limit. Check with the sender.",
+  "pickup.open": "Open share",
+  "pickup.entry": "Pickup page",
+  "pickup.copied": "Pickup code copied",
   "upload.modal.completed.notified-reverse-share-creator":
     "We have notified the creator of the reverse share. You can also manually share this link with them through other means.",
 

@@ -7,14 +7,15 @@ const showShareLinkModal = (
   shareId: string,
   appUrl: string,
   defaultAppUrl: string,
+  pickupCode?: string,
 ) => {
   const t = translateOutsideContext();
   const link = `${appUrl !== defaultAppUrl ? appUrl : window.location.origin}/s/${shareId}`;
   return modals.openModal({
-    title: t("account.shares.modal.share-link"),
+    title: pickupCode ? t("pickup.code") : t("account.shares.modal.share-link"),
     children: (
       <Stack align="stretch">
-        <TextInput variant="filled" value={link} />
+        <TextInput readOnly variant="filled" value={pickupCode ?? link} />
       </Stack>
     ),
   });

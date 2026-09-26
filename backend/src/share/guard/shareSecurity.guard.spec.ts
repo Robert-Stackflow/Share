@@ -236,3 +236,43 @@ test("access policy can disallow anonymous share reads", async () => {
   );
   assert.ok(calls.some((call) => call[0] === "accessPolicy.assertAllowed"));
 });
+
+test("pickup shares require a redeemed token before their content is read", async () => {
+  const share = {
+    id: "pickup-share",
+    pickupCode: "012345",
+    createdAt: new Date("2026-09-26T00:00:00.000Z"),
+    expiration: new Date(0),
+    security: null,
+    reverseShare: null,
+  };
+  const { calls, guard } = createGuard({
+    share,
+    verifyShareToken: async () => true,
+  });
+  const response = { cookie: () => undefined };
+
+  await assert.rejects(
+    () =>
+      guard.canActivate(
+        createContext({ params: { id: share.id }, cookies: {} }, response),
+      ),
+    ForbiddenException,
+  );
+  assert.equal(
+    calls.some(([name]) => name === "getShareToken"),
+    false,
+  );
+  assert.equal(
+    await guard.canActivate(
+      createContext(
+        {
+          params: { id: share.id },
+          cookies: { [`share_${share.id}_token`]: "redeemed-token" },
+        },
+        response,
+      ),
+    ),
+    true,
+  );
+});

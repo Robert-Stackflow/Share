@@ -1,6 +1,7 @@
 import { Type } from "class-transformer";
 import {
   IsEmail,
+  IsIn,
   IsNumber,
   IsOptional,
   IsString,
@@ -14,6 +15,14 @@ import { AccessControlDTO } from "src/accessPolicy/dto/accessControl.dto";
 import { ShareSecurityDTO } from "./shareSecurity.dto";
 
 export class CreateShareDTO {
+  @IsIn(["LINK", "PICKUP"])
+  @IsOptional()
+  deliveryMode?: "LINK" | "PICKUP";
+
+  @IsOptional()
+  @Matches(/^\d{6}$/)
+  pickupCode?: string;
+
   @IsString()
   @Matches("^[a-zA-Z0-9_-]*$", undefined, {
     message: i18nValidationMessage("validation.idPattern"),

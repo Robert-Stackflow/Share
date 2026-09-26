@@ -2,6 +2,7 @@ import {
   Files,
   Info,
   Link2,
+  KeyRound,
   LockKeyhole,
   PencilLine,
   Trash2,
@@ -110,6 +111,9 @@ const MyShares = () => {
                   <td>
                     <Group gap="xs">
                       {share.id}{" "}
+                      {share.pickupCode && (
+                        <Badge variant="light">{t("pickup.code")}</Badge>
+                      )}
                       {share.security?.passwordProtected && (
                         <LockKeyhole
                           color="orange"
@@ -201,7 +205,13 @@ const MyShares = () => {
                           <Info />
                         </ActionIcon>
                       </HoverTip>
-                      <HoverTip label={t("common.button.copy-link")}>
+                      <HoverTip
+                        label={
+                          share.pickupCode
+                            ? t("pickup.code")
+                            : t("common.button.copy-link")
+                        }
+                      >
                         <ActionIcon
                           aria-label={t("common.button.copy-link")}
                           color="gray"
@@ -211,20 +221,28 @@ const MyShares = () => {
                           onClick={() => {
                             if (window.isSecureContext) {
                               clipboard.copy(
-                                `${config.get("general.appUrl") !== config.get("general.appUrl", true) ? config.get("general.appUrl") : window.location.origin}/s/${share.id}`,
+                                share.pickupCode ??
+                                  `${config.get("general.appUrl") !== config.get("general.appUrl", true) ? config.get("general.appUrl") : window.location.origin}/s/${share.id}`,
                               );
-                              toast.success(t("common.notify.copied-link"));
+                              toast.success(
+                                t(
+                                  share.pickupCode
+                                    ? "pickup.copied"
+                                    : "common.notify.copied-link",
+                                ),
+                              );
                             } else {
                               showShareLinkModal(
                                 modals,
                                 share.id,
                                 config.get("general.appUrl"),
                                 config.get("general.appUrl", true),
+                                share.pickupCode,
                               );
                             }
                           }}
                         >
-                          <Link2 />
+                          {share.pickupCode ? <KeyRound /> : <Link2 />}
                         </ActionIcon>
                       </HoverTip>
                       <HoverTip label={t("common.button.delete")}>

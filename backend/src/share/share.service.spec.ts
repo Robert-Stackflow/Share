@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   ForbiddenException,
   NotFoundException,
 } from "@nestjs/common";
@@ -49,7 +50,11 @@ function createPrismaMock(records: { shares?: any[] } = {}) {
         },
         findUnique: async (args: any) => {
           calls.push(["share.findUnique", args]);
-          const share = shares.find((item) => item.id === args.where.id);
+          const share = shares.find((item) =>
+            args.where.pickupCode
+              ? item.pickupCode === args.where.pickupCode
+              : item.id === args.where.id,
+          );
           if (!share) return null;
 
           if (!args.include?.assets) return share;
@@ -349,6 +354,38 @@ test("create upserts an access policy for the share when accessControl is sent",
   ]);
 });
 
+test("pickup share creation generates a strong code and disallows link emails", async () => {
+  const { prisma } = createPrismaMock();
+  const { service: assetService } = createAssetServiceMock();
+  const service = createShareService(prisma, assetService, shareCreateConfig);
+
+  const share = await service.create(
+    {
+      id: "pickup-new",
+      deliveryMode: "PICKUP",
+      expiration: "1-day",
+      recipients: [],
+    } as any,
+    { id: "user-1" } as any,
+  );
+
+  assert.match(share.pickupCode, /^\d{6}$/);
+  assert.equal((share as any).deliveryMode, undefined);
+  await assert.rejects(
+    () =>
+      service.create(
+        {
+          id: "pickup-invalid",
+          deliveryMode: "PICKUP",
+          expiration: "1-day",
+          recipients: ["someone@example.com"],
+        } as any,
+        { id: "user-1" } as any,
+      ),
+    BadRequestException,
+  );
+});
+
 test("owner share list includes expired entries and reports effective access limits", async () => {
   const { calls, prisma } = createPrismaMock({
     shares: [
@@ -386,4 +423,128 @@ test("owner share list includes expired entries and reports effective access lim
   assert.equal(query.where.OR, undefined);
   assert.equal(query.where.removedReason, null);
   assert.equal(query.include.accessPolicy, true);
+});
+
+test("pickup codes exchange for a share token without allowing direct token issuance", async () => {
+  const pickupCode = "012345";
+  const { prisma } = createPrismaMock({
+    shares: [
+      {
+        id: "pickup-share",
+        pickupCode,
+        uploadLocked: true,
+        removedReason: null,
+        createdAt: new Date("2026-09-26T00:00:00.000Z"),
+        expiration: new Date("2099-01-01T00:00:00.000Z"),
+        views: 0,
+        security: null,
+        accessPolicy: null,
+      },
+    ],
+  });
+  const { service: assetService } = createAssetServiceMock();
+  const service = createShareService(prisma, assetService);
+
+  await assert.rejects(
+    () => service.getShareToken("pickup-share", undefined as any),
+    ForbiddenException,
+  );
+  assert.deepEqual(await service.redeemPickupCode("012345"), {
+    id: "pickup-share",
+    token: "share-token",
+  });
+  await assert.rejects(
+    () => service.redeemPickupCode("wrong-code"),
+    NotFoundException,
+  );
+});
+
+test("pickup share creation retries when a generated code already exists", async () => {
+  const { calls, prisma } = createPrismaMock();
+  const create = prisma.share.create;
+  prisma.share.create = async (args: any) => {
+    if (args.data.pickupCode === "123456") {
+      throw { code: "P2002", meta: { target: ["pickupCode"] } };
+    }
+    return create(args);
+  };
+  const { service: assetService } = createAssetServiceMock();
+  const service = createShareService(prisma, assetService, shareCreateConfig);
+  const generatedCodes = ["123456", "654321"];
+  (service as any).generatePickupCode = () => generatedCodes.shift();
+
+  const share = await service.create(
+    {
+      id: "pickup-retry",
+      deliveryMode: "PICKUP",
+      expiration: "1-day",
+      recipients: [],
+    } as any,
+    { id: "user-1" } as any,
+  );
+
+  assert.equal(share.pickupCode, "654321");
+  assert.equal(calls.filter(([name]) => name === "share.create").length, 1);
+});
+
+test("custom pickup code is kept and a duplicate is reported without changing it", async () => {
+  const { prisma } = createPrismaMock();
+  const originalCreate = prisma.share.create;
+  let attempts = 0;
+  prisma.share.create = async (args: any) => {
+    attempts++;
+    if (args.data.pickupCode === "012345") {
+      throw { code: "P2002", meta: { target: ["pickupCode"] } };
+    }
+    return originalCreate(args);
+  };
+  const { service: assetService } = createAssetServiceMock();
+  const service = createShareService(prisma, assetService, shareCreateConfig);
+
+  await assert.rejects(
+    () =>
+      service.create({
+        id: "pickup-taken",
+        deliveryMode: "PICKUP",
+        pickupCode: "012345",
+        expiration: "1-day",
+        recipients: [],
+      } as any),
+    (error: any) =>
+      error instanceof ConflictException &&
+        (error.getResponse() as { error?: string }).error === "pickup_code_taken",
+  );
+  assert.equal(attempts, 1);
+
+  const share = await service.create({
+    id: "pickup-custom",
+    deliveryMode: "PICKUP",
+    pickupCode: "000007",
+    expiration: "1-day",
+    recipients: [],
+  } as any);
+  assert.equal(share.pickupCode, "000007");
+
+  await assert.rejects(
+    () =>
+      service.create({
+        id: "pickup-invalid-code",
+        deliveryMode: "PICKUP",
+        pickupCode: "12345",
+        expiration: "1-day",
+        recipients: [],
+      } as any),
+    BadRequestException,
+  );
+  await assert.rejects(
+    () =>
+      service.create({
+        id: "link-with-code",
+        deliveryMode: "LINK",
+        pickupCode: "123456",
+        expiration: "1-day",
+        recipients: [],
+      } as any),
+    BadRequestException,
+  );
 });

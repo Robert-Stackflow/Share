@@ -1,4 +1,4 @@
-import { Files, Info, Link2, RefreshCw, Trash2 } from "lucide-react";
+import { Files, Info, KeyRound, Link2, RefreshCw, Trash2 } from "lucide-react";
 import {
   ActionIcon,
   Box,
@@ -176,7 +176,13 @@ const ManageShareTable = ({
                           <Info />
                         </ActionIcon>
                       </HoverTip>
-                      <HoverTip label={t("common.button.copy-link")}>
+                      <HoverTip
+                        label={
+                          share.pickupCode
+                            ? t("pickup.code")
+                            : t("common.button.copy-link")
+                        }
+                      >
                         <ActionIcon
                           color="gray"
                           variant="subtle"
@@ -184,20 +190,28 @@ const ManageShareTable = ({
                           onClick={() => {
                             if (window.isSecureContext) {
                               clipboard.copy(
-                                `${config.get("general.appUrl") !== config.get("general.appUrl", true) ? config.get("general.appUrl") : window.location.origin}/s/${share.id}`,
+                                share.pickupCode ??
+                                  `${config.get("general.appUrl") !== config.get("general.appUrl", true) ? config.get("general.appUrl") : window.location.origin}/s/${share.id}`,
                               );
-                              toast.success(t("common.notify.copied-link"));
+                              toast.success(
+                                t(
+                                  share.pickupCode
+                                    ? "pickup.copied"
+                                    : "common.notify.copied-link",
+                                ),
+                              );
                             } else {
                               showShareLinkModal(
                                 modals,
                                 share.id,
                                 config.get("general.appUrl"),
                                 config.get("general.appUrl", true),
+                                share.pickupCode,
                               );
                             }
                           }}
                         >
-                          <Link2 />
+                          {share.pickupCode ? <KeyRound /> : <Link2 />}
                         </ActionIcon>
                       </HoverTip>
                       <HoverTip label={t("common.button.delete")}>

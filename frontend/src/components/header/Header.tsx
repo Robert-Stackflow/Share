@@ -2,6 +2,7 @@ import {
   FolderClosed,
   Inbox,
   Link2,
+  KeyRound,
   LogOut,
   MessageCircleMore,
   Settings2,
@@ -69,6 +70,7 @@ const Header = () => {
       label: t("navbar.upload"),
     },
     { link: "/rooms", label: t("navbar.rooms") },
+    { link: "/pickup", label: t("pickup.nav") },
     {
       link: "/short-links",
       label: t("navbar.links.shortLinks"),
@@ -95,6 +97,8 @@ const Header = () => {
     });
   }
 
+  unauthenticatedLinks.unshift({ link: "/pickup", label: t("pickup.nav") });
+
   if (config.get("general.showHomePage"))
     unauthenticatedLinks.unshift({
       link: "/",
@@ -120,6 +124,11 @@ const Header = () => {
           icon: <MessageCircleMore size={19} />,
         },
         {
+          link: "/pickup",
+          label: t("pickup.nav"),
+          icon: <KeyRound size={19} />,
+        },
+        {
           link: "/short-links",
           label: t("navbar.links.shortLinks"),
           icon: <Link2 size={19} />,
@@ -128,7 +137,9 @@ const Header = () => {
     : unauthenticatedLinks.map((link) => ({
         ...link,
         icon:
-          link.link === "/upload" ? (
+          link.link === "/pickup" ? (
+            <KeyRound size={19} />
+          ) : link.link === "/upload" ? (
             <Upload size={19} />
           ) : (
             <UserRound size={19} />

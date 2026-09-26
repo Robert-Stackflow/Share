@@ -26,6 +26,7 @@ import { MyShareDTO } from "./dto/myShare.dto";
 import { ShareDTO } from "./dto/share.dto";
 import { ShareMetaDataDTO } from "./dto/shareMetaData.dto";
 import { SharePasswordDto } from "./dto/sharePassword.dto";
+import { PickupCodeDTO } from "./dto/pickupCode.dto";
 import { UpdateShareDTO } from "./dto/updateShare.dto";
 import { GetShare } from "./decorator/getShare.decorator";
 import { CreateShareGuard } from "./guard/createShare.guard";
@@ -86,6 +87,20 @@ export class ShareController {
     return new ShareDTO().from(
       await this.shareService.create(body, user, reverse_share_token),
     );
+  }
+
+  @Post("pickup")
+  @HttpCode(200)
+  @Throttle({ default: { limit: 5, ttl: 300_000 } })
+  async redeemPickupCode(
+    @Body() body: PickupCodeDTO,
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const { id, token } = await this.shareService.redeemPickupCode(body.code);
+    this.clearShareTokenCookies(request, response);
+    response.cookie(`share_${id}_token`, token, { path: "/", httpOnly: true });
+    return { id };
   }
 
   @Post(":id/assets")

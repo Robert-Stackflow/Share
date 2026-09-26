@@ -46,6 +46,7 @@ export class AppController {
       "/share/*",
       "/s/*",
       "/short-link-access",
+      "/pickup",
       "/rooms/*",
       "/inbox/*",
       "/upload/*",

@@ -93,6 +93,9 @@ const getShareToken = async (id: string, password?: string) => {
   await api.post(`/shares/${id}/token`, { password });
 };
 
+const redeemPickupCode = async (code: string): Promise<{ id: string }> =>
+  (await api.post("shares/pickup", { code })).data;
+
 const isShareIdAvailable = async (id: string): Promise<boolean> => {
   if (!isValidId(id)) throw new Error("Invalid Share ID");
   return (await api.get(`/shares/isShareIdAvailable/${id}`)).data.isAvailable;
@@ -205,6 +208,7 @@ export default {
   completeShare,
   revertComplete,
   getShareToken,
+  redeemPickupCode,
   get,
   getFromOwner,
   update,

@@ -148,8 +148,9 @@ const Upload = ({
         await Promise.all(assetUploadPromises);
       }
     } catch (e) {
-      toast.axiosError(e);
       setisUploading(false);
+      if (share.deliveryMode === "PICKUP" && share.pickupCode) throw e;
+      toast.axiosError(e);
       return;
     }
 

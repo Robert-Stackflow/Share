@@ -8,6 +8,9 @@ export class ShareDTO {
   id: string;
 
   @Expose()
+  pickupCode?: string;
+
+  @Expose()
   name?: string;
 
   @Expose()

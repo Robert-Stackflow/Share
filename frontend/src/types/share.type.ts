@@ -5,6 +5,7 @@ import { AccessControl } from "./accessControl.type";
 
 export type Share = {
   id: string;
+  pickupCode?: string;
   name?: string;
   files: FileMetaData[];
   assets?: Asset[];
@@ -26,6 +27,8 @@ export type CompletedShare = Share & {
 
 export type CreateShare = {
   id: string;
+  deliveryMode?: "LINK" | "PICKUP";
+  pickupCode?: string;
   name?: string;
   description?: string;
   recipients: string[];

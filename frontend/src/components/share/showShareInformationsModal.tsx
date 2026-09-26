@@ -14,6 +14,7 @@ import {
   TextInput,
 } from "@mantine/core";
 import { useForm, yupResolver } from "@mantine/form";
+import { useClipboard } from "@mantine/hooks";
 import { ModalsContextProps } from "@mantine/modals/lib/context";
 import moment from "moment";
 import { useState } from "react";
@@ -80,6 +81,7 @@ const Body = ({
   const [currentShare, setCurrentShare] = useState(share);
   const [showQR, setShowQR] = useState(false);
   const [isEditing, setIsEditing] = useState(initiallyEditing);
+  const clipboard = useClipboard();
 
   const handleToggleQR = () => {
     setShowQR(!showQR);
@@ -135,12 +137,31 @@ const Body = ({
       <section className={modalClasses.section}>
         <div className={modalClasses.sectionHeader}>
           <Text className={modalClasses.sectionTitle}>
-            {t("common.text.link")}
+            {t(currentShare.pickupCode ? "pickup.code" : "common.text.link")}
           </Text>
         </div>
-        <CopyTextField link={link} toggleQR={handleToggleQR} />
+        {currentShare.pickupCode ? (
+          <Group align="end" wrap="nowrap">
+            <TextInput
+              readOnly
+              value={currentShare.pickupCode}
+              style={{ flex: 1 }}
+            />
+            <Button
+              variant="light"
+              onClick={() => {
+                clipboard.copy(currentShare.pickupCode);
+                toast.success(t("pickup.copied"));
+              }}
+            >
+              {t("common.button.copy")}
+            </Button>
+          </Group>
+        ) : (
+          <CopyTextField link={link} toggleQR={handleToggleQR} />
+        )}
       </section>
-      <Collapse in={showQR}>
+      <Collapse in={showQR && !currentShare.pickupCode}>
         <div className={modalClasses.qrWrap}>
           <QRCode link={link} />
         </div>
@@ -352,18 +373,20 @@ const EditShareBody = ({
             </Text>
           </div>
           <Stack gap="sm">
-            <PasswordInput
-              autoComplete="new-password"
-              disabled={form.values.removePassword}
-              label={t("upload.modal.accordion.security.password.label")}
-              placeholder={
-                security.passwordProtected
-                  ? t("account.shares.modal.edit.password.keep")
-                  : t("upload.modal.accordion.security.password.placeholder")
-              }
-              variant="filled"
-              {...form.getInputProps("password")}
-            />
+            {!share.pickupCode && (
+              <PasswordInput
+                autoComplete="new-password"
+                disabled={form.values.removePassword}
+                label={t("upload.modal.accordion.security.password.label")}
+                placeholder={
+                  security.passwordProtected
+                    ? t("account.shares.modal.edit.password.keep")
+                    : t("upload.modal.accordion.security.password.placeholder")
+                }
+                variant="filled"
+                {...form.getInputProps("password")}
+              />
+            )}
             {security.passwordProtected && (
               <Checkbox
                 label={t("account.shares.modal.edit.password.remove")}

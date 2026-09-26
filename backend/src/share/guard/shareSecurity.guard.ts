@@ -77,6 +77,12 @@ export class ShareSecurityGuard extends JwtGuard {
       (policyMaxViews !== null && policyMaxViews !== undefined) ||
       Boolean(share.security?.maxViews);
 
+    if (share.pickupCode && !shareToken)
+      throw new ForbiddenException(
+        "Pickup code required",
+        "pickup_code_required",
+      );
+
     if (passwordHash && !shareToken)
       throw new ForbiddenException(
         this.i18n.t("file.passwordProtected"),
@@ -84,7 +90,7 @@ export class ShareSecurityGuard extends JwtGuard {
       );
 
     if (!(await this.shareService.verifyShareToken(share, shareToken))) {
-      if (!shareToken && !passwordHash && !hasViewLimit) {
+      if (!shareToken && !share.pickupCode && !passwordHash && !hasViewLimit) {
         const token = await this.shareService.getShareToken(
           share.id,
           undefined,

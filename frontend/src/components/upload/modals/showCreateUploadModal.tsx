@@ -17,6 +17,7 @@ import {
   NumberInput,
   PasswordInput,
   Select,
+  SegmentedControl,
   SimpleGrid,
   Stack,
   Tabs,
@@ -29,6 +30,7 @@ import { useForm, yupResolver } from "@mantine/form";
 import { useModals } from "@mantine/modals";
 import { ModalsContextProps } from "@mantine/modals/lib/context";
 import moment from "moment";
+import { AxiosError } from "axios";
 import React, { useState } from "react";
 import FormattedMessage from "../../core/FormattedMessage";
 import * as yup from "yup";
@@ -55,7 +57,7 @@ type UploadCallback = (
   createShare: CreateShare,
   files: FileUpload[],
   pendingAssets: CreateAsset[],
-) => void;
+) => Promise<void>;
 
 const showCreateUploadModal = (
   modals: ModalsContextProps,
@@ -176,6 +178,11 @@ const CreateUploadModalBody = ({
     .filter((asset) => asset.type === "LINK")
     .map((asset) => asset.url);
   const [accessControl, setAccessControl] = useState<AccessControl>({});
+  const [deliveryMode, setDeliveryMode] = useState<"LINK" | "PICKUP">("LINK");
+  const [pickupCodeSource, setPickupCodeSource] = useState<"RANDOM" | "CUSTOM">(
+    "RANDOM",
+  );
+  const [submitting, setSubmitting] = useState(false);
 
   const validationSchema = yup.object().shape({
     link: yup
@@ -214,6 +221,7 @@ const CreateUploadModalBody = ({
   const form = useForm<{
     name?: string;
     link: string;
+    pickupCode: string;
     recipients: string[];
     password?: string;
     maxViews?: number;
@@ -225,6 +233,7 @@ const CreateUploadModalBody = ({
     initialValues: {
       name: undefined,
       link: generatedLink,
+      pickupCode: "",
       recipients: [] as string[],
       password: undefined,
       maxViews: undefined,
@@ -250,6 +259,18 @@ const CreateUploadModalBody = ({
   const contentCount = files.length + pendingAssets.length;
 
   const onSubmit = form.onSubmit(async (values) => {
+    if (submitting) return;
+    if (
+      deliveryMode === "PICKUP" &&
+      pickupCodeSource === "CUSTOM" &&
+      !/^\d{6}$/.test(values.pickupCode)
+    ) {
+      form.setFieldError(
+        "pickupCode",
+        t("upload.modal.delivery.customInvalid"),
+      );
+      return;
+    }
     if (
       !options.isInbox &&
       !(await shareService.isShareIdAvailable(values.link))
@@ -289,19 +310,28 @@ const CreateUploadModalBody = ({
         return;
       }
 
-      uploadCallback(
+      const createPromise = uploadCallback(
         {
           id: options.isInbox
             ? generateShareId(options.shareIdLength)
             : values.link,
           name: values.name,
           expiration: expirationString,
-          recipients: options.isInbox ? [] : values.recipients,
+          recipients:
+            options.isInbox || deliveryMode === "PICKUP"
+              ? []
+              : values.recipients,
+          deliveryMode: options.isInbox ? "LINK" : deliveryMode,
+          pickupCode:
+            deliveryMode === "PICKUP" && pickupCodeSource === "CUSTOM"
+              ? values.pickupCode
+              : undefined,
           description: values.description,
           security: {
-            password: options.isInbox
-              ? undefined
-              : values.password || undefined,
+            password:
+              options.isInbox || deliveryMode === "PICKUP"
+                ? undefined
+                : values.password || undefined,
             maxViews: options.isInbox
               ? undefined
               : values.maxViews || undefined,
@@ -311,7 +341,29 @@ const CreateUploadModalBody = ({
         files,
         pendingAssets,
       );
-      modals.closeAll();
+      if (deliveryMode === "PICKUP" && pickupCodeSource === "CUSTOM") {
+        setSubmitting(true);
+        try {
+          await createPromise;
+          modals.closeAll();
+        } catch (error) {
+          if (
+            error instanceof AxiosError &&
+            error.response?.data?.error === "pickup_code_taken"
+          ) {
+            form.setFieldError(
+              "pickupCode",
+              t("upload.modal.delivery.customTaken"),
+            );
+          } else {
+            toast.axiosError(error);
+          }
+        } finally {
+          setSubmitting(false);
+        }
+      } else {
+        modals.closeAll();
+      }
     }
   });
 
@@ -331,7 +383,94 @@ const CreateUploadModalBody = ({
       <form onSubmit={onSubmit}>
         <Stack align="stretch" className={modalClasses.modalStack}>
           <div className={modalClasses.createShareGrid}>
-            {!options.isInbox && (
+            {!options.isInbox && !options.isReverseShare && (
+              <section
+                className={`${modalClasses.flatSection} ${modalClasses.createShareWide}`}
+              >
+                <div className={modalClasses.sectionHeader}>
+                  <Text className={modalClasses.sectionTitle}>
+                    {t("upload.modal.delivery.title")}
+                  </Text>
+                </div>
+                <SegmentedControl
+                  fullWidth
+                  value={deliveryMode}
+                  onChange={(value) => {
+                    const nextMode = value as "LINK" | "PICKUP";
+                    setDeliveryMode(nextMode);
+                    if (nextMode === "PICKUP") {
+                      form.setFieldValue(
+                        "link",
+                        generateShareId(options.shareIdLength),
+                      );
+                      form.setFieldValue("password", undefined);
+                      form.setFieldValue("recipients", []);
+                      form.clearFieldError("link");
+                      form.clearFieldError("password");
+                      form.clearFieldError("recipients");
+                    }
+                  }}
+                  data={[
+                    { label: t("upload.modal.delivery.link"), value: "LINK" },
+                    {
+                      label: t("upload.modal.delivery.pickup"),
+                      value: "PICKUP",
+                    },
+                  ]}
+                />
+                <Text className={modalClasses.sectionDescription} mt="xs">
+                  {t(
+                    deliveryMode === "PICKUP"
+                      ? "upload.modal.delivery.pickupDescription"
+                      : "upload.modal.delivery.linkDescription",
+                  )}
+                </Text>
+                {deliveryMode === "PICKUP" && (
+                  <Stack gap="xs" mt="sm">
+                    <SegmentedControl
+                      fullWidth
+                      value={pickupCodeSource}
+                      onChange={(value) => {
+                        setPickupCodeSource(value as "RANDOM" | "CUSTOM");
+                        form.clearFieldError("pickupCode");
+                      }}
+                      data={[
+                        {
+                          label: t("upload.modal.delivery.randomCode"),
+                          value: "RANDOM",
+                        },
+                        {
+                          label: t("upload.modal.delivery.customCode"),
+                          value: "CUSTOM",
+                        },
+                      ]}
+                    />
+                    {pickupCodeSource === "CUSTOM" && (
+                      <TextInput
+                        label={t("upload.modal.delivery.customCode")}
+                        placeholder={t(
+                          "upload.modal.delivery.customPlaceholder",
+                        )}
+                        inputMode="numeric"
+                        autoComplete="off"
+                        maxLength={6}
+                        {...form.getInputProps("pickupCode")}
+                        onChange={(event) => {
+                          form.setFieldValue(
+                            "pickupCode",
+                            event.currentTarget.value
+                              .replace(/\D/g, "")
+                              .slice(0, 6),
+                          );
+                          form.clearFieldError("pickupCode");
+                        }}
+                      />
+                    )}
+                  </Stack>
+                )}
+              </section>
+            )}
+            {!options.isInbox && deliveryMode === "LINK" && (
               <section
                 className={`${modalClasses.flatSection} ${modalClasses.createShareWide}`}
               >
@@ -640,44 +779,48 @@ const CreateUploadModalBody = ({
               </Stack>
             </section>
 
-            {options.enableEmailRecepients && !options.isInbox && (
-              <section
-                className={`${modalClasses.flatSection} ${modalClasses.createShareWide}`}
-              >
-                <div className={modalClasses.sectionHeader}>
-                  <Text className={modalClasses.sectionTitle}>
-                    {t("upload.modal.access.email.title")}
-                  </Text>
-                </div>
-                <TagsInput
-                  error={form.errors.recipients}
-                  id="recipient-emails"
-                  inputMode="email"
-                  placeholder={t("upload.modal.access.email.placeholder")}
-                  splitChars={[",", ";", " "]}
-                  value={form.values.recipients}
-                  onChange={(values) => {
-                    const trimmed = values.map((v) => v.trim()).filter(Boolean);
-                    const valid = trimmed.filter((v) =>
-                      /^\S+@\S+\.\S+$/.test(v),
-                    );
-                    const hasInvalid = trimmed.length !== valid.length;
-                    form.setFieldValue(
-                      "recipients",
-                      Array.from(new Set(valid)),
-                    );
-                    if (hasInvalid) {
-                      form.setFieldError(
-                        "recipients",
-                        t("upload.modal.access.email.invalid-email"),
+            {options.enableEmailRecepients &&
+              !options.isInbox &&
+              deliveryMode === "LINK" && (
+                <section
+                  className={`${modalClasses.flatSection} ${modalClasses.createShareWide}`}
+                >
+                  <div className={modalClasses.sectionHeader}>
+                    <Text className={modalClasses.sectionTitle}>
+                      {t("upload.modal.access.email.title")}
+                    </Text>
+                  </div>
+                  <TagsInput
+                    error={form.errors.recipients}
+                    id="recipient-emails"
+                    inputMode="email"
+                    placeholder={t("upload.modal.access.email.placeholder")}
+                    splitChars={[",", ";", " "]}
+                    value={form.values.recipients}
+                    onChange={(values) => {
+                      const trimmed = values
+                        .map((v) => v.trim())
+                        .filter(Boolean);
+                      const valid = trimmed.filter((v) =>
+                        /^\S+@\S+\.\S+$/.test(v),
                       );
-                    } else {
-                      form.clearFieldError("recipients");
-                    }
-                  }}
-                />
-              </section>
-            )}
+                      const hasInvalid = trimmed.length !== valid.length;
+                      form.setFieldValue(
+                        "recipients",
+                        Array.from(new Set(valid)),
+                      );
+                      if (hasInvalid) {
+                        form.setFieldError(
+                          "recipients",
+                          t("upload.modal.access.email.invalid-email"),
+                        );
+                      } else {
+                        form.clearFieldError("recipients");
+                      }
+                    }}
+                  />
+                </section>
+              )}
 
             {!options.isInbox && (
               <section
@@ -690,15 +833,17 @@ const CreateUploadModalBody = ({
                 </div>
                 <div className={modalClasses.shareAccessGrid}>
                   <Stack className={modalClasses.shareAccessColumn} gap="md">
-                    <PasswordInput
-                      autoComplete="new-password"
-                      label={t("upload.modal.access.security.password.label")}
-                      placeholder={t(
-                        "upload.modal.access.security.password.placeholder",
-                      )}
-                      variant="filled"
-                      {...form.getInputProps("password")}
-                    />
+                    {deliveryMode === "LINK" && (
+                      <PasswordInput
+                        autoComplete="new-password"
+                        label={t("upload.modal.access.security.password.label")}
+                        placeholder={t(
+                          "upload.modal.access.security.password.placeholder",
+                        )}
+                        variant="filled"
+                        {...form.getInputProps("password")}
+                      />
+                    )}
                     <NumberInput
                       hideControls
                       label={t("upload.modal.access.security.max-views.label")}
@@ -739,7 +884,8 @@ const CreateUploadModalBody = ({
             <Button
               color="gray"
               data-autofocus
-              disabled={contentCount === 0}
+              disabled={contentCount === 0 || submitting}
+              loading={submitting}
               leftSection={options.isInbox ? <Send /> : <Share2 />}
               type="submit"
             >

@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -37,6 +38,8 @@ import { UpdateShareDTO } from "./dto/updateShare.dto";
 
 @Injectable()
 export class ShareService {
+  private readonly maxPickupCodeAttempts = 20;
+
   constructor(
     private prisma: PrismaService,
     private configService: ConfigService,
@@ -65,6 +68,22 @@ export class ShareService {
   }
 
   async create(share: CreateShareDTO, user?: User, reverseShareToken?: string) {
+    if (share.pickupCode !== undefined && share.deliveryMode !== "PICKUP") {
+      throw new BadRequestException("Pickup codes require pickup delivery");
+    }
+    if (share.pickupCode !== undefined && !/^\d{6}$/.test(share.pickupCode)) {
+      throw new BadRequestException("Pickup codes must contain six digits");
+    }
+    if (
+      share.deliveryMode === "PICKUP" &&
+      (share.recipients?.length ||
+        share.security?.password ||
+        share.accessControl?.password)
+    ) {
+      throw new BadRequestException(
+        "Pickup shares cannot send link emails or use an additional password",
+      );
+    }
     if (share.size) {
       const systemInfo = await this.systemService.getSystemInfo();
       if (systemInfo && systemInfo.total - systemInfo.used < share.size) {
@@ -104,23 +123,28 @@ export class ShareService {
       recipients: _recipients,
       expiration: _expiration,
       accessControl: _accessControl,
+      deliveryMode: _deliveryMode,
+      pickupCode: _pickupCode,
       ...shareData
     } = share;
 
-    const shareTuple = await this.prisma.share.create({
-      data: {
-        ...shareData,
-        expiration: expirationDate,
-        creator: { connect: user ? { id: user.id } : undefined },
-        security: { create: share.security },
-        recipients: {
-          create: share.recipients
-            ? share.recipients.map((email) => ({ email }))
-            : [],
-        },
-        storageProvider: this.configService.get("s3.enabled") ? "S3" : "LOCAL",
+    const createData: Prisma.ShareCreateInput = {
+      ...shareData,
+      expiration: expirationDate,
+      creator: { connect: user ? { id: user.id } : undefined },
+      security: { create: share.security },
+      recipients: {
+        create: share.recipients
+          ? share.recipients.map((email) => ({ email }))
+          : [],
       },
-    });
+      storageProvider: this.configService.get("s3.enabled") ? "S3" : "LOCAL",
+    };
+
+    const shareTuple =
+      share.deliveryMode === "PICKUP"
+        ? await this.createPickupShare(createData, share.pickupCode)
+        : await this.prisma.share.create({ data: createData });
 
     if (reverseShare) {
       // Assign share to reverse share token
@@ -151,6 +175,80 @@ export class ShareService {
     return shareTuple;
   }
 
+  private generatePickupCode() {
+    return crypto.randomInt(0, 1_000_000).toString().padStart(6, "0");
+  }
+
+  private isPickupCodeConflict(error: unknown) {
+    const conflict = error as {
+      code?: string;
+      meta?: { target?: string | string[] };
+    };
+    const target = conflict?.meta?.target;
+    return (
+      conflict?.code === "P2002" &&
+      (Array.isArray(target)
+        ? target.includes("pickupCode")
+        : typeof target === "string" && target.includes("pickupCode"))
+    );
+  }
+
+  private async createPickupShare(
+    data: Prisma.ShareCreateInput,
+    requestedCode?: string,
+  ) {
+    if (requestedCode !== undefined) {
+      try {
+        return await this.prisma.share.create({
+          data: { ...data, pickupCode: requestedCode },
+        });
+      } catch (error) {
+        if (this.isPickupCodeConflict(error)) {
+          throw new ConflictException({
+            error: "pickup_code_taken",
+            message: "Pickup code is already in use",
+          });
+        }
+        throw error;
+      }
+    }
+
+    for (let attempt = 0; attempt < this.maxPickupCodeAttempts; attempt++) {
+      try {
+        return await this.prisma.share.create({
+          data: { ...data, pickupCode: this.generatePickupCode() },
+        });
+      } catch (error) {
+        if (!this.isPickupCodeConflict(error)) throw error;
+      }
+    }
+
+    throw new ConflictException("Could not allocate a unique pickup code");
+  }
+
+  async redeemPickupCode(rawCode: string) {
+    const code = typeof rawCode === "string" ? rawCode : "";
+    if (!/^\d{6}$/.test(code)) {
+      throw new NotFoundException(this.i18n.t("share.notFound"));
+    }
+
+    const share = await this.prisma.share.findUnique({
+      where: { pickupCode: code },
+    });
+    if (
+      !share ||
+      !share.uploadLocked ||
+      share.removedReason ||
+      (moment().isAfter(share.expiration) &&
+        !moment(share.expiration).isSame(0))
+    ) {
+      throw new NotFoundException(this.i18n.t("share.notFound"));
+    }
+
+    const token = await this.getShareToken(share.id, undefined, code);
+    return { id: share.id, token };
+  }
+
   async createZip(shareId: string) {
     if (this.config.get("s3.enabled")) return;
 
@@ -165,9 +263,12 @@ export class ShareService {
     const writeStream = fs.createWriteStream(`${path}/archive.zip`);
 
     for (const file of files) {
-      archive.append(fs.createReadStream(`${ASSET_DIRECTORY}/${file.storageKey ?? file.id}`), {
-        name: file.name,
-      });
+      archive.append(
+        fs.createReadStream(`${ASSET_DIRECTORY}/${file.storageKey ?? file.id}`),
+        {
+          name: file.name,
+        },
+      );
     }
 
     archive.pipe(writeStream);
@@ -422,6 +523,12 @@ export class ShareService {
       throw new ForbiddenException(this.i18n.t("share.anonymousNoUpdate"));
     }
 
+    if (currentShare.pickupCode && body.security?.password) {
+      throw new BadRequestException(
+        "Pickup shares cannot use an additional password",
+      );
+    }
+
     let expirationDate: Date | undefined;
     if (body.expiration !== undefined) {
       expirationDate = this.parseExpiration(body.expiration);
@@ -600,7 +707,7 @@ export class ShareService {
     }
   }
 
-  async getShareToken(shareId: string, password: string) {
+  async getShareToken(shareId: string, password: string, pickupCode?: string) {
     const share = await this.prisma.share.findFirst({
       where: { id: shareId },
       include: {
@@ -609,6 +716,13 @@ export class ShareService {
       },
     });
     if (!share) throw new NotFoundException(this.i18n.t("share.notFound"));
+
+    if (share.pickupCode && share.pickupCode !== pickupCode) {
+      throw new ForbiddenException(
+        "Pickup code required",
+        "pickup_code_required",
+      );
+    }
 
     const passwordHash = this.getSharePasswordHash(share);
     if (passwordHash) {

@@ -1,4 +1,13 @@
-import { Button, Stack, Text, Collapse, useComputedColorScheme } from "@mantine/core";
+import {
+  Button,
+  Stack,
+  Text,
+  Collapse,
+  TextInput,
+  Group,
+  useComputedColorScheme,
+} from "@mantine/core";
+import { useClipboard } from "@mantine/hooks";
 import { useModals } from "@mantine/modals";
 import { ModalsContextProps } from "@mantine/modals/lib/context";
 import { useState } from "react";
@@ -11,6 +20,7 @@ import useTranslate, {
 import { CompletedShare } from "../../../types/share.type";
 import CopyTextField from "../CopyTextField";
 import QRCode from "../../share/QRCode";
+import toast from "../../../utils/toast.util";
 
 const showCompletedUploadModal = (
   modals: ModalsContextProps,
@@ -43,6 +53,7 @@ const Body = ({
   const router = useRouter();
   const t = useTranslate();
   const colorScheme = useComputedColorScheme("light");
+  const clipboard = useClipboard();
 
   const [showQR, setShowQR] = useState(false);
 
@@ -56,22 +67,48 @@ const Body = ({
 
   return (
     <Stack align="stretch">
-      <CopyTextField link={link} toggleQR={handleToggleQR} />
-      <Collapse in={showQR}>
-        <QRCode link={link} />
-      </Collapse>
+      {share.pickupCode ? (
+        <>
+          <Text size="sm" c="dimmed">
+            {t("upload.modal.completed.pickupInstructions")}
+          </Text>
+          <Group align="end" wrap="nowrap">
+            <TextInput
+              readOnly
+              label={t("pickup.code")}
+              value={share.pickupCode}
+              styles={{ input: { fontWeight: 700, letterSpacing: "0.1em" } }}
+              style={{ flex: 1 }}
+            />
+            <Button
+              variant="light"
+              onClick={() => {
+                clipboard.copy(share.pickupCode);
+                toast.success(t("pickup.copied"));
+              }}
+            >
+              {t("common.button.copy")}
+            </Button>
+          </Group>
+          <Text size="sm" c="dimmed">
+            {t("pickup.entry")}:{" "}
+            {`${appUrl !== defaultAppUrl ? appUrl : window.location.origin}/pickup/`}
+          </Text>
+        </>
+      ) : (
+        <>
+          <CopyTextField link={link} toggleQR={handleToggleQR} />
+          <Collapse in={showQR}>
+            <QRCode link={link} />
+          </Collapse>
+        </>
+      )}
       {share.notifyReverseShareCreator === true && (
-        <Text
-          size="sm"
-          c={colorScheme === "dark" ? "gray.3" : "dark.4"}
-        >
+        <Text size="sm" c={colorScheme === "dark" ? "gray.3" : "dark.4"}>
           {t("upload.modal.completed.notified-reverse-share-creator")}
         </Text>
       )}
-      <Text
-        size="xs"
-        c="gray.6"
-      >
+      <Text size="xs" c="gray.6">
         {/* If our share.expiration is timestamp 0, show a different message */}
         {moment(share.expiration).unix() === 0
           ? t("upload.modal.completed.never-expires")
