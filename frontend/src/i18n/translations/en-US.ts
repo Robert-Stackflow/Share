@@ -635,6 +635,7 @@ export default {
 
   // /admin/users
   "admin.users.title": "User management",
+  "admin.users.empty": "No users yet",
   "admin.users.table.username": "Username",
   "admin.users.table.email": "Email",
   "admin.users.table.admin": "Admin",
@@ -669,6 +670,9 @@ export default {
 
   // /admin/shares
   "admin.shares.title": "Share management",
+  "admin.shares.empty": "No shares yet",
+  "admin.shares.load-error": "Could not load shares",
+  "admin.shares.retry": "Try again",
   "admin.shares.diskUsage": "Disk Usage",
   "admin.shares.table.id": "Share ID",
   "admin.shares.table.username": "Creator",

@@ -577,6 +577,7 @@ export default {
 
   // /admin/users
   "admin.users.title": "用户管理",
+  "admin.users.empty": "暂无用户记录",
   "admin.users.table.username": "用户名",
   "admin.users.table.email": "电子邮件",
   "admin.users.table.admin": "管理员",
@@ -603,6 +604,9 @@ export default {
 
   // /admin/shares
   "admin.shares.title": "共享管理",
+  "admin.shares.empty": "暂无共享记录",
+  "admin.shares.load-error": "共享记录加载失败",
+  "admin.shares.retry": "重试",
   "admin.shares.diskUsage": "磁盘占用",
   "admin.shares.table.id": "共享 ID",
   "admin.shares.table.username": "创建者",

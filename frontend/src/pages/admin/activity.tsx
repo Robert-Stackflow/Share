@@ -1,9 +1,11 @@
-import { Box, Center, Group, Select, Stack, Table, Text, Title } from "@mantine/core";
+import { Box, Group, Select, Stack, Table, Text, Title } from "@mantine/core";
+import { History } from "lucide-react";
 import moment from "moment";
 import { useEffect, useMemo, useState } from "react";
 import FormattedMessage from "../../components/core/FormattedMessage";
 import Meta from "../../components/Meta";
 import CenterLoader from "../../components/core/CenterLoader";
+import EmptyState from "../../components/core/EmptyState";
 import tableClasses from "../../components/core/DataTable.module.css";
 import useTranslate from "../../hooks/useTranslate.hook";
 import useUser from "../../hooks/user.hook";
@@ -42,10 +44,11 @@ const AdminActivity = () => {
   useEffect(() => {
     if (!user?.isAdmin) return;
     setEvents(undefined);
-    activityService.listAll({
-      action: actionFilter ?? undefined,
-      targetType: targetTypeFilter ?? undefined,
-    })
+    activityService
+      .listAll({
+        action: actionFilter ?? undefined,
+        targetType: targetTypeFilter ?? undefined,
+      })
       .then(setEvents)
       .catch(toast.axiosError);
   }, [user, actionFilter, targetTypeFilter]);
@@ -83,13 +86,10 @@ const AdminActivity = () => {
       {!events ? (
         <CenterLoader />
       ) : events.length == 0 ? (
-        <Center style={{ height: "40vh" }}>
-          <Stack align="center" gap={10}>
-            <Text>
-              <FormattedMessage id="account.activity.empty" />
-            </Text>
-          </Stack>
-        </Center>
+        <EmptyState
+          icon={<History size={22} />}
+          title={<FormattedMessage id="account.activity.empty" />}
+        />
       ) : (
         <Box className={tableClasses.tablePanel}>
           <Table className={tableClasses.table}>

@@ -9,15 +9,13 @@ const error = (
   config?: Omit<NotificationData, "message">,
 ) =>
   notifications.show({
-    icon: <X />,
+    icon: <X size={18} />,
     color: "red",
-    radius: "md",
-    title: <FormattedMessage id="common.error" />,
+    radius: "lg",
     message: message,
-
-    autoClose: true,
-
+    autoClose: 5000,
     ...config,
+    withCloseButton: false,
   });
 
 const axiosError = (axiosError: any) =>
@@ -32,13 +30,13 @@ const success = (
   config?: Omit<NotificationData, "message">,
 ) =>
   notifications.show({
-    icon: <Check />,
+    icon: <Check size={18} />,
     color: "green",
-    radius: "md",
-    title: <FormattedMessage id="common.success" />,
+    radius: "lg",
     message: message,
-    autoClose: true,
+    autoClose: 3500,
     ...config,
+    withCloseButton: false,
   });
 
 const toast = {

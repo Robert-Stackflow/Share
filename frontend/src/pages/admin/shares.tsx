@@ -13,16 +13,19 @@ import toast from "../../utils/toast.util";
 const Shares = () => {
   const [shares, setShares] = useState<MyShare[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
   const modals = useModals();
   const t = useTranslate();
 
   const getShares = () => {
     setIsLoading(true);
-    shareService.list().then((shares) => {
-      setShares(shares);
-      setIsLoading(false);
-    });
+    setLoadError(false);
+    shareService
+      .list()
+      .then(setShares)
+      .catch(() => setLoadError(true))
+      .finally(() => setIsLoading(false));
   };
 
   const deleteShare = (share: MyShare) => {
@@ -74,6 +77,8 @@ const Shares = () => {
         }
         deleteShare={deleteShare}
         isLoading={isLoading}
+        loadError={loadError}
+        onRetry={getShares}
       />
       <Space h="xl" />
     </>

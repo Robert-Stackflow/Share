@@ -19,6 +19,7 @@ import FormattedMessage from "../../components/core/FormattedMessage";
 import AssetContentComposer from "../../components/content/AssetContentComposer";
 import RoomConversationPanel from "../../components/room/RoomConversationPanel";
 import CenterLoader from "../../components/core/CenterLoader";
+import EmptyState from "../../components/core/EmptyState";
 import Meta from "../../components/Meta";
 import useTranslate from "../../hooks/useTranslate.hook";
 import useLiveSync from "../../hooks/useLiveSync.hook";
@@ -237,16 +238,14 @@ const RoomPage = () => {
           title={room.name || room.roomId}
           empty={
             room.assets.length === 0 ? (
-              <Stack align="center" gap="xs" py="xl">
-                <Text c="dimmed">
-                  <FormattedMessage id="room.assets.empty" />
-                </Text>
-                {syncStatus !== "connected" && (
-                  <Text c="dimmed" size="xs">
+              <EmptyState
+                title={<FormattedMessage id="room.assets.empty" />}
+                description={
+                  syncStatus !== "connected" ? (
                     <FormattedMessage id="room.sync.reconnecting" />
-                  </Text>
-                )}
-              </Stack>
+                  ) : undefined
+                }
+              />
             ) : undefined
           }
         />

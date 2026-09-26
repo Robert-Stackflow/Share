@@ -29,7 +29,10 @@
 }
 
 .table :global(tbody tr:first-of-type td) {
-  border-top-color: light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-5));
+  border-top-color: light-dark(
+    var(--mantine-color-gray-1),
+    var(--mantine-color-dark-5)
+  );
 }
 
 .tableRow {
@@ -37,7 +40,10 @@
 }
 
 .tableRow:hover {
-  background: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-5));
+  background: light-dark(
+    var(--mantine-color-gray-0),
+    var(--mantine-color-dark-5)
+  );
 }
 
 .valueCell {
@@ -67,5 +73,61 @@
 @media (max-width: 48em) {
   .table {
     min-width: 720px;
+  }
+  .tablePanel:has(.mobileCards) {
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    overflow: visible;
+  }
+  .mobileCards {
+    display: block;
+    min-width: 0;
+    width: 100%;
+  }
+  .mobileCards :global(thead) {
+    display: none;
+  }
+  .mobileCards :global(tbody) {
+    display: grid;
+    gap: 12px;
+  }
+  .mobileCards :global(tr) {
+    background: var(--share-surface);
+    border: 1px solid var(--share-border);
+    border-radius: 14px;
+    box-shadow: var(--share-shadow);
+    display: grid;
+    padding: 8px 14px;
+  }
+  .mobileCards :global(td) {
+    align-items: flex-start;
+    border: 0;
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    padding: 9px 0;
+    text-align: right;
+    white-space: normal;
+    width: 100%;
+  }
+  .mobileCards :global(td + td) {
+    border-top: 1px solid var(--share-border);
+  }
+  .mobileCards :global(td[data-label]::before) {
+    color: var(--share-muted);
+    content: attr(data-label);
+    flex: 0 0 74px;
+    font-size: 12px;
+    text-align: left;
+  }
+  .mobileCards .actionCell {
+    justify-content: flex-end;
+  }
+  .mobileCards .actionCell :global(.mantine-ActionIcon-root) {
+    height: 34px;
+    width: 34px;
   }
 }

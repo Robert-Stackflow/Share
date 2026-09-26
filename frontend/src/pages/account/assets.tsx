@@ -1,7 +1,6 @@
-import { Search } from "lucide-react";
+import { LibraryBig, Search } from "lucide-react";
 import {
   Button,
-  Center,
   Group,
   Select,
   Stack,
@@ -18,6 +17,7 @@ import AssetActionMenu from "../../components/asset/AssetActionMenu";
 import AssetContentComposer from "../../components/content/AssetContentComposer";
 import AssetTable from "../../components/asset/AssetTable";
 import CenterLoader from "../../components/core/CenterLoader";
+import EmptyState from "../../components/core/EmptyState";
 import useTranslate from "../../hooks/useTranslate.hook";
 import assetService, { ListAssetParams } from "../../services/asset.service";
 import {
@@ -120,7 +120,13 @@ const Assets = () => {
       </Stack>
 
       {showFilters && (
-        <Group className={classes.filters} gap="sm" align="center" wrap="wrap" mb="md">
+        <Group
+          className={classes.filters}
+          gap="sm"
+          align="center"
+          wrap="wrap"
+          mb="md"
+        >
           <TextInput
             leftSection={<Search />}
             placeholder={t("account.assets.filter.search")}
@@ -212,33 +218,34 @@ const Assets = () => {
           size: <FormattedMessage id="account.assets.table.size" />,
         }}
         empty={
-          <Center style={{ height: "45vh" }}>
-            <Stack align="center" gap={10}>
-              <Title order={3}>
-                <FormattedMessage
-                  id={
-                    hasActiveFilter
-                      ? "account.assets.title.noResults"
-                      : "account.assets.title.empty"
-                  }
-                />
-              </Title>
-              <Text>
-                <FormattedMessage
-                  id={
-                    hasActiveFilter
-                      ? "account.assets.description.noResults"
-                      : "account.assets.description.empty"
-                  }
-                />
-              </Text>
-              {hasActiveFilter && (
+          <EmptyState
+            icon={<LibraryBig size={22} />}
+            title={
+              <FormattedMessage
+                id={
+                  hasActiveFilter
+                    ? "account.assets.title.noResults"
+                    : "account.assets.title.empty"
+                }
+              />
+            }
+            description={
+              <FormattedMessage
+                id={
+                  hasActiveFilter
+                    ? "account.assets.description.noResults"
+                    : "account.assets.description.empty"
+                }
+              />
+            }
+            action={
+              hasActiveFilter ? (
                 <Button variant="light" onClick={clearFilters}>
                   {t("account.assets.filter.clear")}
                 </Button>
-              )}
-            </Stack>
-          </Center>
+              ) : undefined
+            }
+          />
         }
         renderActions={(asset) => (
           <AssetActionMenu

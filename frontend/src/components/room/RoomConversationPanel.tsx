@@ -40,6 +40,7 @@ import dynamic from "next/dynamic";
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { useIntl } from "react-intl";
 import FormattedMessage from "../core/FormattedMessage";
+import EmptyState from "../core/EmptyState";
 import useTranslate from "../../hooks/useTranslate.hook";
 import { Asset, AssetType } from "../../types/asset.type";
 import {
@@ -637,6 +638,7 @@ const RoomConversationPanel = ({
           <Group gap={6} wrap="nowrap" className={classes.headerControls}>
             {assets.length > 0 && (
               <Button
+                className={classes.selectButton}
                 size="xs"
                 variant="subtle"
                 leftSection={
@@ -653,11 +655,13 @@ const RoomConversationPanel = ({
                 )}
               </Button>
             )}
-            {(headerActions || onClear) && (
+            {(headerActions || (onClear && assets.length > 0)) && (
               <Menu position="bottom-end" withinPortal>
                 <Menu.Target>
                   <ActionIcon
+                    className="roomRailAction"
                     variant="subtle"
+                    size={36}
                     aria-label={t("room.selection.more")}
                   >
                     <MoreHorizontal size={18} />
@@ -665,6 +669,27 @@ const RoomConversationPanel = ({
                 </Menu.Target>
                 <Menu.Dropdown>
                   {headerActions}
+                  {assets.length > 0 && (
+                    <Menu.Item
+                      className={classes.mobileSelectAction}
+                      leftSection={
+                        selectionMode ? (
+                          <CheckCheck size={16} />
+                        ) : (
+                          <Check size={16} />
+                        )
+                      }
+                      onClick={
+                        selectionMode ? selectAll : () => setSelectionMode(true)
+                      }
+                    >
+                      {t(
+                        selectionMode
+                          ? "room.selection.selectAll"
+                          : "room.selection.select",
+                      )}
+                    </Menu.Item>
+                  )}
                   {onClear && assets.length > 0 && (
                     <>
                       {headerActions && <Menu.Divider />}
@@ -693,9 +718,10 @@ const RoomConversationPanel = ({
         >
           {roomConversationMessages.length === 0
             ? (empty ?? (
-                <Text c="dimmed" ta="center" py="xl">
-                  <FormattedMessage id="room.assets.empty" />
-                </Text>
+                <EmptyState
+                  icon={<FileText size={22} />}
+                  title={<FormattedMessage id="room.assets.empty" />}
+                />
               ))
             : roomConversationMessages.map((asset) => (
                 <Group

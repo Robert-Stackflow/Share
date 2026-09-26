@@ -135,10 +135,21 @@
 }
 
 @media (max-width: 600px) {
+  .keyboardHint {
+    display: none;
+  }
   .hero {
-    min-height: 350px;
-    padding: 30px 18px;
+    min-height: 285px;
+    padding: 24px 16px;
     border-radius: 20px;
+  }
+  .heroIcon {
+    height: 52px;
+    margin-bottom: 14px;
+    width: 52px;
+  }
+  .heroTitle {
+    font-size: 23px;
   }
   .hero :global(.mantine-Group-root) {
     gap: 8px;

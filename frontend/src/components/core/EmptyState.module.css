@@ -1,0 +1,79 @@
+.panel {
+  align-items: center;
+  background: var(--share-surface);
+  border: 1px solid var(--share-border);
+  border-radius: 16px;
+  color: var(--share-muted);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  justify-content: center;
+  min-height: 220px;
+  padding: 32px 20px;
+  text-align: center;
+}
+
+.icon {
+  align-items: center;
+  background: light-dark(
+    var(--mantine-color-blue-0),
+    var(--mantine-color-dark-5)
+  );
+  border-radius: 14px;
+  color: var(--mantine-primary-color-filled);
+  display: flex;
+  height: 48px;
+  justify-content: center;
+  margin-bottom: 4px;
+  width: 48px;
+}
+
+.title {
+  color: var(--mantine-color-text);
+  font-size: var(--mantine-font-size-lg);
+  font-weight: 650;
+}
+
+.description {
+  color: var(--share-muted);
+  font-size: var(--mantine-font-size-sm);
+  max-width: 36rem;
+}
+
+.action {
+  margin-top: 6px;
+}
+
+.compact {
+  min-height: 150px;
+  padding: 20px;
+}
+
+.compact .icon {
+  height: 40px;
+  width: 40px;
+}
+
+.compact .icon :global(svg) {
+  height: 20px;
+  width: 20px;
+}
+
+.embedded {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+@media (max-width: 48em) {
+  .panel {
+    min-height: 190px;
+    padding: 28px 18px;
+  }
+  .compact {
+    min-height: 140px;
+    padding: 18px;
+  }
+}

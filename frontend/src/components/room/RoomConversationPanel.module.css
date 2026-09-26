@@ -32,6 +32,9 @@
 .headerControls {
   flex: 0 0 auto;
 }
+.mobileSelectAction {
+  display: none;
+}
 
 /* Flush header: no divider, used where an outer tab bar already separates it. */
 .headerFlush {
@@ -399,8 +402,63 @@
   .roomConversationPanel {
     min-height: 0;
   }
-  .headerSubtitle {
+  .header {
+    align-items: center;
+    background: transparent;
+    border: 0;
+    height: 64px;
+    min-height: 64px;
+    padding: 0 10px;
+    position: absolute;
+    right: 0;
+    top: 0;
+    z-index: 2;
+  }
+  .headerIdentity {
     display: none;
+  }
+  .selectButton {
+    display: none;
+  }
+  .mobileSelectAction {
+    display: flex;
+  }
+  .roomConversationMessages {
+    padding: 12px 10px;
+    scrollbar-width: none;
+  }
+  .roomConversationMessages::-webkit-scrollbar,
+  .selectionActions::-webkit-scrollbar {
+    display: none;
+  }
+  .messageRow {
+    gap: 8px;
+  }
+  .messageIcon {
+    flex-basis: 26px;
+    height: 26px;
+    width: 26px;
+  }
+  .roomMessageBubble {
+    max-width: calc(100% - 34px);
+    padding: 11px 12px;
+    width: calc(100% - 34px);
+  }
+  .roomMessageBubble[data-type="file"],
+  .roomMessageBubble[data-kind="image"] {
+    padding: 11px 12px;
+  }
+  .messageMeta {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .messageMeta :global(.mantine-Text-root) {
+    font-size: 11px;
+    white-space: nowrap;
+  }
+  .composer {
+    padding: 10px;
   }
   .selectionToolbar {
     align-items: flex-start;
@@ -408,6 +466,7 @@
   }
   .selectionActions {
     max-width: 100%;
+    scrollbar-width: none;
     width: 100%;
   }
 }

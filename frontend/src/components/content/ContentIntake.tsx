@@ -404,7 +404,12 @@ export default function ContentIntake({
                 </Button>
               </Group>
               {!compactHero && pasteShortcut && (
-                <Text size="xs" c="dimmed" mt="lg">
+                <Text
+                  className={classes.keyboardHint}
+                  size="xs"
+                  c="dimmed"
+                  mt="lg"
+                >
                   {t("content.shortcut", { shortcut: pasteShortcut })}
                 </Text>
               )}

@@ -316,12 +316,6 @@
   overflow-wrap: anywhere;
 }
 
-.emptyAnalyticsState {
-  color: var(--mantine-color-dimmed);
-  min-height: 140px;
-  text-align: center;
-}
-
 @media (max-width: 62em) {
   .statsOverview,
   .statsDashboardGrid {
@@ -334,6 +328,14 @@
 }
 
 @media (max-width: 48em) {
+  .quickCreate {
+    padding: 16px;
+  }
+  .statsHeaderPanel,
+  .analyticsPanel,
+  .recentVisitsPanel {
+    padding: 14px;
+  }
   .statsHeaderPanel :global(.mantine-Group-root) {
     align-items: flex-start;
     flex-wrap: wrap;

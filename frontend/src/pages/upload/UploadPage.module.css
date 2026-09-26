@@ -14,7 +14,8 @@
 
 @media (max-width: 600px) {
   .stage {
+    justify-content: flex-start;
     min-height: calc(100svh - 120px);
-    padding: 24px 0 40px;
+    padding: 16px 0 32px;
   }
 }

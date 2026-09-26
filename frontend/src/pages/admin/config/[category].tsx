@@ -28,7 +28,7 @@ import { AdminConfig, UpdateConfig } from "../../../types/config.type";
 import classes from "./ConfigPage.module.css";
 
 export const getStaticPaths: GetStaticPaths = async () => ({
-  paths: [{ params: { category: "_" } }],
+  paths: [...categories, "_"].map((category) => ({ params: { category } })),
   fallback: false,
 });
 export const getStaticProps: GetStaticProps = async () => ({ props: {} });
@@ -64,26 +64,9 @@ export default function ConfigurationPage() {
   const config = useConfig();
 
   const routeCategory = useStaticRouteParam("category", 2);
-  const [selectedCategory, setSelectedCategory] = useState<string>();
-  const activeCategory = selectedCategory ?? routeCategory;
-  const categoryId = categories.includes(activeCategory)
-    ? activeCategory
+  const categoryId = categories.includes(routeCategory)
+    ? routeCategory
     : "general";
-
-  const navigateCategory = (category: string) => {
-    if (category === categoryId) return;
-    window.history.pushState(null, "", `/admin/config/${category}/`);
-    setSelectedCategory(category);
-  };
-
-  useEffect(() => {
-    const onPopState = () => {
-      const category = window.location.pathname.split("/").filter(Boolean)[2];
-      setSelectedCategory(categories.includes(category) ? category : "general");
-    };
-    window.addEventListener("popstate", onPopState);
-    return () => window.removeEventListener("popstate", onPopState);
-  }, []);
 
   const [configVariables, setConfigVariables] = useState<AdminConfig[]>();
   const [loadedCategory, setLoadedCategory] = useState<string>();
@@ -201,10 +184,7 @@ export default function ConfigurationPage() {
       <Meta title={t("admin.config.title")} />
       <div className={classes.layout}>
         <aside className={classes.sidebar}>
-          <ConfigurationNavBar
-            categoryId={categoryId}
-            onCategoryChange={navigateCategory}
-          />
+          <ConfigurationNavBar categoryId={categoryId} />
         </aside>
         <main className={classes.content}>
           {!configVariables || loadedCategory !== categoryId ? (
@@ -278,7 +258,7 @@ export default function ConfigurationPage() {
                           return (
                             <Box
                               key={configVariable.key}
-                              className={`${classes.configRow} ${configVariable.key === "s3.fileRenameRules" ? classes.wideConfigRow : ""}`}
+                              className={`${classes.configRow} ${configVariable.key === "s3.fileRenameRules" ? classes.wideConfigRow : ""} ${configVariable.type === "boolean" ? classes.booleanRow : ""}`}
                             >
                               {showProviderDivider && (
                                 <Divider

@@ -1,7 +1,16 @@
-import { Info, Link2, Trash2 } from "lucide-react";
-import { ActionIcon, Box, Group, Skeleton, Table, Text } from "@mantine/core";
+import { Files, Info, Link2, RefreshCw, Trash2 } from "lucide-react";
+import {
+  ActionIcon,
+  Box,
+  Button,
+  Group,
+  Skeleton,
+  Table,
+  Text,
+} from "@mantine/core";
 import { useClipboard } from "@mantine/hooks";
 import { useModals } from "@mantine/modals";
+import { useIntl } from "react-intl";
 import moment from "moment";
 import FormattedMessage from "../../core/FormattedMessage";
 import useConfig from "../../../hooks/config.hook";
@@ -13,30 +22,62 @@ import showShareInformationsModal from "../../share/showShareInformationsModal";
 import showShareLinkModal from "../../account/showShareLinkModal";
 import tableClasses from "../../core/DataTable.module.css";
 import { HoverTip } from "../../core/HoverTip";
+import EmptyState from "../../core/EmptyState";
 
 const ManageShareTable = ({
   shares,
   updateShare,
   deleteShare,
   isLoading,
+  loadError,
+  onRetry,
 }: {
   shares: MyShare[];
   updateShare: (share: MyShare) => void;
   deleteShare: (share: MyShare) => void;
   isLoading: boolean;
+  loadError: boolean;
+  onRetry: () => void;
 }) => {
   const modals = useModals();
   const clipboard = useClipboard();
   const config = useConfig();
   const t = useTranslate();
+  const intl = useIntl();
 
   // Check if file retention is enabled
   const fileRetentionPeriod = config.get("share.fileRetentionPeriod");
   const fileRetentionEnabled = fileRetentionPeriod.value !== 0 ? true : false;
 
+  if (!isLoading && (loadError || shares.length === 0)) {
+    return (
+      <EmptyState
+        icon={loadError ? <RefreshCw size={22} /> : <Files size={22} />}
+        title={intl.formatMessage({
+          id: loadError ? "admin.shares.load-error" : "admin.shares.empty",
+          defaultMessage: loadError ? "Could not load shares" : "No shares yet",
+        })}
+        action={
+          loadError ? (
+            <Button
+              variant="light"
+              leftSection={<RefreshCw size={16} />}
+              onClick={onRetry}
+            >
+              {intl.formatMessage({
+                id: "admin.shares.retry",
+                defaultMessage: "Try again",
+              })}
+            </Button>
+          ) : undefined
+        }
+      />
+    );
+  }
+
   return (
     <Box className={tableClasses.tablePanel}>
-      <Table className={tableClasses.table}>
+      <Table className={`${tableClasses.table} ${tableClasses.mobileCards}`}>
         <thead>
           <tr>
             <th>
@@ -72,24 +113,30 @@ const ManageShareTable = ({
             ? skeletonRows
             : shares.map((share) => (
                 <tr className={tableClasses.tableRow} key={share.id}>
-                  <td>{share.id}</td>
-                  <td>{share.name}</td>
-                  <td>
+                  <td data-label={t("account.shares.table.id")}>{share.id}</td>
+                  <td data-label={t("account.shares.table.name")}>
+                    {share.name}
+                  </td>
+                  <td data-label={t("admin.shares.table.username")}>
                     {share.creator ? (
                       share.creator.username
                     ) : (
                       <Text c="dimmed">Anonymous</Text>
                     )}
                   </td>
-                  <td>{share.views}</td>
-                  <td>{byteToHumanSizeString(share.size)}</td>
-                  <td>
+                  <td data-label={t("account.shares.table.visitors")}>
+                    {share.views}
+                  </td>
+                  <td data-label={t("account.shares.table.size")}>
+                    {byteToHumanSizeString(share.size)}
+                  </td>
+                  <td data-label={t("account.shares.table.expiresAt")}>
                     {moment(share.expiration).unix() === 0
                       ? "Never"
                       : moment(share.expiration).format("LLL")}
                   </td>
                   {fileRetentionEnabled ? (
-                    <td>
+                    <td data-label={t("admin.shares.table.deletes")}>
                       {moment(share.expiration).unix() === 0 ||
                       fileRetentionPeriod.value === -1
                         ? "Never"

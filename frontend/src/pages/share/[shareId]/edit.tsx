@@ -2,6 +2,7 @@ import { LoadingOverlay, Paper, Stack, Text, Title } from "@mantine/core";
 import { useModals } from "@mantine/modals";
 import { GetStaticPaths, GetStaticProps } from "next";
 import FormattedMessage from "../../../components/core/FormattedMessage";
+import EmptyState from "../../../components/core/EmptyState";
 import { useEffect, useMemo, useState } from "react";
 import Meta from "../../../components/Meta";
 import AssetTable, {
@@ -155,9 +156,9 @@ const Share = () => {
                 ),
               }}
               empty={
-                <Text c="dimmed" ta="center" py="xl">
-                  <FormattedMessage id="share.asset.manage.empty" />
-                </Text>
+                <EmptyState
+                  title={<FormattedMessage id="share.asset.manage.empty" />}
+                />
               }
               renderActions={(asset) => (
                 <AssetActionMenu

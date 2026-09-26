@@ -16,7 +16,6 @@ import {
   Badge,
   Box,
   Button,
-  Center,
   Group,
   Menu,
   Modal,
@@ -36,6 +35,7 @@ import showShareLinkModal from "../../components/account/showShareLinkModal";
 import AssetActionMenu from "../../components/asset/AssetActionMenu";
 import Meta from "../../components/Meta";
 import CenterLoader from "../../components/core/CenterLoader";
+import EmptyState from "../../components/core/EmptyState";
 import { HoverTip } from "../../components/core/HoverTip";
 import tableClasses from "../../components/core/DataTable.module.css";
 import showCreateReverseShareModal from "../../components/share/modals/showCreateReverseShareModal";
@@ -260,16 +260,13 @@ const MyShares = () => {
         </Button>
       </Group>
       {reverseShares.length == 0 ? (
-        <Center style={{ height: "70vh" }}>
-          <Stack align="center" gap={10}>
-            <Title order={3}>
-              <FormattedMessage id="account.reverseShares.title.empty" />
-            </Title>
-            <Text>
-              <FormattedMessage id="account.reverseShares.description.empty" />
-            </Text>
-          </Stack>
-        </Center>
+        <EmptyState
+          icon={<Send size={22} />}
+          title={<FormattedMessage id="account.reverseShares.title.empty" />}
+          description={
+            <FormattedMessage id="account.reverseShares.description.empty" />
+          }
+        />
       ) : (
         <Stack gap="xl">
           <Box className={tableClasses.tablePanel}>
@@ -285,9 +282,14 @@ const MyShares = () => {
                 </Group>
               </Group>
               {pendingSubmissions.length === 0 ? (
-                <Text c="dimmed" size="sm">
-                  <FormattedMessage id="account.reverseShares.submissions.empty" />
-                </Text>
+                <EmptyState
+                  compact
+                  embedded
+                  icon={<Send size={20} />}
+                  title={
+                    <FormattedMessage id="account.reverseShares.submissions.empty" />
+                  }
+                />
               ) : (
                 <Table
                   className={`${tableClasses.table} ${classes.responsiveTable}`}

@@ -1,6 +1,7 @@
-import { Check, KeyRound, Pencil, Trash2 } from "lucide-react";
+import { Check, KeyRound, Pencil, Trash2, Users } from "lucide-react";
 import { ActionIcon, Badge, Box, Group, Skeleton, Table } from "@mantine/core";
 import { useModals } from "@mantine/modals";
+import { useIntl } from "react-intl";
 import User from "../../../types/user.type";
 import showChangeUserPasswordModal from "./showChangeUserPasswordModal";
 import showUpdateUserModal from "./showUpdateUserModal";
@@ -8,6 +9,7 @@ import FormattedMessage from "../../core/FormattedMessage";
 import useTranslate from "../../../hooks/useTranslate.hook";
 import tableClasses from "../../core/DataTable.module.css";
 import { HoverTip } from "../../core/HoverTip";
+import EmptyState from "../../core/EmptyState";
 
 const ManageUserTable = ({
   users,
@@ -22,10 +24,23 @@ const ManageUserTable = ({
 }) => {
   const modals = useModals();
   const t = useTranslate();
+  const intl = useIntl();
+
+  if (!isLoading && users.length === 0) {
+    return (
+      <EmptyState
+        icon={<Users size={22} />}
+        title={intl.formatMessage({
+          id: "admin.users.empty",
+          defaultMessage: "No users yet",
+        })}
+      />
+    );
+  }
 
   return (
     <Box className={tableClasses.tablePanel}>
-      <Table className={tableClasses.table}>
+      <Table className={`${tableClasses.table} ${tableClasses.mobileCards}`}>
         <thead>
           <tr>
             <th>
@@ -45,14 +60,18 @@ const ManageUserTable = ({
             ? skeletonRows
             : users.map((user) => (
                 <tr className={tableClasses.tableRow} key={user.id}>
-                  <td>
+                  <td data-label={t("admin.users.table.username")}>
                     {user.username}{" "}
                     {user.isLdap ? (
                       <Badge style={{ marginLeft: "1em" }}>LDAP</Badge>
                     ) : null}
                   </td>
-                  <td>{user.email}</td>
-                  <td>{user.isAdmin && <Check />}</td>
+                  <td data-label={t("admin.users.table.email")}>
+                    {user.email}
+                  </td>
+                  <td data-label={t("admin.users.table.admin")}>
+                    {user.isAdmin ? <Check /> : "—"}
+                  </td>
                   <td className={tableClasses.actionCell}>
                     <Group
                       className={tableClasses.actions}

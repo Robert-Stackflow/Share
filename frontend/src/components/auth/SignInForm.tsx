@@ -84,9 +84,10 @@ const SignInForm = ({ redirectPath }: { redirectPath: string }) => {
           notifications.show({
             icon: <Info />,
             color: "blue",
-            radius: "md",
+            radius: "lg",
             title: t("signIn.notify.totp-required.title"),
             message: t("signIn.notify.totp-required.description"),
+            withCloseButton: false,
           });
           router.push(
             `/auth/totp/${

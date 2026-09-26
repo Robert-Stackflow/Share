@@ -8,6 +8,7 @@ import {
 } from "@mantine/core";
 import { ModalsProvider } from "@mantine/modals";
 import { Notifications } from "@mantine/notifications";
+import toastClasses from "../styles/Toast.module.css";
 import "@mantine/core/styles.css";
 import "@mantine/notifications/styles.css";
 import "@mantine/dropzone/styles.css";
@@ -322,7 +323,15 @@ function App({ Component, pageProps }: AppProps) {
                 {customCss.replace(/<\/style/gi, "<\\/style")}
               </style>
             )}
-            <Notifications />
+            <Notifications
+              position="top-center"
+              containerWidth={420}
+              limit={3}
+              classNames={{
+                root: toastClasses.root,
+                notification: toastClasses.notification,
+              }}
+            />
             <ModalsProvider>
               <ConfigContext.Provider
                 value={{

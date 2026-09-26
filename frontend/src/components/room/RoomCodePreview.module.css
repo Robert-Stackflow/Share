@@ -38,6 +38,16 @@
   tab-size: 2;
   white-space: pre;
 }
+@media (max-width: 48em) {
+  .codeSnippet,
+  .codeExpanded {
+    scrollbar-width: none;
+  }
+  .codeSnippet::-webkit-scrollbar,
+  .codeExpanded::-webkit-scrollbar {
+    display: none;
+  }
+}
 
 .codeSnippet {
   max-height: 154px;

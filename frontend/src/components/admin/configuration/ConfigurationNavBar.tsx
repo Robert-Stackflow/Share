@@ -11,6 +11,7 @@ import {
   Workflow,
 } from "lucide-react";
 import { Box, Group, Stack, Text } from "@mantine/core";
+import Link from "next/link";
 import FormattedMessage from "../../core/FormattedMessage";
 import classes from "./ConfigurationNavBar.module.css";
 
@@ -27,32 +28,12 @@ export const categories = [
   { name: "Cache", icon: <ServerCog /> },
 ];
 
-const ConfigurationNavBar = ({
-  categoryId,
-  onCategoryChange,
-}: {
-  categoryId: string;
-  onCategoryChange: (category: string) => void;
-}) => {
+const ConfigurationNavBar = ({ categoryId }: { categoryId: string }) => {
   return (
     <Box className={classes.navbar}>
       <Stack gap={4}>
         {categories.map((category) => (
-          <Box
-            component="a"
-            onClick={(event) => {
-              if (
-                event.button !== 0 ||
-                event.metaKey ||
-                event.ctrlKey ||
-                event.shiftKey ||
-                event.altKey
-              ) {
-                return;
-              }
-              event.preventDefault();
-              onCategoryChange(category.name.toLowerCase());
-            }}
+          <Link
             className={`${classes.navLink} ${
               categoryId == category.name.toLowerCase()
                 ? classes.activeLink
@@ -69,7 +50,7 @@ const ConfigurationNavBar = ({
                 />
               </Text>
             </Group>
-          </Box>
+          </Link>
         ))}
       </Stack>
     </Box>

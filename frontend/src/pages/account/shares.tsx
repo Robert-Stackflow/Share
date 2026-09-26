@@ -1,13 +1,17 @@
-import { Info, Link2, LockKeyhole, PencilLine, Trash2 } from "lucide-react";
+import {
+  Files,
+  Info,
+  Link2,
+  LockKeyhole,
+  PencilLine,
+  Trash2,
+} from "lucide-react";
 import {
   ActionIcon,
   Badge,
   Box,
   Button,
-  Center,
   Group,
-  Space,
-  Stack,
   Table,
   Text,
   Title,
@@ -23,6 +27,7 @@ import showShareInformationsModal from "../../components/share/showShareInformat
 import showShareLinkModal from "../../components/account/showShareLinkModal";
 import { HoverTip } from "../../components/core/HoverTip";
 import CenterLoader from "../../components/core/CenterLoader";
+import EmptyState from "../../components/core/EmptyState";
 import tableClasses from "../../components/core/DataTable.module.css";
 import useConfig from "../../hooks/config.hook";
 import useTranslate from "../../hooks/useTranslate.hook";
@@ -66,20 +71,18 @@ const MyShares = () => {
         <FormattedMessage id="account.shares.title" />
       </Title>
       {shares.length == 0 ? (
-        <Center style={{ height: "70vh" }}>
-          <Stack align="center" gap={10}>
-            <Title order={3}>
-              <FormattedMessage id="account.shares.title.empty" />
-            </Title>
-            <Text>
-              <FormattedMessage id="account.shares.description.empty" />
-            </Text>
-            <Space h={5} />
+        <EmptyState
+          icon={<Files size={22} />}
+          title={<FormattedMessage id="account.shares.title.empty" />}
+          description={
+            <FormattedMessage id="account.shares.description.empty" />
+          }
+          action={
             <Button component={Link} href="/upload" variant="light">
               <FormattedMessage id="account.shares.button.create" />
             </Button>
-          </Stack>
-        </Center>
+          }
+        />
       ) : (
         <Box className={tableClasses.tablePanel}>
           <Table className={`${tableClasses.table} ${classes.responsiveTable}`}>

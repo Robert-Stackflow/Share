@@ -20,8 +20,6 @@
 		}
 	}
 
-	@adminConfig path_regexp adminConfig ^/admin/config/[^/]+/?$
-	rewrite @adminConfig /admin/config/_/
 	@resetPassword path_regexp resetPassword ^/auth/resetPassword/[^/]+/?$
 	rewrite @resetPassword /auth/resetPassword/_/
 	@totp path_regexp totp ^/auth/totp/[^/]+/?$

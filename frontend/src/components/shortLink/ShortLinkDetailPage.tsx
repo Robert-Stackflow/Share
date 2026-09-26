@@ -17,7 +17,6 @@ import {
   Anchor,
   Badge,
   Button,
-  Center,
   Group,
   Modal,
   Radio,
@@ -39,6 +38,7 @@ import { useIntl } from "react-intl";
 import FormattedMessage from "../core/FormattedMessage";
 import Meta from "../../components/Meta";
 import CenterLoader from "../../components/core/CenterLoader";
+import EmptyState from "../../components/core/EmptyState";
 import tableClasses from "../../components/core/DataTable.module.css";
 import { HoverTip } from "../../components/core/HoverTip";
 import modalClasses from "../../components/core/ModalForm.module.css";
@@ -62,7 +62,10 @@ import InternalTargetPicker from "./InternalTargetPicker";
 import { getShortLinkStatus } from "./shortLinkStatus";
 import { isValidTarget } from "./shortLinkTarget";
 
-const formatDateTime = (value: Date | string | null | undefined, locale: string) => {
+const formatDateTime = (
+  value: Date | string | null | undefined,
+  locale: string,
+) => {
   if (!value) return "-";
   const date = new Date(value);
   return Number.isNaN(date.valueOf())
@@ -128,11 +131,14 @@ const VisitTrendChart = ({
 
   return (
     <section className={`${classes.analyticsPanel} ${classes.trendPanel}`}>
-      <PanelHeader
-        title={title}
-      />
+      <PanelHeader title={title} />
       {buckets.length === 0 ? (
-        <Center className={classes.emptyAnalyticsState}>{emptyLabel}</Center>
+        <EmptyState
+          compact
+          embedded
+          icon={<ChartColumn size={20} />}
+          title={emptyLabel}
+        />
       ) : (
         <div className={classes.trendBars}>
           {buckets.map((bucket) => {
@@ -176,11 +182,14 @@ const DistributionPanel = ({
 
   return (
     <section className={`${classes.analyticsPanel} ${className ?? ""}`}>
-      <PanelHeader
-        title={title}
-      />
+      <PanelHeader title={title} />
       {buckets.length === 0 ? (
-        <Center className={classes.emptyAnalyticsState}>{emptyLabel}</Center>
+        <EmptyState
+          compact
+          embedded
+          icon={<ChartColumn size={20} />}
+          title={emptyLabel}
+        />
       ) : (
         <div className={classes.distributionList}>
           {buckets.map((bucket) => (
@@ -220,53 +229,64 @@ const RecentVisitsTable = ({
 }) => {
   const { locale } = useIntl();
   const t = useTranslate();
-  return <section className={classes.recentVisitsPanel}>
-    <PanelHeader
-      title={<FormattedMessage id="account.shortLinks.stats.recent" />}
-    />
-    {visits.length === 0 ? (
-      <Center className={classes.emptyAnalyticsState}>{emptyLabel}</Center>
-    ) : (
-      <div
-        className={`${tableClasses.tablePanel} ${classes.recentVisitsTablePanel}`}
-      >
-        <Table className={`${tableClasses.table} ${classes.recentVisitsTable}`}>
-          <Table.Thead>
-            <Table.Tr>
-              <Table.Th>
-                <FormattedMessage id="account.shortLinks.stats.visitTime" />
-              </Table.Th>
-              <Table.Th>
-                <FormattedMessage id="account.shortLinks.stats.referer" />
-              </Table.Th>
-              <Table.Th>
-                <FormattedMessage id="account.shortLinks.stats.userAgent" />
-              </Table.Th>
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
-            {visits.map((visit) => (
-              <Table.Tr className={tableClasses.tableRow} key={visit.id}>
-                <Table.Td>
-                  <Text size="sm">{formatDateTime(visit.createdAt, locale)}</Text>
-                </Table.Td>
-                <Table.Td>
-                  <Text c="dimmed" lineClamp={2} size="sm">
-                    {visit.referer || t("account.shortLinks.stats.direct")}
-                  </Text>
-                </Table.Td>
-                <Table.Td className={classes.userAgentCell}>
-                  <Text lineClamp={2} size="sm">
-                    {visit.userAgent || "-"}
-                  </Text>
-                </Table.Td>
+  return (
+    <section className={classes.recentVisitsPanel}>
+      <PanelHeader
+        title={<FormattedMessage id="account.shortLinks.stats.recent" />}
+      />
+      {visits.length === 0 ? (
+        <EmptyState
+          compact
+          embedded
+          icon={<ChartColumn size={20} />}
+          title={emptyLabel}
+        />
+      ) : (
+        <div
+          className={`${tableClasses.tablePanel} ${classes.recentVisitsTablePanel}`}
+        >
+          <Table
+            className={`${tableClasses.table} ${classes.recentVisitsTable}`}
+          >
+            <Table.Thead>
+              <Table.Tr>
+                <Table.Th>
+                  <FormattedMessage id="account.shortLinks.stats.visitTime" />
+                </Table.Th>
+                <Table.Th>
+                  <FormattedMessage id="account.shortLinks.stats.referer" />
+                </Table.Th>
+                <Table.Th>
+                  <FormattedMessage id="account.shortLinks.stats.userAgent" />
+                </Table.Th>
               </Table.Tr>
-            ))}
-          </Table.Tbody>
-        </Table>
-      </div>
-    )}
-  </section>;
+            </Table.Thead>
+            <Table.Tbody>
+              {visits.map((visit) => (
+                <Table.Tr className={tableClasses.tableRow} key={visit.id}>
+                  <Table.Td>
+                    <Text size="sm">
+                      {formatDateTime(visit.createdAt, locale)}
+                    </Text>
+                  </Table.Td>
+                  <Table.Td>
+                    <Text c="dimmed" lineClamp={2} size="sm">
+                      {visit.referer || t("account.shortLinks.stats.direct")}
+                    </Text>
+                  </Table.Td>
+                  <Table.Td className={classes.userAgentCell}>
+                    <Text lineClamp={2} size="sm">
+                      {visit.userAgent || "-"}
+                    </Text>
+                  </Table.Td>
+                </Table.Tr>
+              ))}
+            </Table.Tbody>
+          </Table>
+        </div>
+      )}
+    </section>
+  );
 };
 
 const ShortLinkDetailPage = () => {
@@ -417,16 +437,15 @@ const ShortLinkDetailPage = () => {
     return (
       <>
         <Meta title={t("account.shortLinks.title")} />
-        <Center py="xl">
-          <Stack align="center">
-            <Text c="dimmed">
-              <FormattedMessage id="account.shortLinks.stats.empty" />
-            </Text>
+        <EmptyState
+          icon={<Link2 size={22} />}
+          title={<FormattedMessage id="account.shortLinks.stats.empty" />}
+          action={
             <Button component={Link} href="/short-links" variant="light">
               <FormattedMessage id="account.shortLinks.title" />
             </Button>
-          </Stack>
-        </Center>
+          }
+        />
       </>
     );
   }

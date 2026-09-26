@@ -30,6 +30,12 @@
 }
 
 @media (max-width: 48em) {
+  .card {
+    padding: 18px;
+  }
+  .card :global(.mantine-Title-root) {
+    margin-bottom: 14px;
+  }
   .primaryGrid,
   .preferenceGrid {
     grid-template-columns: 1fr;

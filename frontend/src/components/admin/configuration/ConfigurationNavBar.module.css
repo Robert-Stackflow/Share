@@ -35,14 +35,18 @@
 @media (max-width: 760px) {
   .navbar {
     overflow-x: auto;
-    padding: 8px;
+    padding: 8px 12px;
+    scrollbar-width: none;
+  }
+  .navbar::-webkit-scrollbar {
+    display: none;
   }
   .navbar :global(.mantine-Stack-root) {
     flex-direction: row;
     width: max-content;
   }
   .navLink {
-    padding: 10px 12px;
+    padding: 9px 12px;
     white-space: nowrap;
   }
 }

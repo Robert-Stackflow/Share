@@ -13,7 +13,6 @@ import {
   Anchor,
   Badge,
   Button,
-  Center,
   Group,
   Menu,
   Modal,
@@ -36,6 +35,7 @@ import FormattedMessage from "../core/FormattedMessage";
 import Meta from "../../components/Meta";
 import tableClasses from "../../components/core/DataTable.module.css";
 import CenterLoader from "../../components/core/CenterLoader";
+import EmptyState from "../../components/core/EmptyState";
 import modalClasses from "../../components/core/ModalForm.module.css";
 import useTranslate from "../../hooks/useTranslate.hook";
 import shortLinkService from "../../services/shortLink.service";
@@ -408,7 +408,13 @@ const ShortLinksWorkspace = () => {
       </Modal>
 
       {links.length > 0 && (
-        <Group className={classes.filters} align="flex-end" gap="sm" mb="md" wrap="wrap">
+        <Group
+          className={classes.filters}
+          align="flex-end"
+          gap="sm"
+          mb="md"
+          wrap="wrap"
+        >
           <TextInput
             aria-label={t("account.shortLinks.filter.search")}
             leftSection={<Search size={16} />}
@@ -460,18 +466,28 @@ const ShortLinksWorkspace = () => {
       )}
 
       <div
-        className={`${tableClasses.tablePanel} ${classes.shortLinkListPanel}`}
+        className={
+          filteredLinks.length === 0
+            ? undefined
+            : `${tableClasses.tablePanel} ${classes.shortLinkListPanel}`
+        }
       >
         {filteredLinks.length === 0 ? (
-          <Center py="xl">
-            <Text c="dimmed">
-              {t(
-                hasFilters
-                  ? "account.shortLinks.filter.empty"
-                  : "account.shortLinks.empty",
-              )}
-            </Text>
-          </Center>
+          <EmptyState
+            icon={<Link2 size={22} />}
+            title={t(
+              hasFilters
+                ? "account.shortLinks.filter.empty"
+                : "account.shortLinks.empty",
+            )}
+            action={
+              hasFilters ? (
+                <Button variant="light" onClick={clearFilters}>
+                  {t("account.shortLinks.filter.clear")}
+                </Button>
+              ) : undefined
+            }
+          />
         ) : (
           <Table className={`${tableClasses.table} ${classes.shortLinkTable}`}>
             <Table.Thead>

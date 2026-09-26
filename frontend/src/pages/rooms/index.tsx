@@ -1,5 +1,4 @@
 import {
-  ArrowLeft,
   ExternalLink,
   Globe,
   KeyRound,
@@ -37,6 +36,7 @@ import AccessControlForm from "../../components/access/AccessControlForm";
 import AssetContentComposer from "../../components/content/AssetContentComposer";
 import RoomConversationPanel from "../../components/room/RoomConversationPanel";
 import CenterLoader from "../../components/core/CenterLoader";
+import EmptyState from "../../components/core/EmptyState";
 import Meta from "../../components/Meta";
 import useLiveSync from "../../hooks/useLiveSync.hook";
 import useTranslate from "../../hooks/useTranslate.hook";
@@ -365,7 +365,7 @@ export default function RoomsPage() {
   return (
     <>
       <Meta title={t("room.rooms.title")} />
-      <Group justify="space-between" mb="md">
+      <Group className={classes.pageHeader} justify="space-between" mb="md">
         <Title order={3}>
           <FormattedMessage id="room.rooms.title" />
         </Title>
@@ -379,10 +379,20 @@ export default function RoomsPage() {
           <FormattedMessage id="room.rooms.create" />
         </Button>
       </Group>
-      <div
-        className={`${classes.shell} ${selection ? classes.selectedShell : ""}`}
-      >
+      <div className={classes.shell}>
         <aside className={classes.sidebar}>
+          <ActionIcon
+            aria-label={t("room.rooms.create")}
+            className={`${classes.mobileCreate} roomRailAction`}
+            onClick={() => {
+              setPolicy({});
+              setCreateOpen(true);
+            }}
+            size={36}
+            variant="subtle"
+          >
+            <Plus size={19} />
+          </ActionIcon>
           <SegmentedControl
             fullWidth
             value={filter}
@@ -395,7 +405,13 @@ export default function RoomsPage() {
           />
           <div className={classes.roomList}>
             {visibleOwned.length > 0 && (
-              <Text c="dimmed" fw={600} size="xs" mt="sm">
+              <Text
+                className={classes.listHeading}
+                c="dimmed"
+                fw={600}
+                size="xs"
+                mt="sm"
+              >
                 <FormattedMessage id="room.rooms.title" />
               </Text>
             )}
@@ -432,7 +448,13 @@ export default function RoomsPage() {
               </button>
             ))}
             {visibleVisited.length > 0 && (
-              <Text c="dimmed" fw={600} size="xs" mt="sm">
+              <Text
+                className={classes.listHeading}
+                c="dimmed"
+                fw={600}
+                size="xs"
+                mt="sm"
+              >
                 <FormattedMessage id="room.rooms.visited" />
               </Text>
             )}
@@ -590,26 +612,17 @@ export default function RoomsPage() {
                 active.visibility === "PRIVATE" ? undefined : active.roomId
               }
               title={
-                <Group gap={5} wrap="nowrap">
-                  <ActionIcon
-                    aria-label={t("common.button.go-back")}
-                    className={classes.mobileBack}
-                    onClick={() => setSelection(null)}
-                    variant="subtle"
-                  >
-                    <ArrowLeft size={18} />
-                  </ActionIcon>
-                  {active.visibility === "PRIVATE"
-                    ? t("room.private.title")
-                    : active.name || active.roomId}
-                </Group>
+                active.visibility === "PRIVATE"
+                  ? t("room.private.title")
+                  : active.name || active.roomId
               }
             />
           ) : (
             <Center className={classes.empty}>
-              <Text c="dimmed">
-                <FormattedMessage id="room.rooms.editor.empty" />
-              </Text>
+              <EmptyState
+                className={classes.contentEmptyState}
+                title={<FormattedMessage id="room.rooms.editor.empty" />}
+              />
             </Center>
           )}
         </main>
