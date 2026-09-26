@@ -6,7 +6,8 @@
   color: var(--mantine-color-text);
   cursor: pointer;
   display: flex;
-  font: inherit;
+  font-family: var(--mantine-font-family);
+  font-size: var(--mantine-font-size-md);
   gap: 10px;
   justify-content: space-between;
   min-height: 42px;
@@ -32,6 +33,7 @@
 
 .placeholder {
   color: var(--share-placeholder);
+  font-size: var(--mantine-font-size-md);
   font-weight: 400;
 }
 

@@ -4,6 +4,15 @@
   margin-bottom: 8px;
 }
 
+.form :global(.mantine-Input-input)::placeholder,
+.form :global(.mantine-PasswordInput-innerInput)::placeholder {
+  color: var(--share-placeholder);
+  font-family: var(--mantine-font-family);
+  font-size: var(--mantine-font-size-md);
+  font-weight: 400;
+  opacity: 1;
+}
+
 .switchList {
   display: grid;
   gap: var(--mantine-spacing-xs);
