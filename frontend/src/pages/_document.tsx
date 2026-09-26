@@ -26,9 +26,9 @@ export default class _Document extends Document<{
       <Html>
         <Head>
           <ColorSchemeScript defaultColorScheme={this.props.colorScheme} />
-          <link rel="manifest" href="/manifest.json" />
-          <link rel="icon" type="image/x-icon" href="/img/favicon.ico?v=4" />
-          <link rel="apple-touch-icon" href="/img/icons/icon-128x128.png?v=4" />
+          <link rel="manifest" href="/manifest.json?v=20260927-cube" />
+          <link rel="icon" type="image/x-icon" href="/img/favicon.ico?v=20260927-cube" />
+          <link rel="apple-touch-icon" sizes="180x180" href="/img/icons/icon-180x180.png?v=20260927-cube" />
 
           <meta name="robots" content="noindex" />
           <meta name="theme-color" content="#4d63bf" />

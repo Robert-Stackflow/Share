@@ -1,8 +1,8 @@
 import { useComputedColorScheme } from "@mantine/core";
 import { useEffect, useState } from "react";
 
-const defaultLogoSrc = "/img/logo.png?v=20260926-ribbon";
-const darkLogoSrc = "/img/logo-dark.png?v=20260926-ribbon";
+const defaultLogoSrc = "/img/logo.png?v=20260927-cube";
+const darkLogoSrc = "/img/logo-dark.png?v=20260927-cube";
 
 const Logo = ({ height, width }: { height: number; width: number }) => {
   const colorScheme = useComputedColorScheme("light");
