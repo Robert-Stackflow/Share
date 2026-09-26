@@ -123,6 +123,15 @@ const generateShareId = (length: number = 16) => {
   return result;
 };
 
+const generatePickupCode = () => {
+  const random = new Uint32Array(1);
+  const limit = Math.floor(0x100000000 / 1_000_000) * 1_000_000;
+  do {
+    crypto.getRandomValues(random);
+  } while (random[0] >= limit);
+  return (random[0] % 1_000_000).toString().padStart(6, "0");
+};
+
 const generateAvailableLink = async (
   shareIdLength: number,
   times: number = 10,
@@ -179,9 +188,6 @@ const CreateUploadModalBody = ({
     .map((asset) => asset.url);
   const [accessControl, setAccessControl] = useState<AccessControl>({});
   const [deliveryMode, setDeliveryMode] = useState<"LINK" | "PICKUP">("LINK");
-  const [pickupCodeSource, setPickupCodeSource] = useState<"RANDOM" | "CUSTOM">(
-    "RANDOM",
-  );
   const [submitting, setSubmitting] = useState(false);
 
   const validationSchema = yup.object().shape({
@@ -233,7 +239,7 @@ const CreateUploadModalBody = ({
     initialValues: {
       name: undefined,
       link: generatedLink,
-      pickupCode: "",
+      pickupCode: generatePickupCode(),
       recipients: [] as string[],
       password: undefined,
       maxViews: undefined,
@@ -260,11 +266,7 @@ const CreateUploadModalBody = ({
 
   const onSubmit = form.onSubmit(async (values) => {
     if (submitting) return;
-    if (
-      deliveryMode === "PICKUP" &&
-      pickupCodeSource === "CUSTOM" &&
-      !/^\d{6}$/.test(values.pickupCode)
-    ) {
+    if (deliveryMode === "PICKUP" && !/^\d{6}$/.test(values.pickupCode)) {
       form.setFieldError(
         "pickupCode",
         t("upload.modal.delivery.customInvalid"),
@@ -322,10 +324,7 @@ const CreateUploadModalBody = ({
               ? []
               : values.recipients,
           deliveryMode: options.isInbox ? "LINK" : deliveryMode,
-          pickupCode:
-            deliveryMode === "PICKUP" && pickupCodeSource === "CUSTOM"
-              ? values.pickupCode
-              : undefined,
+          pickupCode: deliveryMode === "PICKUP" ? values.pickupCode : undefined,
           description: values.description,
           security: {
             password:
@@ -341,7 +340,7 @@ const CreateUploadModalBody = ({
         files,
         pendingAssets,
       );
-      if (deliveryMode === "PICKUP" && pickupCodeSource === "CUSTOM") {
+      if (deliveryMode === "PICKUP") {
         setSubmitting(true);
         try {
           await createPromise;
@@ -425,85 +424,87 @@ const CreateUploadModalBody = ({
                       : "upload.modal.delivery.linkDescription",
                   )}
                 </Text>
-                {deliveryMode === "PICKUP" && (
-                  <Stack gap="xs" mt="sm">
-                    <SegmentedControl
-                      fullWidth
-                      value={pickupCodeSource}
-                      onChange={(value) => {
-                        setPickupCodeSource(value as "RANDOM" | "CUSTOM");
-                        form.clearFieldError("pickupCode");
-                      }}
-                      data={[
-                        {
-                          label: t("upload.modal.delivery.randomCode"),
-                          value: "RANDOM",
-                        },
-                        {
-                          label: t("upload.modal.delivery.customCode"),
-                          value: "CUSTOM",
-                        },
-                      ]}
-                    />
-                    {pickupCodeSource === "CUSTOM" && (
-                      <TextInput
-                        label={t("upload.modal.delivery.customCode")}
-                        placeholder={t(
-                          "upload.modal.delivery.customPlaceholder",
-                        )}
-                        inputMode="numeric"
-                        autoComplete="off"
-                        maxLength={6}
-                        {...form.getInputProps("pickupCode")}
-                        onChange={(event) => {
-                          form.setFieldValue(
-                            "pickupCode",
-                            event.currentTarget.value
-                              .replace(/\D/g, "")
-                              .slice(0, 6),
-                          );
-                          form.clearFieldError("pickupCode");
-                        }}
-                      />
-                    )}
-                  </Stack>
-                )}
               </section>
             )}
-            {!options.isInbox && deliveryMode === "LINK" && (
+            {!options.isInbox && (
               <section
                 className={`${modalClasses.flatSection} ${modalClasses.createShareWide}`}
               >
                 <div className={modalClasses.sectionHeader}>
                   <Text className={modalClasses.sectionTitle}>
-                    {t("upload.modal.link.label")}
+                    {t(
+                      deliveryMode === "PICKUP"
+                        ? "pickup.code"
+                        : "upload.modal.link.label",
+                    )}
                   </Text>
                 </div>
                 <div className={modalClasses.inlineActionRow}>
-                  <TextInput
-                    placeholder="myAwesomeShare"
-                    variant="filled"
-                    {...form.getInputProps("link")}
-                  />
-                  <HoverTip label={t("common.button.generate")}>
+                  {deliveryMode === "PICKUP" ? (
+                    <TextInput
+                      placeholder={t("upload.modal.delivery.customPlaceholder")}
+                      variant="filled"
+                      inputMode="numeric"
+                      autoComplete="off"
+                      maxLength={6}
+                      {...form.getInputProps("pickupCode")}
+                      onChange={(event) => {
+                        form.setFieldValue(
+                          "pickupCode",
+                          event.currentTarget.value
+                            .replace(/\D/g, "")
+                            .slice(0, 6),
+                        );
+                        form.clearFieldError("pickupCode");
+                      }}
+                    />
+                  ) : (
+                    <TextInput
+                      placeholder="myAwesomeShare"
+                      variant="filled"
+                      {...form.getInputProps("link")}
+                    />
+                  )}
+                  <HoverTip
+                    label={t(
+                      deliveryMode === "PICKUP"
+                        ? "upload.modal.delivery.resetCode"
+                        : "common.button.generate",
+                    )}
+                  >
                     <ActionIcon
-                      aria-label={t("common.button.generate")}
+                      aria-label={t(
+                        deliveryMode === "PICKUP"
+                          ? "upload.modal.delivery.resetCode"
+                          : "common.button.generate",
+                      )}
                       color="gray"
                       size="lg"
                       variant="default"
-                      onClick={() =>
-                        form.setFieldValue(
-                          "link",
-                          generateShareId(options.shareIdLength),
-                        )
-                      }
+                      onClick={() => {
+                        if (deliveryMode === "PICKUP") {
+                          form.setFieldValue(
+                            "pickupCode",
+                            generatePickupCode(),
+                          );
+                          form.clearFieldError("pickupCode");
+                        } else {
+                          form.setFieldValue(
+                            "link",
+                            generateShareId(options.shareIdLength),
+                          );
+                          form.clearFieldError("link");
+                        }
+                      }}
                     >
                       <RefreshCw />
                     </ActionIcon>
                   </HoverTip>
                 </div>
                 <div className={modalClasses.previewBar}>
-                  {`${options.appUrl !== options.defaultAppUrl ? options.appUrl : window.location.origin}/s/${form.values.link}`}
+                  {deliveryMode === "PICKUP"
+                    ? `${t("pickup.entry")} · ${options.appUrl !== options.defaultAppUrl ? options.appUrl : window.location.origin}/pickup`
+                    : `${options.appUrl !== options.defaultAppUrl ? options.appUrl : window.location.origin}/s/${form.values.link}`}
                 </div>
               </section>
             )}
@@ -882,7 +883,6 @@ const CreateUploadModalBody = ({
               <FormattedMessage id="common.button.cancel" />
             </Button>
             <Button
-              color="gray"
               data-autofocus
               disabled={contentCount === 0 || submitting}
               loading={submitting}
@@ -1032,7 +1032,6 @@ const SimplifiedCreateUploadModalModal = ({
               <FormattedMessage id="common.button.cancel" />
             </Button>
             <Button
-              color="gray"
               data-autofocus
               leftSection={options.isInbox ? <Send /> : <Share2 />}
               type="submit"

@@ -1,12 +1,12 @@
-import { KeyRound, PackageOpen } from "lucide-react";
+import { PackageOpen } from "lucide-react";
 import {
   Alert,
   Button,
   Center,
   Paper,
+  PinInput,
   Stack,
   Text,
-  TextInput,
   Title,
 } from "@mantine/core";
 import { FormEvent, useState } from "react";
@@ -52,26 +52,43 @@ export default function PickupPage() {
                 size={30}
                 color="var(--mantine-primary-color-filled)"
               />
-              <div>
-                <Title order={2}>{t("pickup.title")}</Title>
-                <Text c="dimmed" size="sm" mt={6}>
-                  {t("pickup.description")}
+              <Title order={2}>{t("pickup.title")}</Title>
+              <Stack gap="xs">
+                <Text c="dimmed" size="sm" fw={500}>
+                  {t("pickup.code")}
                 </Text>
-              </div>
-              <TextInput
-                autoComplete="off"
-                label={t("pickup.code")}
-                placeholder={t("pickup.placeholder")}
-                leftSection={<KeyRound size={17} />}
-                inputMode="numeric"
-                pattern="[0-9]*"
-                maxLength={6}
-                value={code}
-                onChange={(event) => {
-                  setCode(event.currentTarget.value.replace(/\D/g, ""));
-                  setError(false);
-                }}
-              />
+                <PinInput
+                  ariaLabel={t("pickup.code")}
+                  getInputProps={(index) => ({
+                    "aria-label": `${t("pickup.code")} ${index + 1}/6`,
+                  })}
+                  length={6}
+                  type="number"
+                  oneTimeCode={false}
+                  radius="md"
+                  placeholder=""
+                  styles={{
+                    root: {
+                      display: "grid",
+                      width: "100%",
+                      gridTemplateColumns: "repeat(6, minmax(0, 1fr))",
+                      gap: 8,
+                    },
+                    pinInput: {
+                      width: "100%",
+                      minWidth: 0,
+                      height: "clamp(40px, 10vw, 52px)",
+                      fontSize: "1.25rem",
+                      fontWeight: 600,
+                    },
+                  }}
+                  value={code}
+                  onChange={(value) => {
+                    setCode(value);
+                    setError(false);
+                  }}
+                />
+              </Stack>
               {error && <Alert color="red">{t("pickup.invalid")}</Alert>}
               <Button
                 type="submit"

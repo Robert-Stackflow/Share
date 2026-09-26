@@ -215,7 +215,7 @@
 }
 
 .inlineActionRow {
-  align-items: flex-end;
+  align-items: center;
   display: grid;
   gap: var(--mantine-spacing-sm);
   grid-template-columns: minmax(0, 1fr) auto;
@@ -275,7 +275,6 @@
   .createShareGrid,
   .shareAccessGrid,
   .fieldGrid,
-  .inlineActionRow,
   .metaRow {
     grid-template-columns: 1fr;
   }

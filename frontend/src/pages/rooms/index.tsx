@@ -1,6 +1,7 @@
 import {
   ExternalLink,
   Globe,
+  House,
   KeyRound,
   Link2,
   LockKeyhole,
@@ -473,9 +474,29 @@ export default function RoomsPage() {
               </button>
             ))}
             {visibleOwned.length + visibleVisited.length === 0 && (
-              <Text c="dimmed" size="sm" py="xl">
-                <FormattedMessage id="room.rooms.empty" />
-              </Text>
+              <div className={classes.listEmpty} role="status">
+                <span className={classes.listEmptyIcon}>
+                  <House size={20} />
+                </span>
+                <strong className={classes.listEmptyTitle}>
+                  <FormattedMessage
+                    id={
+                      filter === "visited"
+                        ? "room.rooms.visited.empty"
+                        : "room.rooms.empty"
+                    }
+                  />
+                </strong>
+                <span className={classes.listEmptyHint}>
+                  <FormattedMessage
+                    id={
+                      filter === "visited"
+                        ? "room.rooms.visited.emptyHint"
+                        : "room.rooms.emptyHint"
+                    }
+                  />
+                </span>
+              </div>
             )}
           </div>
         </aside>
