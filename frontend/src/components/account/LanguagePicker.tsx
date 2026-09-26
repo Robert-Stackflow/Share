@@ -18,7 +18,6 @@ const LanguagePicker = () => {
     <Select
       value={language}
       disabled={changing}
-      description={t("account.card.language.description")}
       onChange={(value) => {
         if (!value || value === language) return;
         setChanging(true);
