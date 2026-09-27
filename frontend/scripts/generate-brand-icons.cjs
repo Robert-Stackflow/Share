@@ -11,13 +11,13 @@ const darkMark = fs.readFileSync(
 );
 const sizes = [48, 72, 96, 128, 144, 152, 180, 192, 384, 512];
 
-const png = (source, size, whiteBackground = false) => {
-  const image = sharp(source, {
+const png = (source, size) =>
+  sharp(source, {
     density: Math.max(72, Math.ceil((size * 72) / 64)),
-  }).resize(size, size);
-  if (whiteBackground) image.flatten({ background: "#ffffff" });
-  return image.png({ compressionLevel: 9 }).toBuffer();
-};
+  })
+    .resize(size, size)
+    .png({ compressionLevel: 9 })
+    .toBuffer();
 
 const makeIco = (entries) => {
   const directory = Buffer.alloc(6 + entries.length * 16);
@@ -47,7 +47,7 @@ async function main() {
   for (const size of sizes) {
     fs.writeFileSync(
       path.join(iconDir, `icon-${size}x${size}.png`),
-      await png(mark, size, true),
+      await png(mark, size),
     );
   }
   fs.writeFileSync(
@@ -56,7 +56,7 @@ async function main() {
       await Promise.all(
         [16, 32, 48].map(async (size) => ({
           size,
-          data: await png(mark, size, true),
+          data: await png(mark, size),
         })),
       ),
     ),
