@@ -6,7 +6,7 @@ const config: Config = {
   title: "Share",
   tagline:
     "Share is a self-hosted file sharing platform and an alternative for WeTransfer.",
-  favicon: "img/pingvinshare.svg",
+  favicon: "img/share-mark.svg",
 
   url: "https://smp46.github.io",
   baseUrl: "/pingvin-share-x/",
@@ -36,7 +36,7 @@ const config: Config = {
   ],
 
   themeConfig: {
-    image: "img/pingvinshare.svg",
+    image: "img/share-mark.svg",
     colorMode: {
       respectPrefersColorScheme: true,
     },
@@ -44,7 +44,7 @@ const config: Config = {
       title: "Share",
       logo: {
         alt: "Share Logo",
-        src: "img/pingvinshare.svg",
+        src: "img/share-mark.svg",
       },
       items: [
         {

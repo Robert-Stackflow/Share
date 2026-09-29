@@ -27,7 +27,8 @@ export default class _Document extends Document<{
         <Head>
           <ColorSchemeScript defaultColorScheme={this.props.colorScheme} />
           <link rel="manifest" href="/manifest.json?v=20260927-cube-clear" />
-          <link rel="icon" type="image/x-icon" href="/img/favicon.ico?v=20260927-cube-clear" />
+          <link rel="icon" type="image/x-icon" href="/favicon.ico?v=20260929-cube" />
+          <link rel="icon" type="image/svg+xml" href="/brand/share-mark.svg?v=20260929-cube" />
           <link rel="apple-touch-icon" sizes="180x180" href="/img/icons/icon-180x180.png?v=20260927-cube-clear" />
 
           <meta name="robots" content="noindex" />

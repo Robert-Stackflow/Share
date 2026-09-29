@@ -50,17 +50,16 @@ async function main() {
       await png(mark, size),
     );
   }
-  fs.writeFileSync(
-    path.join(imageDir, "favicon.ico"),
-    makeIco(
-      await Promise.all(
-        [16, 32, 48].map(async (size) => ({
-          size,
-          data: await png(mark, size),
-        })),
-      ),
+  const favicon = makeIco(
+    await Promise.all(
+      [16, 32, 48].map(async (size) => ({
+        size,
+        data: await png(mark, size),
+      })),
     ),
   );
+  fs.writeFileSync(path.join(imageDir, "favicon.ico"), favicon);
+  fs.writeFileSync(path.join(publicDir, "favicon.ico"), favicon);
 }
 
 main().catch((error) => {
