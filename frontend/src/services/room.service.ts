@@ -45,6 +45,17 @@ const uploadFile = async (
   ).data;
 const downloadFileUrl = (id: string, assetId: string) =>
   `${window.location.origin}/api/rooms/${id}/assets/${assetId}/download`;
+const assetLinkUrl = (
+  id: string,
+  assetId: string,
+  visibility: Room["visibility"],
+) => {
+  const roomPath =
+    visibility === "PRIVATE"
+      ? `/rooms/?roomId=${encodeURIComponent(id)}`
+      : `/rooms/${encodeURIComponent(id)}`;
+  return `${window.location.origin}${roomPath}#asset-${encodeURIComponent(assetId)}`;
+};
 const removeAsset = async (id: string, assetId: string) => {
   await api.delete(`rooms/${id}/assets/${assetId}`);
 };
@@ -73,6 +84,7 @@ export default {
   addAsset,
   uploadFile,
   downloadFileUrl,
+  assetLinkUrl,
   removeAsset,
   removeAssets,
   eventsUrl,

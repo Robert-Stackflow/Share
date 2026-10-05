@@ -43,6 +43,7 @@ type AssetActionMenuProps = {
   deleteModalTitle?: string;
   deleteSuccessMessage?: string;
   downloadUrl?: string;
+  copyLinkUrl?: string;
   onAssetCreated?: (asset: Asset) => void;
   onAssetDeleted?: (assetId: string) => void;
   onAssetUpdated?: (asset: Asset) => void;
@@ -59,6 +60,7 @@ const AssetActionMenu = ({
   deleteModalTitle,
   deleteSuccessMessage,
   downloadUrl,
+  copyLinkUrl,
   onAssetCreated,
   onAssetDeleted,
   onAssetUpdated,
@@ -100,6 +102,13 @@ const AssetActionMenu = ({
         (!readOnly ? assetService.downloadFileUrl(asset.id) : undefined))
       : undefined;
   const canDownloadFile = asset.type === "FILE" && Boolean(fileUrl);
+  const isImageFile =
+    asset.type === "FILE" &&
+    (asset.mimeType?.toLowerCase().startsWith("image/") ||
+      /\.(avif|gif|jpe?g|png|svg|webp)$/i.test(asset.name || ""));
+  const canCopyContent =
+    asset.type !== "FILE" || (isImageFile && Boolean(fileUrl));
+  const assetLinkUrl = copyLinkUrl ?? fileUrl;
   const canDelete = Boolean(onDelete) || (!readOnly && showLibraryActions);
   const canUseLibraryActions = showLibraryActions && !readOnly;
 
@@ -127,30 +136,76 @@ const AssetActionMenu = ({
 
   const copyValue = (
     value: string,
-    title = t("account.assets.action.copy"),
+    title = t("account.assets.action.copyLink"),
+    successMessage = t("common.notify.copied-link"),
   ) => {
     if (window.isSecureContext) {
       clipboard.copy(value);
-      toast.success(t("common.notify.copied"));
+      toast.success(successMessage);
       return;
     }
 
     openCopyFallback(title, value);
   };
 
-  const getCopyValue = () => {
-    if (asset.type === "TEXT") return asset.content || "";
-    if (asset.type === "LINK") return asset.url || "";
-    if (readOnly && asset.type === "FILE" && !fileUrl) {
-      return asset.name || asset.id;
-    }
-    if (fileUrl) return toAbsoluteUrl(fileUrl);
-    return asset.name || asset.id;
-  };
-
   const toAbsoluteUrl = (url: string) => {
     if (/^https?:\/\//.test(url)) return url;
     return `${window.location.origin}${url.startsWith("/") ? url : `/${url}`}`;
+  };
+
+  const copyImage = () => {
+    if (!fileUrl || !navigator.clipboard?.write || !window.ClipboardItem) {
+      toast.error(t("account.assets.notify.imageCopyUnavailable"));
+      return;
+    }
+
+    const mime = (asset.mimeType || "").toLowerCase();
+    const canUseRoomPreview =
+      fileUrl.includes("/api/rooms/") &&
+      [
+        "image/avif",
+        "image/gif",
+        "image/jpeg",
+        "image/png",
+        "image/webp",
+      ].includes(mime) &&
+      Number(asset.size || 0) <= 20 * 1024 * 1024;
+    const sourceUrl = canUseRoomPreview
+      ? `${fileUrl}${fileUrl.includes("?") ? "&" : "?"}preview=1`
+      : fileUrl;
+    const png = fetch(sourceUrl)
+      .then(async (response) => {
+        if (!response.ok)
+          throw new Error(`Image request failed: ${response.status}`);
+        return response.blob();
+      })
+      .then(async (blob) => {
+        if (blob.type === "image/png") return blob;
+        const image = await createImageBitmap(blob);
+        const canvas = document.createElement("canvas");
+        canvas.width = image.width;
+        canvas.height = image.height;
+        const context = canvas.getContext("2d");
+        if (!context) throw new Error("Canvas is unavailable");
+        context.drawImage(image, 0, 0);
+        image.close();
+        return new Promise<Blob>((resolve, reject) =>
+          canvas.toBlob(
+            (converted) =>
+              converted
+                ? resolve(converted)
+                : reject(new Error("Image conversion failed")),
+            "image/png",
+          ),
+        );
+      });
+
+    void navigator.clipboard
+      .write([new ClipboardItem({ "image/png": png })])
+      .then(() => toast.success(t("account.assets.notify.contentCopied")))
+      .catch(() =>
+        toast.error(t("account.assets.notify.imageCopyUnavailable")),
+      );
   };
 
   const downloadFile = () => {
@@ -269,12 +324,37 @@ const AssetActionMenu = ({
           >
             {t("account.assets.action.preview")}
           </Menu.Item>
-          <Menu.Item
-            leftSection={asset.type === "FILE" ? <Link2 /> : <Copy />}
-            onClick={() => copyValue(getCopyValue())}
-          >
-            {t("account.assets.action.copy")}
-          </Menu.Item>
+          {canCopyContent && (
+            <Menu.Item
+              leftSection={<Copy />}
+              onClick={() =>
+                isImageFile
+                  ? copyImage()
+                  : copyValue(
+                      asset.type === "TEXT"
+                        ? asset.content || ""
+                        : asset.url || "",
+                      t("account.assets.action.copyContent"),
+                      t("account.assets.notify.contentCopied"),
+                    )
+              }
+            >
+              {t("account.assets.action.copyContent")}
+            </Menu.Item>
+          )}
+          {assetLinkUrl && (
+            <Menu.Item
+              leftSection={<Link2 />}
+              onClick={() =>
+                copyValue(
+                  toAbsoluteUrl(assetLinkUrl),
+                  t("account.assets.action.copyLink"),
+                )
+              }
+            >
+              {t("account.assets.action.copyLink")}
+            </Menu.Item>
+          )}
           {canDownloadFile && (
             <Menu.Item leftSection={<Download />} onClick={downloadFile}>
               {t("common.button.download")}

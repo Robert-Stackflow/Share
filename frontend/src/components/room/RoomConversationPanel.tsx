@@ -381,6 +381,7 @@ type RoomConversationPanelProps = {
   empty?: ReactNode;
   flushHeader?: boolean;
   getFileDownloadUrl?: (asset: Asset) => string;
+  getAssetLinkUrl?: (asset: Asset) => string;
   hideHeader?: boolean;
   onDelete?: (asset: Asset) => Promise<void>;
   onDeleteMany?: (assets: Asset[]) => Promise<void>;
@@ -399,6 +400,7 @@ const RoomConversationPanel = ({
   empty,
   flushHeader = false,
   getFileDownloadUrl,
+  getAssetLinkUrl,
   hideHeader = false,
   onDelete,
   onDeleteMany,
@@ -418,6 +420,7 @@ const RoomConversationPanel = ({
     .slice()
     .reverse();
   const messagesRef = useRef<HTMLDivElement>(null);
+  const scrolledAssetRef = useRef<string>();
   const knownIdsRef = useRef<Set<string> | null>(null);
   const nearBottomRef = useRef(true);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -556,6 +559,17 @@ const RoomConversationPanel = ({
     if (scrollToLatestSignal) scrollToLatest();
   }, [scrollToLatestSignal]);
 
+  useEffect(() => {
+    const match = window.location.hash.match(/^#asset-([\w-]+)$/);
+    const assetId = match?.[1];
+    if (!assetId || scrolledAssetRef.current === assetId) return;
+    if (!assets.some((asset) => asset.id === assetId)) return;
+    document.getElementById(`asset-${assetId}`)?.scrollIntoView({
+      block: "center",
+    });
+    scrolledAssetRef.current = assetId;
+  }, [assets]);
+
   const onMessagesScroll = () => {
     const element = messagesRef.current;
     if (!element) return;
@@ -609,6 +623,7 @@ const RoomConversationPanel = ({
         }
         deleteSuccessMessage={t("room.notify.asset-deleted")}
         downloadUrl={getFileDownloadUrl?.(asset)}
+        copyLinkUrl={getAssetLinkUrl?.(asset)}
         onDelete={onDelete}
         showLibraryActions={false}
         showSaveToLibrary={canSaveToLibrary}
@@ -726,6 +741,7 @@ const RoomConversationPanel = ({
             : roomConversationMessages.map((asset) => (
                 <Group
                   key={asset.id}
+                  id={`asset-${asset.id}`}
                   align="flex-start"
                   className={`${classes.messageRow} ${classes.messageListItem} ${selectionMode ? classes.selectableRow : ""} ${selectedIds.has(asset.id) ? classes.selectedRow : ""}`}
                   wrap="nowrap"

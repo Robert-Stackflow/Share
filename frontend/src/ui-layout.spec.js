@@ -177,7 +177,8 @@ test("asset rows use a unified action menu and preview dialog", () => {
 
   for (const key of [
     "account.assets.action.preview",
-    "account.assets.action.copy",
+    "account.assets.action.copyContent",
+    "account.assets.action.copyLink",
     "account.assets.action.createShare",
     "account.assets.action.createShortLink",
     "account.assets.action.sendToRoom",

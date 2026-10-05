@@ -230,6 +230,11 @@ const RoomPage = () => {
           getFileDownloadUrl={(asset) =>
             roomService.downloadFileUrl(roomKey, asset.id)
           }
+          getAssetLinkUrl={(asset) =>
+            asset.type === "FILE"
+              ? roomService.downloadFileUrl(roomKey, asset.id)
+              : roomService.assetLinkUrl(roomKey, asset.id, room.visibility)
+          }
           onDelete={isOwner ? deleteAsset : undefined}
           onDeleteMany={isOwner ? deleteAssets : undefined}
           onClear={isOwner ? clearAssets : undefined}

@@ -31,6 +31,7 @@ import { useClipboard } from "@mantine/hooks";
 import { useModals } from "@mantine/modals";
 import { AxiosError } from "axios";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import FormattedMessage from "../../components/core/FormattedMessage";
 import AccessControlForm from "../../components/access/AccessControlForm";
@@ -69,6 +70,7 @@ const policyFields: Array<keyof AccessControl> = [
 
 export default function RoomsPage() {
   const t = useTranslate();
+  const router = useRouter();
   const { user } = useUser();
   const clipboard = useClipboard();
   const modals = useModals();
@@ -181,8 +183,16 @@ export default function RoomsPage() {
   }, []);
 
   useEffect(() => {
-    if (!user || !owned || initialSelectionDone.current || selectionRef.current)
+    if (!user || !owned || !router.isReady) return;
+    if (initialSelectionDone.current || selectionRef.current) return;
+    const requestedRoomId =
+      typeof router.query.roomId === "string" ? router.query.roomId : undefined;
+    const requestedRoom = owned.find((room) => room.roomId === requestedRoomId);
+    if (requestedRoom) {
+      initialSelectionDone.current = true;
+      setSelection({ kind: "owned", roomId: requestedRoom.roomId });
       return;
+    }
     const firstOwned =
       owned.find((room) => room.visibility === "PRIVATE") ?? owned[0];
     if (firstOwned) {
@@ -192,7 +202,14 @@ export default function RoomsPage() {
     }
     const firstVisited = visited[0];
     if (firstVisited) selectVisited(firstVisited);
-  }, [owned, visited, user, selectVisited]);
+  }, [
+    owned,
+    visited,
+    user,
+    selectVisited,
+    router.isReady,
+    router.query.roomId,
+  ]);
 
   const create = createForm.onSubmit((values) => {
     void roomService
@@ -621,6 +638,15 @@ export default function RoomsPage() {
               }
               getFileDownloadUrl={(asset) =>
                 roomService.downloadFileUrl(active.roomId, asset.id)
+              }
+              getAssetLinkUrl={(asset) =>
+                asset.type === "FILE"
+                  ? roomService.downloadFileUrl(active.roomId, asset.id)
+                  : roomService.assetLinkUrl(
+                      active.roomId,
+                      asset.id,
+                      active.visibility,
+                    )
               }
               onDelete={selection?.kind === "owned" ? removeAsset : undefined}
               onDeleteMany={
