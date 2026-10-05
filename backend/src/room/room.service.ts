@@ -16,6 +16,7 @@ import { JwtService } from "@nestjs/jwt";
 import * as argon from "argon2";
 import * as crypto from "crypto";
 import { customAlphabet } from "nanoid";
+import { validate as isValidUUID } from "uuid";
 import { Observable, filter, interval, map, merge } from "rxjs";
 import { AccessPolicyService } from "src/accessPolicy/accessPolicy.service";
 import { AccessControlDTO } from "src/accessPolicy/dto/accessControl.dto";
@@ -354,20 +355,33 @@ export class RoomService {
 
   async addAsset(
     roomId: string,
-    data: { type: "TEXT" | "LINK"; content?: string; url?: string },
+    data: {
+      type: "TEXT" | "LINK";
+      content?: string;
+      url?: string;
+      roomBatchId?: string;
+    },
     user: User,
     token?: string,
   ) {
+    this.assertRoomBatchId(data.roomBatchId);
     const room = await this.requireWritableRoom(roomId, user, token);
+    this.assertRoomBatchOwner(room, data.roomBatchId, user.id);
     let asset;
     if (data.type === "TEXT") {
       asset = await this.assetService.createText(
         { content: data.content },
         user,
         room,
+        data.roomBatchId,
       );
     } else if (data.type === "LINK") {
-      asset = await this.assetService.createLink({ url: data.url }, user, room);
+      asset = await this.assetService.createLink(
+        { url: data.url },
+        user,
+        room,
+        data.roomBatchId,
+      );
     } else {
       throw new BadRequestException("Unsupported room asset type");
     }
@@ -382,18 +396,45 @@ export class RoomService {
     file: { id?: string; name: string },
     user: User,
     token?: string,
+    roomBatchId?: string,
   ) {
+    this.assertRoomBatchId(roomBatchId);
     const room = await this.requireWritableRoom(roomId, user, token);
+    this.assertRoomBatchOwner(room, roomBatchId, user.id);
     const asset = await this.assetService.createFile(
       data,
       chunk,
       file,
       user,
       room,
+      false,
+      roomBatchId,
     );
     if ("type" in asset && asset.type === AssetType.FILE)
       roomChanges.next(roomId);
     return asset;
+  }
+
+  private assertRoomBatchId(roomBatchId?: string) {
+    if (roomBatchId !== undefined && !isValidUUID(roomBatchId)) {
+      throw new BadRequestException("Invalid room batch id");
+    }
+  }
+
+  private assertRoomBatchOwner(
+    room: RoomWithContent,
+    roomBatchId: string | undefined,
+    userId: string,
+  ) {
+    if (
+      roomBatchId &&
+      room.assets.some(
+        (asset) =>
+          asset.roomBatchId === roomBatchId && asset.ownerId !== userId,
+      )
+    ) {
+      throw new ForbiddenException("Room batch belongs to another user");
+    }
   }
 
   async getFileDownload(

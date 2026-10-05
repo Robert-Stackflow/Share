@@ -314,9 +314,12 @@ export default function RoomsPage() {
       .catch(toast.axiosError);
   });
 
-  const addAsset = async (input: CreateRoomAsset) => {
+  const addAsset = async (input: CreateRoomAsset, roomBatchId?: string) => {
     if (!selection) return;
-    const created = await roomService.addAsset(selection.roomId, input);
+    const created = await roomService.addAsset(selection.roomId, {
+      ...input,
+      roomBatchId,
+    });
     updateActiveAssets((assets) => [created, ...assets]);
     setScrollSignal((value) => value + 1);
   };
@@ -625,13 +628,14 @@ export default function RoomsPage() {
                   sendAction
                   onCreate={addAsset}
                   onFilesUploaded={addFiles}
-                  uploadFile={(chunk, file, index, total) =>
+                  uploadFile={(chunk, file, index, total, roomBatchId) =>
                     roomService.uploadFile(
                       active.roomId,
                       chunk,
                       file,
                       index,
                       total,
+                      roomBatchId,
                     )
                   }
                 />

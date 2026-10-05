@@ -14,6 +14,7 @@ export type Asset = {
   ownerId?: string;
   shareId?: string;
   roomId?: string;
+  roomBatchId?: string | null;
   name?: string;
   size?: string;
   mimeType?: string;

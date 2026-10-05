@@ -30,6 +30,7 @@ const uploadFile = async (
   file: { id?: string; name: string },
   chunkIndex: number,
   totalChunks: number,
+  roomBatchId?: string,
 ): Promise<FileUploadResponse & Partial<Asset>> =>
   (
     await api.post(`rooms/${id}/assets`, chunk, {
@@ -40,6 +41,7 @@ const uploadFile = async (
         name: file.name,
         chunkIndex,
         totalChunks,
+        roomBatchId,
       },
     })
   ).data;

@@ -26,4 +26,4 @@ export type UpdateRoom = {
   accessControl?: AccessControl;
 };
 
-export type CreateRoomAsset = CreateAsset;
+export type CreateRoomAsset = CreateAsset & { roomBatchId?: string };

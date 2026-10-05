@@ -17,13 +17,14 @@ export default function AssetContentComposer({
   target: string;
   buttonLabel: string;
   sendAction?: boolean;
-  onCreate: (asset: CreateAsset) => Promise<void>;
+  onCreate: (asset: CreateAsset, roomBatchId?: string) => Promise<void>;
   onFilesUploaded: (assets: Asset[]) => void;
   uploadFile: (
     chunk: Blob,
     file: { id?: string; name: string },
     chunkIndex: number,
     totalChunks: number,
+    roomBatchId?: string,
   ) => Promise<FileUploadResponse & Partial<Asset>>;
 }) {
   const config = useConfig();
@@ -31,10 +32,15 @@ export default function AssetContentComposer({
   const uploads = useRef(
     new Map<string, { fileId?: string; nextChunk: number }>(),
   );
+  const pendingBatchId = useRef<string | null>(null);
 
   const submit = async (items: PendingContent[]) => {
     const completed: string[] = [];
     const chunkSize = parseInt(config.get("share.chunkSize"));
+    const roomBatchId =
+      sendAction && (items.length > 1 || pendingBatchId.current)
+        ? (pendingBatchId.current ??= crypto.randomUUID())
+        : undefined;
     for (const item of items) {
       try {
         if (item.type === "FILE") {
@@ -51,6 +57,7 @@ export default function AssetContentComposer({
                 { id: upload.fileId, name: item.file.name },
                 upload.nextChunk,
                 total,
+                roomBatchId,
               );
               upload.fileId = result.id;
               upload.nextChunk += 1;
@@ -80,6 +87,7 @@ export default function AssetContentComposer({
             item.type === "TEXT"
               ? { type: "TEXT", content: item.value }
               : { type: "LINK", url: item.value.trim() },
+            roomBatchId,
           );
         }
         completed.push(item.id);
@@ -87,6 +95,7 @@ export default function AssetContentComposer({
         toast.axiosError(error);
       }
     }
+    if (completed.length === items.length) pendingBatchId.current = null;
     return completed;
   };
 
@@ -96,6 +105,10 @@ export default function AssetContentComposer({
       buttonLabel={buttonLabel}
       sendAction={sendAction}
       maxSize={maxSize}
+      onQueueEmpty={() => {
+        pendingBatchId.current = null;
+        uploads.current.clear();
+      }}
       onSubmit={submit}
     />
   );

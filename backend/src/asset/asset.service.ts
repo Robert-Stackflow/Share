@@ -100,6 +100,7 @@ export class AssetService {
     data: { content: string },
     owner?: User,
     container?: AssetContainer,
+    roomBatchId?: string,
   ) {
     if (!data.content?.trim()) {
       throw new BadRequestException("Text asset content is required");
@@ -109,6 +110,7 @@ export class AssetService {
       data: {
         type: AssetType.TEXT,
         content: data.content,
+        ...(roomBatchId ? { roomBatchId } : {}),
         ...this.getSourceData(container),
         ...this.getRelationData(owner, container),
       },
@@ -130,6 +132,7 @@ export class AssetService {
     data: { url: string },
     owner?: User,
     container?: AssetContainer,
+    roomBatchId?: string,
   ) {
     if (!this.isValidUrl(data.url)) {
       throw new BadRequestException("Link asset URL is invalid");
@@ -139,6 +142,7 @@ export class AssetService {
       data: {
         type: AssetType.LINK,
         url: data.url,
+        ...(roomBatchId ? { roomBatchId } : {}),
         ...this.getSourceData(container),
         ...this.getRelationData(owner, container),
       },
@@ -163,6 +167,7 @@ export class AssetService {
     owner?: User,
     container?: AssetContainer,
     trackIncomplete = false,
+    roomBatchId?: string,
   ) {
     const assetId = this.getFileId(file.id);
     const storageProvider = this.getConfiguredStorageProvider();
@@ -192,6 +197,7 @@ export class AssetService {
             size: null,
             mimeType: mime.lookup(file.name) || "application/octet-stream",
             storage: storageProvider,
+            ...(roomBatchId ? { roomBatchId } : {}),
             ...this.getSourceData(container),
             ...this.getRelationData(owner, container),
           },
@@ -229,6 +235,7 @@ export class AssetService {
             size: fileSize.toString(),
             mimeType: mime.lookup(file.name) || "application/octet-stream",
             storage: storageProvider,
+            ...(roomBatchId ? { roomBatchId } : {}),
             ...this.getSourceData(container),
             ...this.getRelationData(owner, container),
           },
@@ -502,7 +509,9 @@ export class AssetService {
         mimeType: asset.mimeType || "application/octet-stream",
         name: asset.name,
       },
-      file: await this.getStorage(asset.storage).getStream(asset.storageKey ?? asset.id),
+      file: await this.getStorage(asset.storage).getStream(
+        asset.storageKey ?? asset.id,
+      ),
     };
   }
 
@@ -566,7 +575,7 @@ export class AssetService {
         mimeType: asset.mimeType,
         storage: asset.storage,
         storageKey:
-          asset.type === AssetType.FILE ? asset.storageKey ?? asset.id : null,
+          asset.type === AssetType.FILE ? (asset.storageKey ?? asset.id) : null,
         content: asset.content,
         url: asset.url,
         source:

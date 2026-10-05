@@ -12,9 +12,11 @@ import {
   FileText,
   FileType2,
   Film,
+  Files,
   Image as ImageIcon,
   Link2,
   Music2,
+  Minus,
   MoreHorizontal,
   Presentation,
   Trash2,
@@ -37,7 +39,7 @@ import {
 } from "@mantine/core";
 import { useModals } from "@mantine/modals";
 import dynamic from "next/dynamic";
-import { ReactNode, useEffect, useRef, useState } from "react";
+import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { useIntl } from "react-intl";
 import FormattedMessage from "../core/FormattedMessage";
 import EmptyState from "../core/EmptyState";
@@ -392,6 +394,12 @@ type RoomConversationPanelProps = {
   title: ReactNode;
 };
 
+type RoomConversationEntry = {
+  key: string;
+  batchId?: string;
+  assets: Asset[];
+};
+
 const RoomConversationPanel = ({
   assets,
   badge,
@@ -415,10 +423,31 @@ const RoomConversationPanel = ({
   const modals = useModals();
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [expandedBatchIds, setExpandedBatchIds] = useState<Set<string>>(
+    new Set(),
+  );
   const [busy, setBusy] = useState(false);
-  const roomConversationMessages = sortAssetsByCreatedAtDesc(assets)
-    .slice()
-    .reverse();
+  const roomConversationEntries = useMemo<RoomConversationEntry[]>(() => {
+    const ordered = sortAssetsByCreatedAtDesc(assets).reverse();
+    const batches = new Map<string, Asset[]>();
+    for (const asset of ordered) {
+      if (asset.roomBatchId) {
+        const items = batches.get(asset.roomBatchId) ?? [];
+        items.push(asset);
+        batches.set(asset.roomBatchId, items);
+      }
+    }
+    const seen = new Set<string>();
+    return ordered.flatMap<RoomConversationEntry>((asset) => {
+      const batchId = asset.roomBatchId;
+      if (!batchId || (batches.get(batchId)?.length ?? 0) < 2) {
+        return [{ key: asset.id, assets: [asset] }];
+      }
+      if (seen.has(batchId)) return [];
+      seen.add(batchId);
+      return [{ key: batchId, batchId, assets: batches.get(batchId)! }];
+    });
+  }, [assets]);
   const messagesRef = useRef<HTMLDivElement>(null);
   const scrolledAssetRef = useRef<string>();
   const knownIdsRef = useRef<Set<string> | null>(null);
@@ -563,12 +592,21 @@ const RoomConversationPanel = ({
     const match = window.location.hash.match(/^#asset-([\w-]+)$/);
     const assetId = match?.[1];
     if (!assetId || scrolledAssetRef.current === assetId) return;
-    if (!assets.some((asset) => asset.id === assetId)) return;
-    document.getElementById(`asset-${assetId}`)?.scrollIntoView({
+    const entry = roomConversationEntries.find((item) =>
+      item.assets.some((asset) => asset.id === assetId),
+    );
+    if (!entry) return;
+    if (entry.batchId && !expandedBatchIds.has(entry.batchId)) {
+      setExpandedBatchIds((previous) => new Set(previous).add(entry.batchId!));
+      return;
+    }
+    const target = document.getElementById(`asset-${assetId}`);
+    if (!target) return;
+    target.scrollIntoView({
       block: "center",
     });
     scrolledAssetRef.current = assetId;
-  }, [assets]);
+  }, [roomConversationEntries, expandedBatchIds]);
 
   const onMessagesScroll = () => {
     const element = messagesRef.current;
@@ -630,6 +668,168 @@ const RoomConversationPanel = ({
       />
     </Group>
   );
+
+  const renderMessage = (asset: Asset, nested = false) => (
+    <Group
+      key={asset.id}
+      id={`asset-${asset.id}`}
+      align="flex-start"
+      className={`${classes.messageRow} ${classes.messageListItem} ${nested ? classes.batchItem : ""} ${selectionMode ? classes.selectableRow : ""} ${selectedIds.has(asset.id) ? classes.selectedRow : ""}`}
+      wrap="nowrap"
+    >
+      {selectionMode && (
+        <button
+          type="button"
+          className={classes.selectionHitArea}
+          aria-hidden="true"
+          tabIndex={-1}
+          onClick={() => toggleSelected(asset.id)}
+        />
+      )}
+      <Box
+        component="button"
+        type="button"
+        className={classes.messageIcon}
+        aria-label={t("room.selection.toggle", {
+          name: getAssetLabel(asset),
+        })}
+        aria-pressed={selectedIds.has(asset.id)}
+        onClick={() => {
+          if (!selectionMode) setSelectionMode(true);
+          toggleSelected(asset.id);
+        }}
+        data-type={asset.type.toLowerCase()}
+        data-kind={asset.type === "FILE" ? getFileKind(asset) : undefined}
+      >
+        {selectionMode && selectedIds.has(asset.id) ? (
+          <Check />
+        ) : (
+          renderTypeIcon(asset)
+        )}
+      </Box>
+      <Box
+        className={classes.roomMessageBubble}
+        data-type={asset.type.toLowerCase()}
+        data-kind={asset.type === "FILE" ? getFileKind(asset) : undefined}
+      >
+        <div className={classes.bubbleHeader}>
+          <Group className={classes.messageMeta} gap="xs" wrap="nowrap">
+            <Badge color="gray" variant="light">
+              {asset.type === "FILE"
+                ? t(`room.file.kind.${getFileKind(asset)}`)
+                : t(`room.asset.type.${asset.type.toLowerCase()}`)}
+            </Badge>
+            <Text c="dimmed" size="xs">
+              {intl.formatDate(asset.createdAt, {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+                hour: "numeric",
+                minute: "2-digit",
+              })}
+            </Text>
+          </Group>
+          {!selectionMode && renderActions(asset)}
+        </div>
+        <Box className={classes.bubbleContent}>{renderValue(asset)}</Box>
+      </Box>
+    </Group>
+  );
+
+  const renderBatch = (entry: RoomConversationEntry) => {
+    const batchId = entry.batchId!;
+    const expanded = expandedBatchIds.has(batchId);
+    const allSelected = entry.assets.every((asset) =>
+      selectedIds.has(asset.id),
+    );
+    const someSelected = entry.assets.some((asset) =>
+      selectedIds.has(asset.id),
+    );
+    const toggleBatchSelection = () => {
+      if (!selectionMode) setSelectionMode(true);
+      setSelectedIds((previous) => {
+        const next = new Set(previous);
+        for (const asset of entry.assets) {
+          if (allSelected) next.delete(asset.id);
+          else next.add(asset.id);
+        }
+        return next;
+      });
+    };
+    return (
+      <div
+        className={`${classes.messageRow} ${allSelected && selectionMode ? classes.selectedBatch : ""}`}
+        key={entry.key}
+      >
+        <button
+          type="button"
+          className={classes.messageIcon}
+          aria-label={t("room.selection.toggleBatch", {
+            count: String(entry.assets.length),
+          })}
+          aria-pressed={allSelected}
+          onClick={toggleBatchSelection}
+        >
+          {selectionMode && allSelected ? (
+            <Check />
+          ) : selectionMode && someSelected ? (
+            <Minus />
+          ) : (
+            <Files />
+          )}
+        </button>
+        <div className={`${classes.roomMessageBubble} ${classes.batchBubble}`}>
+          <button
+            type="button"
+            className={classes.batchToggle}
+            aria-expanded={expanded}
+            onClick={() =>
+              setExpandedBatchIds((previous) => {
+                const next = new Set(previous);
+                if (next.has(batchId)) next.delete(batchId);
+                else next.add(batchId);
+                return next;
+              })
+            }
+          >
+            <span className={classes.batchHeading}>
+              <span className={classes.batchLabel}>
+                {t("room.assets.batchLabel")}
+              </span>
+              <span className={classes.batchDate}>
+                {intl.formatDate(entry.assets[0].createdAt, {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
+                  hour: "numeric",
+                  minute: "2-digit",
+                })}
+              </span>
+            </span>
+            <span className={classes.batchTitle}>
+              {t("room.assets.batchCount", {
+                count: String(entry.assets.length),
+              })}
+              {expanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+            </span>
+            {!expanded && (
+              <span className={classes.batchSummary}>
+                {entry.assets
+                  .slice(0, 3)
+                  .map((asset) => getAssetLabel(asset).trim().slice(0, 80))
+                  .join(" · ")}
+              </span>
+            )}
+          </button>
+          {expanded && (
+            <div className={classes.batchItems}>
+              {entry.assets.map((asset) => renderMessage(asset, true))}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <Box className={classes.roomConversationPanel}>
@@ -731,89 +931,18 @@ const RoomConversationPanel = ({
           ref={messagesRef}
           onScroll={onMessagesScroll}
         >
-          {roomConversationMessages.length === 0
+          {roomConversationEntries.length === 0
             ? (empty ?? (
                 <EmptyState
                   icon={<FileText size={22} />}
                   title={<FormattedMessage id="room.assets.empty" />}
                 />
               ))
-            : roomConversationMessages.map((asset) => (
-                <Group
-                  key={asset.id}
-                  id={`asset-${asset.id}`}
-                  align="flex-start"
-                  className={`${classes.messageRow} ${classes.messageListItem} ${selectionMode ? classes.selectableRow : ""} ${selectedIds.has(asset.id) ? classes.selectedRow : ""}`}
-                  wrap="nowrap"
-                >
-                  {selectionMode && (
-                    <button
-                      type="button"
-                      className={classes.selectionHitArea}
-                      aria-hidden="true"
-                      tabIndex={-1}
-                      onClick={() => toggleSelected(asset.id)}
-                    />
-                  )}
-                  <Box
-                    component="button"
-                    type="button"
-                    className={classes.messageIcon}
-                    aria-label={t("room.selection.toggle", {
-                      name: getAssetLabel(asset),
-                    })}
-                    aria-pressed={selectedIds.has(asset.id)}
-                    onClick={() => {
-                      if (!selectionMode) setSelectionMode(true);
-                      toggleSelected(asset.id);
-                    }}
-                    data-type={asset.type.toLowerCase()}
-                    data-kind={
-                      asset.type === "FILE" ? getFileKind(asset) : undefined
-                    }
-                  >
-                    {selectionMode && selectedIds.has(asset.id) ? (
-                      <Check />
-                    ) : (
-                      renderTypeIcon(asset)
-                    )}
-                  </Box>
-                  <Box
-                    className={classes.roomMessageBubble}
-                    data-type={asset.type.toLowerCase()}
-                    data-kind={
-                      asset.type === "FILE" ? getFileKind(asset) : undefined
-                    }
-                  >
-                    <div className={classes.bubbleHeader}>
-                      <Group
-                        className={classes.messageMeta}
-                        gap="xs"
-                        wrap="nowrap"
-                      >
-                        <Badge color="gray" variant="light">
-                          {asset.type === "FILE"
-                            ? t(`room.file.kind.${getFileKind(asset)}`)
-                            : t(`room.asset.type.${asset.type.toLowerCase()}`)}
-                        </Badge>
-                        <Text c="dimmed" size="xs">
-                          {intl.formatDate(asset.createdAt, {
-                            year: "numeric",
-                            month: "short",
-                            day: "numeric",
-                            hour: "numeric",
-                            minute: "2-digit",
-                          })}
-                        </Text>
-                      </Group>
-                      {!selectionMode && renderActions(asset)}
-                    </div>
-                    <Box className={classes.bubbleContent}>
-                      {renderValue(asset)}
-                    </Box>
-                  </Box>
-                </Group>
-              ))}
+            : roomConversationEntries.map((entry) =>
+                entry.batchId
+                  ? renderBatch(entry)
+                  : renderMessage(entry.assets[0]),
+              )}
         </Stack>
 
         {unreadCount > 0 && (

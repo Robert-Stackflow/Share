@@ -73,7 +73,8 @@
 .selectableRow {
   cursor: pointer;
 }
-.selectedRow .roomMessageBubble {
+.selectedRow > .roomMessageBubble,
+.selectedBatch > .roomMessageBubble {
   border-color: var(--share-accent-ink);
   background: var(--share-accent-soft);
 }
@@ -143,7 +144,8 @@
   background: light-dark(#fff4e5, #493b2b);
   color: light-dark(#ae7422, #edc47f);
 }
-.selectedRow .messageIcon {
+.selectedRow > .messageIcon,
+.selectedBatch > .messageIcon {
   background: var(--share-accent-ink);
   color: white;
   border-color: var(--share-accent-ink);
@@ -173,6 +175,86 @@
 
 .roomMessageBubble[data-kind="image"] {
   padding: 13px 16px;
+}
+
+.batchBubble {
+  padding: 0;
+}
+
+.batchToggle {
+  background: transparent;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: minmax(0, 1fr);
+  padding: 14px 16px;
+  text-align: left;
+  width: 100%;
+}
+
+.batchToggle:hover {
+  background: light-dark(#f7f9ff, #263143);
+}
+
+.batchToggle:focus-visible {
+  outline: 2px solid var(--share-accent-ink);
+  outline-offset: -2px;
+}
+
+.batchHeading,
+.batchTitle {
+  align-items: center;
+  display: flex;
+  gap: 9px;
+}
+
+.batchLabel {
+  background: var(--share-accent-soft);
+  border-radius: 999px;
+  color: var(--share-accent-ink);
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1.5;
+  padding: 2px 9px;
+}
+
+.batchDate {
+  color: var(--share-muted);
+  font-size: 12px;
+}
+
+.batchTitle {
+  font-size: 15px;
+  font-weight: 650;
+  justify-content: space-between;
+}
+
+.batchTitle svg {
+  color: var(--share-accent-ink);
+  flex: 0 0 auto;
+}
+
+.batchSummary {
+  color: var(--share-muted);
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.batchItems {
+  background: light-dark(#f8faff, #1a2331);
+  border-top: 1px solid var(--share-border);
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+}
+
+.batchItem .roomMessageBubble {
+  max-width: calc(100% - 36px);
+  width: calc(100% - 36px);
 }
 
 .bubbleHeader {
@@ -447,6 +529,16 @@
   .roomMessageBubble[data-type="file"],
   .roomMessageBubble[data-kind="image"] {
     padding: 11px 12px;
+  }
+  .batchBubble {
+    padding: 0;
+  }
+  .batchToggle {
+    padding: 12px;
+  }
+  .batchItems {
+    gap: 9px;
+    padding: 9px;
   }
   .messageMeta {
     align-items: flex-start;

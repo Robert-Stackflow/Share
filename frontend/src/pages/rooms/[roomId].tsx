@@ -149,8 +149,11 @@ const RoomPage = () => {
     setScrollToLatestSignal((value) => value + 1);
   };
 
-  const addAsset = async (asset: CreateRoomAsset) => {
-    const created = await roomService.addAsset(roomKey, asset);
+  const addAsset = async (asset: CreateRoomAsset, roomBatchId?: string) => {
+    const created = await roomService.addAsset(roomKey, {
+      ...asset,
+      roomBatchId,
+    });
     prependAssets([created]);
     toast.success(t("room.notify.asset-created"));
   };
@@ -165,7 +168,16 @@ const RoomPage = () => {
     file: { id?: string; name: string },
     chunkIndex: number,
     totalChunks: number,
-  ) => roomService.uploadFile(roomKey, chunk, file, chunkIndex, totalChunks);
+    roomBatchId?: string,
+  ) =>
+    roomService.uploadFile(
+      roomKey,
+      chunk,
+      file,
+      chunkIndex,
+      totalChunks,
+      roomBatchId,
+    );
 
   const deleteAsset = async (asset: Asset) => {
     await roomService.removeAsset(roomKey, asset.id);

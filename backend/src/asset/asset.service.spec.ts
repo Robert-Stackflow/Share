@@ -52,7 +52,9 @@ function createPrismaMock(records: any[] = []) {
           ).length,
         delete: async (args: any) => {
           calls.delete = args;
-          const index = records.findIndex((record) => record.id === args.where.id);
+          const index = records.findIndex(
+            (record) => record.id === args.where.id,
+          );
           return index < 0 ? null : records.splice(index, 1)[0];
         },
       },
@@ -162,6 +164,42 @@ test("createLink rejects invalid URLs", async () => {
     () => service.createLink({ url: "not a url" }, user as any),
     BadRequestException,
   );
+});
+
+test("room text, links, and files retain their shared batch id", async () => {
+  const { created, prisma } = createPrismaMock();
+  const { storage } = createStorageMock();
+  const service = new AssetService(prisma as any, storage as any);
+  const room = { id: "room-db", roomId: "room-code", visibility: "SHARED" };
+  const roomBatchId = "b1c5c373-2aa0-46f6-b9ed-93cbeb919978";
+
+  await service.createText(
+    { content: "first" },
+    user as any,
+    room as any,
+    roomBatchId,
+  );
+  await service.createLink(
+    { url: "https://example.com" },
+    user as any,
+    room as any,
+    roomBatchId,
+  );
+  await service.createFile(
+    "aGVsbG8gd29ybGQ=",
+    { index: 0, total: 1 },
+    { id: fileId, name: "note.txt" },
+    user as any,
+    room as any,
+    false,
+    roomBatchId,
+  );
+
+  assert.deepEqual(
+    created.map((asset) => asset.roomBatchId),
+    [roomBatchId, roomBatchId, roomBatchId],
+  );
+  assert.ok(created.every((asset) => asset.room?.connect?.id === room.id));
 });
 
 test("listByOwner returns standalone owned assets newest first", async () => {

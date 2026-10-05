@@ -221,6 +221,7 @@ model Asset {
 
   roomId String?
   room   Room?   @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  roomBatchId String?
 
   inboxSubmissionId String?
   inboxSubmission   InboxSubmission? @relation(fields: [inboxSubmissionId], references: [id], onDelete: Cascade)
@@ -241,6 +242,7 @@ model Asset {
   @@index([ownerId])
   @@index([shareId])
   @@index([roomId])
+  @@index([roomId, roomBatchId])
   @@index([inboxSubmissionId])
   @@index([storageKey])
   @@index([source])

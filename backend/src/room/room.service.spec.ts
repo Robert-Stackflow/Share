@@ -124,6 +124,41 @@ test("visitor needs a valid passcode session before reading or writing", async (
   assert.equal(asset.ownerId, "visitor");
 });
 
+test("room batches reject malformed ids and joining another user's group", async () => {
+  const roomBatchId = "b1c5c373-2aa0-46f6-b9ed-93cbeb919978";
+  const room = {
+    id: "room-db",
+    roomId: "room-code",
+    visibility: "SHARED",
+    ownerId: "owner",
+    passcodeHash: null,
+    assets: [{ id: "old", ownerId: "visitor", roomBatchId }],
+    accessPolicy: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+  const service = createService([room]);
+
+  await assert.rejects(
+    () =>
+      service.addAsset(
+        "room-code",
+        { type: "TEXT", content: "hello", roomBatchId: "invalid" },
+        { id: "owner" } as any,
+      ),
+    BadRequestException,
+  );
+  await assert.rejects(
+    () =>
+      service.addAsset(
+        "room-code",
+        { type: "TEXT", content: "hello", roomBatchId },
+        { id: "owner" } as any,
+      ),
+    ForbiddenException,
+  );
+});
+
 test("image preview keeps room access checks without granting file downloads", async () => {
   const room = {
     id: "shared-db",

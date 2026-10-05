@@ -66,6 +66,7 @@ export default function ContentIntake({
   resetSignal = 0,
   presentation = "standard",
   sendAction = false,
+  onQueueEmpty,
   onSubmit,
 }: {
   target: string;
@@ -76,6 +77,7 @@ export default function ContentIntake({
   resetSignal?: number;
   presentation?: "standard" | "immersive";
   sendAction?: boolean;
+  onQueueEmpty?: () => void;
   onSubmit: (
     items: PendingContent[],
   ) => Promise<boolean | string[] | void> | boolean | string[] | void;
@@ -105,6 +107,10 @@ export default function ContentIntake({
     setError("");
     setShowEditor(false);
   }, [resetSignal]);
+
+  useEffect(() => {
+    if (!items.length && !draft.trim() && !submitting) onQueueEmpty?.();
+  }, [items, draft, submitting, onQueueEmpty]);
 
   const addFiles = (files: File[]) => {
     if (files.length && !draft.trim()) setShowEditor(false);
@@ -455,14 +461,27 @@ export default function ContentIntake({
                   {t("content.paste")}
                 </Button>
               </Group>
-              <Button
-                leftSection={sendAction ? <Send /> : <Plus />}
-                disabled={!validCount || disabled}
-                loading={submitting}
-                onClick={() => void submit()}
-              >
-                {buttonLabel}
-              </Button>
+              <Group gap="xs" wrap="nowrap" className={classes.sendActions}>
+                {sendAction && (
+                  <Button
+                    variant="light"
+                    leftSection={<Plus size={17} />}
+                    disabled={!draft.trim() || disabled || submitting}
+                    onClick={addDraft}
+                  >
+                    {t("content.add")}
+                  </Button>
+                )}
+                <Button
+                  leftSection={sendAction ? <Send /> : <Plus />}
+                  disabled={!validCount || disabled}
+                  loading={submitting}
+                  onClick={() => void submit()}
+                >
+                  {buttonLabel}
+                  {sendAction && validCount > 1 ? ` (${validCount})` : ""}
+                </Button>
+              </Group>
             </Group>
           </>
         )}

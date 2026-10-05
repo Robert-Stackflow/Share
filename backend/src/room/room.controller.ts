@@ -29,6 +29,7 @@ type AssetQuery = {
   name?: string;
   chunkIndex?: string;
   totalChunks?: string;
+  roomBatchId?: string;
 };
 
 @Controller("rooms")
@@ -133,7 +134,14 @@ export class RoomController {
     @Param("roomId") roomId: string,
     @Query() query: AssetQuery,
     @Body()
-    body: { type: "TEXT" | "LINK"; content?: string; url?: string } | string,
+    body:
+      | {
+          type: "TEXT" | "LINK";
+          content?: string;
+          url?: string;
+          roomBatchId?: string;
+        }
+      | string,
     @Req() request: Request,
     @GetUser() user: User,
   ) {
@@ -148,11 +156,17 @@ export class RoomController {
         { id: query.id, name: query.name },
         user,
         this.token(request, roomId),
+        query.roomBatchId,
       );
     }
     return this.rooms.addAsset(
       roomId,
-      body as { type: "TEXT" | "LINK"; content?: string; url?: string },
+      body as {
+        type: "TEXT" | "LINK";
+        content?: string;
+        url?: string;
+        roomBatchId?: string;
+      },
       user,
       this.token(request, roomId),
     );

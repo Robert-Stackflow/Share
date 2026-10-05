@@ -1,6 +1,9 @@
 .container {
   min-width: 0;
 }
+.sendActions {
+  margin-left: auto;
+}
 .preview {
   flex: 1;
   min-width: 0;
@@ -135,6 +138,10 @@
 }
 
 @media (max-width: 600px) {
+  .sendActions {
+    justify-content: flex-end;
+    width: 100%;
+  }
   .keyboardHint {
     display: none;
   }
