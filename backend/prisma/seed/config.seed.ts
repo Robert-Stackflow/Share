@@ -423,6 +423,7 @@ export const configVariables = {
       type: "string",
       defaultValue: "",
       secret: true,
+      obscured: true,
     },
     secret: {
       type: "string",

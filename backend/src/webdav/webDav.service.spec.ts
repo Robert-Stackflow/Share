@@ -22,6 +22,7 @@ function createObjects() {
     }),
     getBucketName: () => "share",
     resolveKey: (key: string) => `root/${key}`,
+    webDavRootKey: (userId: string) => `dav/${userId}`,
     list: async () => ({ objects: [], prefixes: [] }),
     put: async () => undefined,
   };

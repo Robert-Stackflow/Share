@@ -84,6 +84,22 @@ test("default app shell and header share a calmer page width", () => {
   assert.match(globalCss, /::-webkit-scrollbar/);
 });
 
+test("storage and WebDAV settings expose a shared status control plane", () => {
+  const configPage = read("pages/admin/config/[category].tsx");
+  const panel = read("components/admin/configuration/StorageStatusPanel.tsx");
+  const systemService = read("services/system.service.ts");
+
+  assert.match(configPage, /categoryId === "s3"/);
+  assert.match(configPage, /categoryId === "webdav"/);
+  assert.match(configPage, /<StorageStatusPanel/);
+  assert.match(panel, /admin\.storage\.namespace\.assets/);
+  assert.match(panel, /admin\.storage\.namespace\.webdav/);
+  assert.match(panel, /hasUnsavedChanges/);
+  assert.match(panel, /aria-live="polite"/);
+  assert.match(systemService, /api\.get\("system\/storage"\)/);
+  assert.match(systemService, /api\.post\("system\/storage\/test"/);
+});
+
 test("a single AssetComposer powers file/text/link with aligned chat fields", () => {
   const composer = read("components/asset/AssetComposer.tsx");
 

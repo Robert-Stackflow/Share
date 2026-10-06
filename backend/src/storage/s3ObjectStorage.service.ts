@@ -63,6 +63,10 @@ export class S3ObjectStorageService {
     return `assets/${assetId}`;
   }
 
+  webDavRootKey(userId: string): string {
+    return `dav/${userId}`;
+  }
+
   resolveKey(key: string): string {
     const normalizedKey = this.normalizeKey(key);
     const configuredPath = `${this.config.get("s3.bucketPath") ?? ""}`
@@ -377,6 +381,12 @@ export class S3ObjectStorageService {
     return this.getBucket();
   }
 
+  getConfiguredRootPath(): string {
+    return `${this.config.get("s3.bucketPath") ?? ""}`
+      .replace(/^\/+|\/+$/g, "")
+      .trim();
+  }
+
   private getClient(): S3Client {
     const clientConfig = this.getS3ClientConfig();
     const signature = JSON.stringify(clientConfig);
@@ -396,9 +406,7 @@ export class S3ObjectStorageService {
 
   private resolvePrefix(prefix: string): string {
     if (!prefix) {
-      const configuredPath = `${this.config.get("s3.bucketPath") ?? ""}`
-        .replace(/^\/+|\/+$/g, "")
-        .trim();
+      const configuredPath = this.getConfiguredRootPath();
       return configuredPath ? `${configuredPath}/` : "";
     }
 
@@ -408,9 +416,7 @@ export class S3ObjectStorageService {
   }
 
   private stripConfiguredPath(key: string): string {
-    const configuredPath = `${this.config.get("s3.bucketPath") ?? ""}`
-      .replace(/^\/+|\/+$/g, "")
-      .trim();
+    const configuredPath = this.getConfiguredRootPath();
     if (!configuredPath) return key;
     const prefix = `${configuredPath}/`;
     return key.startsWith(prefix) ? key.slice(prefix.length) : key;

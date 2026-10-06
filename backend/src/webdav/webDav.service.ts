@@ -10,6 +10,8 @@ import createWebDavServer, {
 import { AppCredentialService } from "src/appCredential/appCredential.service";
 import { ConfigService } from "src/config/config.service";
 import { S3ObjectStorageService } from "src/storage/s3ObjectStorage.service";
+import { StorageService } from "src/storage/storage.service";
+import { StorageProvider } from "@prisma/client";
 
 type WebDavAuthentication = Awaited<
   ReturnType<AppCredentialService["authenticateWebDav"]>
@@ -40,6 +42,7 @@ export class WebDavService {
     private readonly credentials: AppCredentialService,
     private readonly config: ConfigService,
     private readonly objects: S3ObjectStorageService,
+    private readonly storage?: StorageService,
   ) {}
 
   middleware(): RequestHandler {
@@ -97,7 +100,12 @@ export class WebDavService {
             .send("WebDAV write access is disabled by the administrator");
           return;
         }
-        if (!this.config.get("s3.enabled")) {
+        const provider =
+          this.storage?.getConfiguredProvider() ??
+          (this.config.get("s3.enabled")
+            ? StorageProvider.S3
+            : StorageProvider.LOCAL);
+        if (provider !== StorageProvider.S3) {
           response.status(503).send("WebDAV requires S3 storage to be enabled");
           return;
         }
@@ -182,7 +190,7 @@ export class WebDavService {
   private getAdapter(userId: string): S3Adapter {
     const s3Config = this.objects.getS3ClientConfig();
     const bucket = this.objects.getBucketName();
-    const root = this.objects.resolveKey(`dav/${userId}`);
+    const root = this.objects.resolveKey(this.objects.webDavRootKey(userId));
     const signature = JSON.stringify({ s3Config, bucket, root });
     const cached = this.adapters.get(userId);
     if (cached?.signature === signature) return cached.adapter;
@@ -199,7 +207,7 @@ export class WebDavService {
   }
 
   private async ensureUserRoot(userId: string): Promise<void> {
-    const root = `dav/${userId}`;
+    const root = this.objects.webDavRootKey(userId);
     const signature = JSON.stringify({
       s3Config: this.objects.getS3ClientConfig(),
       bucket: this.objects.getBucketName(),

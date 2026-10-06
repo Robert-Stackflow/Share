@@ -3,16 +3,35 @@ import checkDiskSpace from "check-disk-space";
 import { DATA_DIRECTORY } from "src/constants";
 import { SystemInfoDTO } from "./dto/systemInfo.dto";
 import { ConfigService } from "src/config/config.service";
+import { StorageService } from "src/storage/storage.service";
+import {
+  StorageConnectionTest,
+  StorageStatus,
+} from "src/storage/storage.types";
+import { StorageProvider } from "@prisma/client";
 import * as path from "path";
 
 @Injectable()
 export class SystemService {
   private readonly logger = new Logger(SystemService.name);
 
-  constructor(private configService: ConfigService) {}
+  constructor(
+    private configService: ConfigService,
+    private storage: StorageService,
+  ) {}
+
+  getStorageStatus(): StorageStatus {
+    return this.storage.getStatus();
+  }
+
+  testStorageConnection(
+    provider?: StorageProvider,
+  ): Promise<StorageConnectionTest> {
+    return this.storage.testConnection(provider);
+  }
 
   async getSystemInfo(): Promise<SystemInfoDTO | null> {
-    if (this.configService.get("s3.enabled")) {
+    if (this.storage.getConfiguredProvider() === StorageProvider.S3) {
       return null;
     }
 

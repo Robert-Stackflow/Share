@@ -26,6 +26,8 @@ import { ConfigDTO } from "./dto/config.dto";
 import { TestEmailDTO } from "./dto/testEmail.dto";
 import UpdateConfigDTO from "./dto/updateConfig.dto";
 import { LogoService } from "./logo.service";
+import { StorageService } from "src/storage/storage.service";
+import { StorageProvider } from "@prisma/client";
 
 @Controller("configs")
 export class ConfigController {
@@ -34,6 +36,7 @@ export class ConfigController {
     private logoService: LogoService,
     private emailService: EmailService,
     private readonly i18n: I18nService,
+    private readonly storage: StorageService,
   ) {}
 
   @Get()
@@ -48,7 +51,7 @@ export class ConfigController {
   @SkipThrottle()
   async getFileRenameRules() {
     return {
-      enabled: this.configService.get("s3.enabled") === true,
+      enabled: this.storage.getConfiguredProvider() === StorageProvider.S3,
       rules: this.configService.get("s3.fileRenameRules") ?? "",
     };
   }

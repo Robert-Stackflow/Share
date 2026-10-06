@@ -8,6 +8,8 @@ import { Readable } from "stream";
 import { PrismaService } from "../prisma/prisma.service";
 import { EmailService } from "src/email/email.service";
 import { applyRenameRules } from "./fileRename.util";
+import { StorageService } from "src/storage/storage.service";
+import { StorageProvider } from "@prisma/client";
 
 const UPDATED_AT_THROTTLE_MS = 5 * 60 * 1000;
 const DOWNLOAD_NOTIFICATION_COOLDOWN_MS = 15 * 60 * 1000;
@@ -21,6 +23,7 @@ export class FileService {
     private configService: ConfigService,
     private emailService: EmailService,
     @Inject(CACHE_MANAGER) private cache: Cache,
+    private storage: StorageService,
   ) {}
   private readonly logger = new Logger(FileService.name);
 
@@ -33,7 +36,7 @@ export class FileService {
       return storageProvider == "S3"
         ? this.s3FileService
         : this.localFileService;
-    return this.configService.get("s3.enabled")
+    return this.storage.getConfiguredProvider() === StorageProvider.S3
       ? this.s3FileService
       : this.localFileService;
   }

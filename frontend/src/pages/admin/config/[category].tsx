@@ -19,6 +19,7 @@ import ConfigurationNavBar from "../../../components/admin/configuration/Configu
 import LogoConfigInput from "../../../components/admin/configuration/LogoConfigInput";
 import TestEmailButton from "../../../components/admin/configuration/TestEmailButton";
 import TestRedisButton from "../../../components/admin/configuration/TestRedisButton";
+import StorageStatusPanel from "../../../components/admin/configuration/StorageStatusPanel";
 import CenterLoader from "../../../components/core/CenterLoader";
 import useConfig from "../../../hooks/config.hook";
 import useTranslate from "../../../hooks/useTranslate.hook";
@@ -239,6 +240,12 @@ export default function ConfigurationPage() {
                         >
                           <FormattedMessage id="admin.config.config-file-warning.description" />
                         </Alert>
+                      )}
+                      {(categoryId === "s3" || categoryId === "webdav") && (
+                        <StorageStatusPanel
+                          category={categoryId}
+                          hasUnsavedChanges={updatedConfigVariables.length > 0}
+                        />
                       )}
                       <div className={classes.settingsPanel}>
                         {visibleConfigVariables.map((configVariable, index) => {

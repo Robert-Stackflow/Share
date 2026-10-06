@@ -19,6 +19,7 @@ import { ActivityService } from "src/activity/activity.service";
 import { AssetService } from "src/asset/asset.service";
 import { CreateAssetDTO, CreateAssetType } from "src/asset/dto/createAsset.dto";
 import { ConfigService } from "src/config/config.service";
+import { StorageService } from "src/storage/storage.service";
 import { PrismaService } from "src/prisma/prisma.service";
 import { CreateReverseShareDTO } from "src/reverseShare/dto/createReverseShare.dto";
 import { ReverseShareService } from "src/reverseShare/reverseShare.service";
@@ -47,6 +48,7 @@ export class InboxService {
     private assetService: AssetService,
     private activityService?: ActivityService,
     private accessPolicyService?: AccessPolicyService,
+    private storageService?: StorageService,
   ) {}
 
   private recordActivity(input: {
@@ -173,8 +175,12 @@ export class InboxService {
       }
     } catch (error) {
       if (modernClient) {
-        await this.cancelSubmission(token, submission.id).catch((cleanupError) =>
-          this.logger.error("Could not cancel failed inbox submission", cleanupError),
+        await this.cancelSubmission(token, submission.id).catch(
+          (cleanupError) =>
+            this.logger.error(
+              "Could not cancel failed inbox submission",
+              cleanupError,
+            ),
         );
       }
       throw error;
@@ -418,8 +424,14 @@ export class InboxService {
       select: { id: true, reverseShare: { select: { token: true } } },
     });
     for (const submission of stale) {
-      await this.cancelSubmission(submission.reverseShare.token, submission.id).catch(
-        (error) => this.logger.error(`Could not cancel stale submission ${submission.id}`, error),
+      await this.cancelSubmission(
+        submission.reverseShare.token,
+        submission.id,
+      ).catch((error) =>
+        this.logger.error(
+          `Could not cancel stale submission ${submission.id}`,
+          error,
+        ),
       );
     }
   }
@@ -483,7 +495,9 @@ export class InboxService {
           expiration: submission.reverseShare.shareExpiration,
           creator: { connect: { id: owner.id } },
           reverseShare: { connect: { id: submission.reverseShareId } },
-          storageProvider: this.config.get("s3.enabled") ? "S3" : "LOCAL",
+          storageProvider:
+            this.storageService?.getConfiguredProvider() ??
+            (this.config.get("s3.enabled") ? "S3" : "LOCAL"),
         },
       });
     }

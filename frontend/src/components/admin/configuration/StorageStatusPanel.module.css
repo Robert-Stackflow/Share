@@ -1,0 +1,134 @@
+.panel {
+  background: var(--share-surface);
+  border: 1px solid var(--share-border);
+  border-radius: 20px;
+  box-shadow: var(--share-shadow);
+  overflow: hidden;
+}
+
+.header {
+  align-items: flex-start;
+  display: flex;
+  gap: 14px;
+  justify-content: space-between;
+  padding: 20px 24px;
+}
+
+.titleGroup {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  min-width: 0;
+}
+
+.icon {
+  background: var(--share-accent-soft);
+  color: var(--share-accent-ink);
+  flex: 0 0 auto;
+}
+
+.summary {
+  border-top: 1px solid var(--share-border);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.summaryItem {
+  min-width: 0;
+  padding: 17px 24px;
+}
+
+.summaryItem:nth-child(even) {
+  border-left: 1px solid var(--share-border);
+}
+
+.summaryItem:nth-child(n + 3) {
+  border-top: 1px solid var(--share-border);
+}
+
+.value {
+  display: block;
+  font-size: 14px;
+  font-weight: 620;
+  margin-top: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.paths {
+  border-top: 1px solid var(--share-border);
+  padding: 17px 24px;
+}
+
+.pathRow {
+  align-items: center;
+  display: grid;
+  gap: 14px;
+  grid-template-columns: 130px minmax(0, 1fr);
+}
+
+.pathRow + .pathRow {
+  margin-top: 10px;
+}
+
+.pathValue {
+  background: light-dark(#f5f7fa, #181e27);
+  border-radius: 8px;
+  color: var(--mantine-color-text);
+  display: block;
+  font-size: 12px;
+  overflow: hidden;
+  padding: 7px 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.result {
+  border-top: 1px solid var(--share-border);
+  padding: 14px 24px;
+}
+
+@media (max-width: 760px) {
+  .panel {
+    border-left: 0;
+    border-radius: 0;
+    border-right: 0;
+    box-shadow: none;
+  }
+
+  .header {
+    align-items: stretch;
+    flex-direction: column;
+    padding: 17px 16px;
+  }
+
+  .header :global(.mantine-Button-root) {
+    width: 100%;
+  }
+
+  .summary {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .summaryItem:nth-child(even) {
+    border-left: 0;
+  }
+
+  .summaryItem + .summaryItem {
+    border-top: 1px solid var(--share-border);
+  }
+
+  .summaryItem,
+  .paths,
+  .result {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .pathRow {
+    align-items: stretch;
+    gap: 5px;
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

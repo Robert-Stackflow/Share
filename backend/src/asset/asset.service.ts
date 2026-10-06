@@ -21,6 +21,7 @@ import { validate as isValidUUID } from "uuid";
 import { ActivityService } from "src/activity/activity.service";
 import { ConfigService } from "src/config/config.service";
 import { ShortLinkService } from "src/shortLink/shortLink.service";
+import { StorageService } from "src/storage/storage.service";
 import { PrismaService } from "../prisma/prisma.service";
 import { roomChanges } from "../room/room.events";
 import { AssetStorageService } from "./storage/asset.storage";
@@ -83,6 +84,7 @@ export class AssetService {
     private config?: ConfigService,
     private shortLinkService?: ShortLinkService,
     private activityService?: ActivityService,
+    private storageService?: StorageService,
   ) {}
 
   private recordActivity(input: {
@@ -646,9 +648,12 @@ export class AssetService {
   }
 
   private getConfiguredStorageProvider() {
-    return this.config?.get("s3.enabled")
-      ? StorageProvider.S3
-      : StorageProvider.LOCAL;
+    return (
+      this.storageService?.getConfiguredProvider() ??
+      (this.config?.get("s3.enabled")
+        ? StorageProvider.S3
+        : StorageProvider.LOCAL)
+    );
   }
 
   private getStorage(provider?: StorageProvider | null): AssetStorageService {

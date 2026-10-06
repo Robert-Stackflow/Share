@@ -13,6 +13,7 @@ import {
   Share,
   User,
   ShareSecurity,
+  StorageProvider,
 } from "@prisma/client";
 import * as archiver from "archiver";
 import * as argon from "argon2";
@@ -31,6 +32,7 @@ import { FileService } from "src/file/file.service";
 import { PrismaService } from "src/prisma/prisma.service";
 import { ReverseShareService } from "src/reverseShare/reverseShare.service";
 import { SystemService } from "src/system/system.service";
+import { StorageService } from "src/storage/storage.service";
 import { parseRelativeDateToAbsolute } from "src/utils/date.util";
 import { ASSET_DIRECTORY, SHARE_DIRECTORY } from "../constants";
 import { CreateShareDTO } from "./dto/createShare.dto";
@@ -54,6 +56,7 @@ export class ShareService {
     private assetService: AssetService,
     private accessPolicyService: AccessPolicyService,
     private activityService?: ActivityService,
+    private storageService?: StorageService,
   ) {}
 
   private recordActivity(input: {
@@ -138,7 +141,11 @@ export class ShareService {
           ? share.recipients.map((email) => ({ email }))
           : [],
       },
-      storageProvider: this.configService.get("s3.enabled") ? "S3" : "LOCAL",
+      storageProvider:
+        this.storageService?.getConfiguredProvider() ??
+        (this.configService.get("s3.enabled")
+          ? StorageProvider.S3
+          : StorageProvider.LOCAL),
     };
 
     const shareTuple =
@@ -250,7 +257,12 @@ export class ShareService {
   }
 
   async createZip(shareId: string) {
-    if (this.config.get("s3.enabled")) return;
+    const provider =
+      this.storageService?.getConfiguredProvider() ??
+      (this.config.get("s3.enabled")
+        ? StorageProvider.S3
+        : StorageProvider.LOCAL);
+    if (provider === StorageProvider.S3) return;
 
     const path = `${SHARE_DIRECTORY}/${shareId}`;
 
