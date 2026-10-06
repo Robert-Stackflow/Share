@@ -1,9 +1,7 @@
 import { Readable } from "stream";
+import { StorageChunk } from "src/storage/storage.types";
 
-export type AssetFileChunk = {
-  index: number;
-  total: number;
-};
+export type AssetFileChunk = StorageChunk;
 
 export interface AssetStorageService {
   saveChunk(

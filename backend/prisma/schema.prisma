@@ -54,17 +54,17 @@ model User {
   isAdmin  Boolean @default(false)
   ldapDN   String? @unique
 
-  shares        Share[]
-  assets        Asset[]
-  rooms         Room[]
-  shortLinks    ShortLink[]
-  assetTags     AssetTag[]
-  activityEvents ActivityEvent[]
-  passkeys PasskeyCredential[]
+  shares            Share[]
+  assets            Asset[]
+  rooms             Room[]
+  shortLinks        ShortLink[]
+  assetTags         AssetTag[]
+  activityEvents    ActivityEvent[]
+  passkeys          PasskeyCredential[]
   passkeyChallenges PasskeyChallenge[]
-  refreshTokens RefreshToken[]
-  loginTokens   LoginToken[]
-  reverseShares ReverseShare[]
+  refreshTokens     RefreshToken[]
+  loginTokens       LoginToken[]
+  reverseShares     ReverseShare[]
 
   totpEnabled        Boolean             @default(false)
   totpVerified       Boolean             @default(false)
@@ -84,21 +84,21 @@ model RefreshToken {
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  oauthIDToken  String? // prefixed with the ID of the issuing OAuth provider, separated by a colon
+  oauthIDToken String? // prefixed with the ID of the issuing OAuth provider, separated by a colon
 }
 
 model PasskeyCredential {
-  id          String    @id
-  userId      String
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  name        String
-  publicKey   String
-  counter     Int       @default(0)
-  transports  String?
-  deviceType  String?
-  backedUp    Boolean   @default(false)
-  createdAt   DateTime  @default(now())
-  lastUsedAt  DateTime?
+  id         String    @id
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name       String
+  publicKey  String
+  counter    Int       @default(0)
+  transports String?
+  deviceType String?
+  backedUp   Boolean   @default(false)
+  createdAt  DateTime  @default(now())
+  lastUsedAt DateTime?
 
   @@index([userId, createdAt])
 }
@@ -168,11 +168,11 @@ model Share {
   reverseShareId String?
   reverseShare   ReverseShare? @relation(fields: [reverseShareId], references: [id], onDelete: Cascade)
 
-  security   ShareSecurity?
-  accessPolicy AccessPolicy?
-  recipients ShareRecipient[]
-  assets     Asset[]
-  storageProvider String @default("LOCAL")
+  security        ShareSecurity?
+  accessPolicy    AccessPolicy?
+  recipients      ShareRecipient[]
+  assets          Asset[]
+  storageProvider String           @default("LOCAL")
 }
 
 model ReverseShare {
@@ -187,16 +187,16 @@ model ReverseShare {
   maxShareSize          String
   sendEmailNotification Boolean
   remainingUses         Int
-  maxFileCount           Int      @default(10)
+  maxFileCount          Int      @default(10)
   simplified            Boolean  @default(false)
   publicAccess          Boolean  @default(true)
 
   creatorId String
   creator   User   @relation(fields: [creatorId], references: [id], onDelete: Cascade)
 
-  shares Share[]
+  shares       Share[]
   accessPolicy AccessPolicy?
-  submissions InboxSubmission[]
+  submissions  InboxSubmission[]
 }
 
 model ShareRecipient {
@@ -219,22 +219,22 @@ model Asset {
   shareId String?
   share   Share?  @relation(fields: [shareId], references: [id], onDelete: Cascade)
 
-  roomId String?
-  room   Room?   @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  roomId      String?
+  room        Room?   @relation(fields: [roomId], references: [id], onDelete: Cascade)
   roomBatchId String?
 
   inboxSubmissionId String?
   inboxSubmission   InboxSubmission? @relation(fields: [inboxSubmissionId], references: [id], onDelete: Cascade)
 
-  name     String?
-  size     String?
-  mimeType String?
-  storage  StorageProvider?
-  storageKey String?
-  content  String?
-  url      String?
-  favorite Boolean @default(false)
-  source   AssetSource @default(UPLOAD)
+  name           String?
+  size           String?
+  mimeType       String?
+  storage        StorageProvider?
+  storageKey     String?
+  content        String?
+  url            String?
+  favorite       Boolean          @default(false)
+  source         AssetSource      @default(UPLOAD)
   lastAccessedAt DateTime?
 
   tagAssignments AssetTagAssignment[]
@@ -250,19 +250,31 @@ model Asset {
   @@index([lastAccessedAt])
 }
 
+model StorageMultipartUpload {
+  id            String   @id
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  objectKey     String
+  uploadId      String
+  parts         String   @default("[]")
+  expectedParts Int
+
+  @@index([updatedAt])
+}
+
 model Room {
-  id        String   @id @default(uuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  roomId    String   @unique
-  visibility RoomVisibility @default(SHARED)
-  name      String?
+  id           String         @id @default(uuid())
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  roomId       String         @unique
+  visibility   RoomVisibility @default(SHARED)
+  name         String?
   passcodeHash String?
 
   ownerId String?
-  owner   User? @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  owner   User?   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 
-  assets Asset[]
+  assets       Asset[]
   accessPolicy AccessPolicy?
 
   @@index([ownerId])
@@ -284,7 +296,7 @@ model ShortLink {
   owner   User?   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 
   accessPolicy AccessPolicy?
-  visitLogs ShortLinkVisit[]
+  visitLogs    ShortLinkVisit[]
 
   @@index([ownerId])
   @@index([targetType])
@@ -298,10 +310,10 @@ model AccessPolicy {
   passwordHash   String?
   expiresAt      DateTime?
   maxViews       Int?
-  views          Int      @default(0)
-  allowDownload  Boolean  @default(true)
-  allowAnonymous Boolean  @default(true)
-  oneTime        Boolean  @default(false)
+  views          Int       @default(0)
+  allowDownload  Boolean   @default(true)
+  allowAnonymous Boolean   @default(true)
+  oneTime        Boolean   @default(false)
 
   shareId String? @unique
   share   Share?  @relation(fields: [shareId], references: [id], onDelete: Cascade)
@@ -309,10 +321,10 @@ model AccessPolicy {
   roomId String? @unique
   room   Room?   @relation(fields: [roomId], references: [id], onDelete: Cascade)
 
-  shortLinkId String? @unique
+  shortLinkId String?    @unique
   shortLink   ShortLink? @relation(fields: [shortLinkId], references: [id], onDelete: Cascade)
 
-  reverseShareId String? @unique
+  reverseShareId String?       @unique
   reverseShare   ReverseShare? @relation(fields: [reverseShareId], references: [id], onDelete: Cascade)
 
   @@index([expiresAt])
@@ -323,9 +335,9 @@ model InboxSubmission {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  status InboxSubmissionStatus @default(PENDING)
-  message String?
-  expectedFileCount Int @default(0)
+  status            InboxSubmissionStatus @default(PENDING)
+  message           String?
+  expectedFileCount Int                   @default(0)
 
   reverseShareId String
   reverseShare   ReverseShare @relation(fields: [reverseShareId], references: [id], onDelete: Cascade)

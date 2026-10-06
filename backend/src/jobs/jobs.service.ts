@@ -7,6 +7,7 @@ import { PrismaService } from "src/prisma/prisma.service";
 import { ReverseShareService } from "src/reverseShare/reverseShare.service";
 import { ConfigService } from "src/config/config.service";
 import { SHARE_DIRECTORY } from "../constants";
+import { S3ObjectStorageService } from "src/storage/s3ObjectStorage.service";
 
 @Injectable()
 export class JobsService {
@@ -17,6 +18,7 @@ export class JobsService {
     private reverseShareService: ReverseShareService,
     private fileService: FileService,
     private configServer: ConfigService,
+    private objectStorage: S3ObjectStorageService,
   ) {}
 
   @Cron("* * * * *")
@@ -129,6 +131,15 @@ export class JobsService {
     }
 
     this.logger.log(`Deleted ${filesDeleted} temporary files`);
+  }
+
+  @Cron("15 * * * *")
+  async abortStaleMultipartUploads() {
+    const cutoff = moment().subtract(1, "day").toDate();
+    const aborted = await this.objectStorage.abortMultipartOlderThan(cutoff);
+    if (aborted > 0) {
+      this.logger.log(`Aborted ${aborted} stale multipart uploads`);
+    }
   }
 
   @Cron("1 * * * *")

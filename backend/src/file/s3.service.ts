@@ -1,48 +1,30 @@
 import {
   BadRequestException,
   Injectable,
-  InternalServerErrorException,
-  NotFoundException,
   Logger,
+  NotFoundException,
 } from "@nestjs/common";
-import {
-  AbortMultipartUploadCommand,
-  CompleteMultipartUploadCommand,
-  CreateMultipartUploadCommand,
-  DeleteObjectCommand,
-  GetObjectCommand,
-  HeadObjectCommand,
-  S3Client,
-  UploadPartCommand,
-  UploadPartCommandOutput,
-} from "@aws-sdk/client-s3";
-import { PrismaService } from "src/prisma/prisma.service";
-import { ConfigService } from "src/config/config.service";
-import { I18nService } from "nestjs-i18n";
+import { AssetType, StorageProvider } from "@prisma/client";
+import * as archiver from "archiver";
 import * as crypto from "crypto";
 import * as mime from "mime-types";
-import { File } from "./file.service";
+import { I18nService } from "nestjs-i18n";
+import { ConfigService } from "src/config/config.service";
+import { PrismaService } from "src/prisma/prisma.service";
+import { S3ObjectStorageService } from "src/storage/s3ObjectStorage.service";
 import { Readable } from "stream";
 import { validate as isValidUUID } from "uuid";
-import * as archiver from "archiver";
-import { AssetType, StorageProvider } from "@prisma/client";
+import { File } from "./file.service";
 
 @Injectable()
 export class S3FileService {
   private readonly logger = new Logger(S3FileService.name);
 
-  private multipartUploads: Record<
-    string,
-    {
-      uploadId: string;
-      parts: Array<{ ETag: string | undefined; PartNumber: number }>;
-    }
-  > = {};
-
   constructor(
-    private prisma: PrismaService,
-    private config: ConfigService,
+    private readonly prisma: PrismaService,
+    private readonly objects: S3ObjectStorageService,
     private readonly i18n: I18nService,
+    private readonly config: ConfigService,
   ) {}
 
   async create(
@@ -57,106 +39,32 @@ export class S3FileService {
       throw new BadRequestException(this.i18n.t("file.invalidIdFormat"));
     }
 
-    const buffer = Buffer.from(data, "base64");
-    const key = this.getAssetKey(file.id);
-    const bucketName = this.config.get("s3.bucketName");
-    const s3Instance = this.getS3Instance();
-
     try {
-      // Initialize multipart upload if it's the first chunk
-      if (chunk.index === 0) {
-        const multipartInitResponse = await s3Instance.send(
-          new CreateMultipartUploadCommand({
-            Bucket: bucketName,
-            Key: key,
-          }),
-        );
-
-        const uploadId = multipartInitResponse.UploadId;
-        if (!uploadId) {
-          throw new Error(this.i18n.t("file.s3UploadInitError"));
-        }
-
-        // Store the uploadId and parts list in memory
-        this.multipartUploads[file.id] = {
-          uploadId,
-          parts: [],
-        };
-      }
-
-      // Get the ongoing multipart upload
-      const multipartUpload = this.multipartUploads[file.id];
-      if (!multipartUpload) {
-        throw new InternalServerErrorException(
-          this.i18n.t("file.s3SessionNotFound"),
-        );
-      }
-
-      const uploadId = multipartUpload.uploadId;
-
-      // Upload the current chunk
-      const partNumber = chunk.index + 1; // Part numbers start from 1
-
-      const uploadPartResponse: UploadPartCommandOutput = await s3Instance.send(
-        new UploadPartCommand({
-          Bucket: bucketName,
-          Key: key,
-          PartNumber: partNumber,
-          UploadId: uploadId,
-          Body: buffer,
-        }),
+      await this.objects.saveChunk(
+        file.id,
+        this.objects.assetKey(file.id),
+        data,
+        chunk,
+        {
+          contentType: mime.lookup(file.name) || "application/octet-stream",
+        },
       );
-
-      // Store the ETag and PartNumber for later completion
-      multipartUpload.parts.push({
-        ETag: uploadPartResponse.ETag,
-        PartNumber: partNumber,
-      });
-
-      // Complete the multipart upload if it's the last chunk
-      if (chunk.index === chunk.total - 1) {
-        await s3Instance.send(
-          new CompleteMultipartUploadCommand({
-            Bucket: bucketName,
-            Key: key,
-            UploadId: uploadId,
-            MultipartUpload: {
-              Parts: multipartUpload.parts,
-            },
-          }),
-        );
-
-        // Remove the completed upload from memory
-        delete this.multipartUploads[file.id];
-      }
     } catch (error) {
-      // Abort the multipart upload if it fails
-      const multipartUpload = this.multipartUploads[file.id];
-      if (multipartUpload) {
-        try {
-          await s3Instance.send(
-            new AbortMultipartUploadCommand({
-              Bucket: bucketName,
-              Key: key,
-              UploadId: multipartUpload.uploadId,
-            }),
-          );
-        } catch (abortError) {
-          console.error("Error aborting multipart upload:", abortError);
-        }
-        delete this.multipartUploads[file.id];
+      try {
+        await this.objects.abortMultipart(file.id);
+      } catch (abortError) {
+        this.logger.warn(abortError);
       }
       this.logger.error(error);
       throw new Error(this.i18n.t("file.s3UploadFailed"));
     }
 
-    const isLastChunk = chunk.index == chunk.total - 1;
-    if (isLastChunk) {
+    if (chunk.index === chunk.total - 1) {
       const share = await this.prisma.share.findUnique({
         where: { id: shareId },
         select: { creatorId: true },
       });
-      const fileSize: number = await this.getFileSize(file.id);
+      const fileSize = await this.getFileSize(file.id);
 
       await this.prisma.asset.create({
         data: {
@@ -164,8 +72,7 @@ export class S3FileService {
           type: AssetType.FILE,
           name: file.name,
           size: fileSize.toString(),
-          mimeType:
-            mime.lookup(file.name) || "application/octet-stream",
+          mimeType: mime.lookup(file.name) || "application/octet-stream",
           storage: StorageProvider.S3,
           share: { connect: { id: shareId } },
           ...(share?.creatorId
@@ -182,31 +89,26 @@ export class S3FileService {
     const asset = await this.prisma.asset.findFirst({
       where: { id: fileId, shareId, type: AssetType.FILE },
     });
-
     if (!asset) throw new NotFoundException(this.i18n.t("file.notFound"));
 
-    const s3Instance = this.getS3Instance();
-    const key = this.getAssetKey(asset.storageKey ?? fileId);
-    const response = await s3Instance.send(
-      new GetObjectCommand({
-        Bucket: this.config.get("s3.bucketName"),
-        Key: key,
-      }),
+    const object = await this.objects.getStream(
+      this.objects.assetKey(asset.storageKey ?? fileId),
     );
 
     return {
       metaData: {
         id: fileId,
-        size: asset.size || response.ContentLength?.toString() || "0",
+        size: asset.size || object.size.toString(),
         name: asset.name,
-        shareId: shareId,
-        createdAt: asset.createdAt || response.LastModified || new Date(),
+        shareId,
+        createdAt: asset.createdAt || object.lastModified || new Date(),
         mimeType:
           asset.mimeType ||
+          object.contentType ||
           mime.contentType(asset.name?.split(".").pop()) ||
           "application/octet-stream",
       },
-      file: response.Body as Readable,
+      file: object.body,
     } as File;
   }
 
@@ -214,9 +116,9 @@ export class S3FileService {
     const fileMetaData = await this.prisma.asset.findFirst({
       where: { id: fileId, shareId, type: AssetType.FILE },
     });
-
-    if (!fileMetaData)
+    if (!fileMetaData) {
       throw new NotFoundException(this.i18n.t("file.notFound"));
+    }
 
     await this.prisma.asset.delete({ where: { id: fileId } });
     const storageKey = fileMetaData.storageKey ?? fileId;
@@ -226,14 +128,11 @@ export class S3FileService {
         OR: [{ id: storageKey }, { storageKey }],
       },
     });
+
     if (references === 0) {
       try {
-        await this.getS3Instance().send(
-          new DeleteObjectCommand({
-            Bucket: this.config.get("s3.bucketName"),
-            Key: this.getAssetKey(storageKey),
-          }),
-        );
+        await this.objects.abortMultipart(fileId);
+        await this.objects.delete(this.objects.assetKey(storageKey));
       } catch {
         throw new Error(this.i18n.t("file.s3DeleteError"));
       }
@@ -251,102 +150,45 @@ export class S3FileService {
   }
 
   async getFileSize(assetId: string): Promise<number> {
-    const key = this.getAssetKey(assetId);
-    const s3Instance = this.getS3Instance();
-
     try {
-      // Get metadata of the file using HeadObjectCommand
-      const headObjectResponse = await s3Instance.send(
-        new HeadObjectCommand({
-          Bucket: this.config.get("s3.bucketName"),
-          Key: key,
-        }),
-      );
-
-      // Return ContentLength which is the file size in bytes
-      return headObjectResponse.ContentLength ?? 0;
+      return await this.objects.getSize(this.objects.assetKey(assetId));
     } catch {
       throw new Error(this.i18n.t("file.s3SizeError"));
     }
-  }
-
-  getS3Instance(): S3Client {
-    const checksumCalculation =
-      this.config.get("s3.useChecksum") === true ? null : "WHEN_REQUIRED";
-
-    return new S3Client({
-      endpoint: this.config.get("s3.endpoint"),
-      region: this.config.get("s3.region"),
-      credentials: {
-        accessKeyId: this.config.get("s3.key"),
-        secretAccessKey: this.config.get("s3.secret"),
-      },
-      forcePathStyle: this.config.get("s3.forcePathStyle"),
-      requestChecksumCalculation: checksumCalculation,
-      responseChecksumValidation: checksumCalculation,
-    });
   }
 
   async getZip(shareId: string) {
     const files = await this.prisma.asset.findMany({
       where: { shareId, type: AssetType.FILE },
     });
-
     if (files.length === 0) {
       throw new NotFoundException(`No files found for share ${shareId}`);
     }
 
-    const s3Instance = this.getS3Instance();
-    const bucketName = this.config.get("s3.bucketName");
-    const compressionLevel = this.config.get("share.zipCompressionLevel");
     const archive = archiver("zip", {
-      zlib: { level: parseInt(compressionLevel) },
+      zlib: { level: parseInt(this.config.get("share.zipCompressionLevel")) },
     });
-
-    archive.on("error", (err) => {
-      this.logger.error("Archive error", err);
-    });
+    archive.on("error", (error) => this.logger.error("Archive error", error));
 
     const processFiles = async () => {
       for (const file of files) {
-        const key = this.getAssetKey(file.storageKey ?? file.id);
         try {
-          const response = await s3Instance.send(
-            new GetObjectCommand({
-              Bucket: bucketName,
-              Key: key,
-            }),
+          const object = await this.objects.getStream(
+            this.objects.assetKey(file.storageKey ?? file.id),
           );
-
-          if (response.Body instanceof Readable) {
-            const body = response.Body as Readable;
-            archive.append(body, { name: file.name });
-            // Wait for this file to be fully appended before moving to the next one to avoid overwhelming memory/connections
-            await new Promise((resolve, reject) => {
-              body.on("end", resolve);
-              body.on("error", reject);
-            });
-          }
+          archive.append(object.body, { name: file.name });
+          await new Promise<void>((resolve, reject) => {
+            object.body.on("end", resolve);
+            object.body.on("error", reject);
+          });
         } catch (error) {
           this.logger.error(`Error processing file ${file.name}`, error);
         }
       }
-      archive.finalize();
+      await archive.finalize();
     };
 
-    processFiles();
-
-    return archive;
-  }
-
-  getS3Path(): string {
-    const configS3Path = this.config.get("s3.bucketPath");
-    if (!configS3Path) return "";
-    const normalized = `${configS3Path}`.replace(/^\/+|\/+$/g, "");
-    return normalized ? `${normalized}/` : "";
-  }
-
-  private getAssetKey(assetId: string): string {
-    return `${this.getS3Path()}assets/${assetId}`;
+    void processFiles();
+    return archive as Readable;
   }
 }
