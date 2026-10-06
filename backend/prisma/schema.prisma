@@ -28,6 +28,11 @@ enum ImageVisibility {
   PRIVATE
 }
 
+enum ImageVariantKind {
+  ORIGINAL
+  THUMBNAIL
+}
+
 enum RoomVisibility {
   PRIVATE
   SHARED
@@ -73,6 +78,8 @@ model User {
   passkeys          PasskeyCredential[]
   passkeyChallenges PasskeyChallenge[]
   appCredentials    AppCredential[]
+  imageAlbums       ImageAlbum[]
+  imagePreference   ImagePreference?
   refreshTokens     RefreshToken[]
   loginTokens       LoginToken[]
   reverseShares     ReverseShare[]
@@ -250,6 +257,7 @@ model Asset {
 
   tagAssignments AssetTagAssignment[]
   hostedImage    HostedImage?
+  imageVariant   ImageVariant?
 
   @@index([ownerId])
   @@index([shareId])
@@ -263,21 +271,85 @@ model Asset {
 }
 
 model HostedImage {
-  id         String          @id @default(uuid())
-  createdAt  DateTime        @default(now())
-  updatedAt  DateTime        @updatedAt
-  slug       String          @unique
-  visibility ImageVisibility @default(PUBLIC)
-  width      Int
-  height     Int
-  checksum   String
+  id           String          @id @default(uuid())
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  deletedAt    DateTime?
+  slug         String          @unique
+  visibility   ImageVisibility @default(PUBLIC)
+  width        Int
+  height       Int
+  checksum     String
+  views        Int             @default(0)
+  lastViewedAt DateTime?
 
   assetId String @unique
   asset   Asset  @relation(fields: [assetId], references: [id], onDelete: Cascade)
 
+  albumId String?
+  album   ImageAlbum? @relation(fields: [albumId], references: [id], onDelete: SetNull)
+
+  variants ImageVariant[]
+
   @@index([createdAt])
   @@index([visibility])
   @@index([checksum])
+  @@index([albumId, createdAt])
+  @@index([deletedAt, createdAt])
+}
+
+model ImageAlbum {
+  id          String   @id @default(uuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  name        String
+  description String?
+
+  ownerId String
+  owner   User          @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  images  HostedImage[]
+
+  @@unique([ownerId, name])
+  @@index([ownerId, updatedAt])
+}
+
+model ImageVariant {
+  id        String           @id @default(uuid())
+  createdAt DateTime         @default(now())
+  kind      ImageVariantKind
+  width     Int
+  height    Int
+  mimeType  String
+  size      String
+
+  hostedImageId String
+  hostedImage   HostedImage @relation(fields: [hostedImageId], references: [id], onDelete: Cascade)
+
+  assetId String @unique
+  asset   Asset  @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@unique([hostedImageId, kind])
+  @@index([hostedImageId])
+}
+
+model ImagePreference {
+  userId String @id
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  defaultVisibility ImageVisibility @default(PUBLIC)
+  autoOrient        Boolean         @default(true)
+  stripMetadata     Boolean         @default(true)
+  outputFormat      String          @default("ORIGINAL")
+  quality           Int             @default(82)
+  maxWidth          Int?
+  deduplicate       Boolean         @default(false)
+  watermarkEnabled  Boolean         @default(false)
+  watermarkText     String?
+  watermarkOpacity  Int             @default(30)
+  watermarkPosition String          @default("southeast")
 }
 
 model StorageMultipartUpload {

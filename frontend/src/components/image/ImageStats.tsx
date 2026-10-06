@@ -1,5 +1,5 @@
 import { Paper, Text } from "@mantine/core";
-import { Globe2, HardDrive, Images, Lock } from "lucide-react";
+import { Eye, Globe2, HardDrive, Images, Lock } from "lucide-react";
 import useTranslate from "../../hooks/useTranslate.hook";
 import { HostedImageStats } from "../../types/image.type";
 import { byteToHumanSizeString } from "../../utils/fileSize.util";
@@ -27,6 +27,11 @@ const ImageStats = ({ stats }: { stats: HostedImageStats }) => {
       label: t("images.stats.storage"),
       value: byteToHumanSizeString(stats.totalSize),
       icon: <HardDrive size={19} />,
+    },
+    {
+      label: t("images.stats.views"),
+      value: stats.views,
+      icon: <Eye size={19} />,
     },
   ];
 

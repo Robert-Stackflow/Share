@@ -1,37 +1,45 @@
 import {
   Alert,
+  Button,
+  Group,
   SegmentedControl,
+  Select,
   SimpleGrid,
-  Text,
+  Switch,
   TextInput,
-  Title,
 } from "@mantine/core";
 import { useDebouncedValue } from "@mantine/hooks";
 import { Images as ImagesIcon, Search } from "lucide-react";
+import { useRouter } from "next/router";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import HostedImageCard from "../../components/image/HostedImageCard";
-import HostedImageDetailsModal from "../../components/image/HostedImageDetailsModal";
-import ImageApiPanel from "../../components/image/ImageApiPanel";
-import ImageBulkBar from "../../components/image/ImageBulkBar";
-import ImageStats from "../../components/image/ImageStats";
-import ImageUploadPanel from "../../components/image/ImageUploadPanel";
 import CenterLoader from "../../components/core/CenterLoader";
 import EmptyState from "../../components/core/EmptyState";
 import FormattedMessage from "../../components/core/FormattedMessage";
-import Meta from "../../components/Meta";
+import HostedImageCard from "../../components/image/HostedImageCard";
+import HostedImageDetailsModal from "../../components/image/HostedImageDetailsModal";
+import ImageBulkBar from "../../components/image/ImageBulkBar";
+import ImageLibraryLayout, {
+  ImagePanel,
+} from "../../components/image/ImageLibraryLayout";
+import ImageStats from "../../components/image/ImageStats";
+import ImageUploadPanel from "../../components/image/ImageUploadPanel";
 import useConfig from "../../hooks/config.hook";
 import useTranslate from "../../hooks/useTranslate.hook";
+import assetService from "../../services/asset.service";
 import imageService from "../../services/image.service";
 import {
   HostedImage,
   HostedImageStats,
+  ImageAlbum,
   ImageVisibility,
 } from "../../types/image.type";
+import { AssetTagSummary } from "../../types/asset.type";
 import { byteToHumanSizeString } from "../../utils/fileSize.util";
 import toast from "../../utils/toast.util";
 import classes from "./images.module.css";
 
 type VisibilityFilter = "ALL" | ImageVisibility;
+type ImageSort = "createdAt_desc" | "createdAt_asc" | "name_asc" | "name_desc";
 
 const acceptedTypes = [
   "image/jpeg",
@@ -40,15 +48,15 @@ const acceptedTypes = [
   "image/gif",
   "image/avif",
 ];
-
 const defaultMaxImageBytes = 25 * 1024 * 1024;
 const uploadConcurrency = 3;
+const pageSize = 36;
 
 const Images = () => {
   const t = useTranslate();
+  const router = useRouter();
   const config = useConfig();
   const uploadEnabled = config.get("images.uploadEnabled") === true;
-  const apiUploadEnabled = config.get("images.apiUploadEnabled") === true;
   const allowPublic = config.get("images.allowPublic") === true;
   const defaultPublic = config.get("images.defaultPublic") === true;
   const configuredMaxSize = Number(config.get("images.maxSize"));
@@ -58,12 +66,23 @@ const Images = () => {
       : defaultMaxImageBytes;
 
   const [images, setImages] = useState<HostedImage[]>();
+  const [albums, setAlbums] = useState<ImageAlbum[]>([]);
+  const [tags, setTags] = useState<AssetTagSummary[]>([]);
   const [stats, setStats] = useState<HostedImageStats>();
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebouncedValue(search, 250);
   const [filter, setFilter] = useState<VisibilityFilter>("ALL");
+  const [sort, setSort] = useState<ImageSort>("createdAt_desc");
+  const [albumFilter, setAlbumFilter] = useState<string | null>(null);
+  const [tagFilter, setTagFilter] = useState<string | null>(null);
+  const [favoriteOnly, setFavoriteOnly] = useState(false);
+  const [uploadAlbumId, setUploadAlbumId] = useState<string | null>(null);
   const [uploadVisibility, setUploadVisibility] =
-    useState<ImageVisibility>("PUBLIC");
+    useState<ImageVisibility>(
+      allowPublic && defaultPublic ? "PUBLIC" : "PRIVATE",
+    );
   const [uploading, setUploading] = useState(false);
   const [bulkBusy, setBulkBusy] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
@@ -71,18 +90,29 @@ const Images = () => {
   const [draftName, setDraftName] = useState("");
   const [savingName, setSavingName] = useState(false);
 
+  const listParams = useMemo(
+    () => ({
+      q: debouncedSearch || undefined,
+      visibility: filter === "ALL" ? undefined : filter,
+      albumId: albumFilter ?? undefined,
+      tag: tagFilter ?? undefined,
+      favorite: favoriteOnly ? true : undefined,
+      sort,
+      limit: pageSize,
+    }),
+    [albumFilter, debouncedSearch, favoriteOnly, filter, sort, tagFilter],
+  );
+
   const refreshImages = useCallback(async () => {
     try {
-      setImages(
-        await imageService.list({
-          q: debouncedSearch || undefined,
-          visibility: filter === "ALL" ? undefined : filter,
-        }),
-      );
+      const page = await imageService.list(listParams);
+      setImages(page.items);
+      setNextCursor(page.nextCursor);
+      setSelectedIds(new Set());
     } catch (error) {
       toast.axiosError(error);
     }
-  }, [debouncedSearch, filter]);
+  }, [listParams]);
 
   const refreshStats = useCallback(async () => {
     try {
@@ -92,17 +122,65 @@ const Images = () => {
     }
   }, []);
 
+  const refreshAlbums = useCallback(async () => {
+    try {
+      setAlbums(await imageService.listAlbums());
+    } catch (error) {
+      toast.axiosError(error);
+    }
+  }, []);
+
+  const refreshTags = useCallback(async () => {
+    try {
+      setTags(await assetService.listTags());
+    } catch (error) {
+      toast.axiosError(error);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!router.isReady) return;
+    const albumId =
+      typeof router.query.album === "string" ? router.query.album : null;
+    setAlbumFilter(albumId);
+    setUploadAlbumId(albumId);
+  }, [router.isReady, router.query.album]);
+
   useEffect(() => {
     void refreshImages();
   }, [refreshImages]);
 
   useEffect(() => {
-    void refreshStats();
-  }, [refreshStats]);
+    void Promise.all([refreshStats(), refreshAlbums(), refreshTags()]);
+  }, [refreshAlbums, refreshStats, refreshTags]);
 
   useEffect(() => {
-    setUploadVisibility(allowPublic && defaultPublic ? "PUBLIC" : "PRIVATE");
-  }, [allowPublic, defaultPublic]);
+    if (!allowPublic) {
+      setUploadVisibility("PRIVATE");
+      return;
+    }
+    imageService
+      .getPreferences()
+      .then((preference) => setUploadVisibility(preference.defaultVisibility))
+      .catch(toast.axiosError);
+  }, [allowPublic]);
+
+  const loadMore = async () => {
+    if (!nextCursor || loadingMore) return;
+    setLoadingMore(true);
+    try {
+      const page = await imageService.list({
+        ...listParams,
+        cursor: nextCursor,
+      });
+      setImages((current) => [...(current ?? []), ...page.items]);
+      setNextCursor(page.nextCursor);
+    } catch (error) {
+      toast.axiosError(error);
+    } finally {
+      setLoadingMore(false);
+    }
+  };
 
   const uploadFiles = useCallback(
     async (files: File[]) => {
@@ -110,7 +188,6 @@ const Images = () => {
         toast.error(t("images.upload.disabled"));
         return;
       }
-
       const supported = files.filter(
         (file) =>
           acceptedTypes.includes(file.type) && file.size <= maxImageBytes,
@@ -135,19 +212,24 @@ const Images = () => {
         ) {
           const batch = supported.slice(index, index + uploadConcurrency);
           const results = await Promise.allSettled(
-            batch.map((file) => imageService.upload(file, uploadVisibility)),
+            batch.map((file) =>
+              imageService.upload(
+                file,
+                uploadVisibility,
+                uploadAlbumId ?? undefined,
+              ),
+            ),
           );
           for (const result of results) {
             if (result.status === "fulfilled") uploadedCount += 1;
             else failedCount += 1;
           }
         }
-
         if (uploadedCount) {
           toast.success(
             t("images.upload.success", { count: uploadedCount.toString() }),
           );
-          await Promise.all([refreshImages(), refreshStats()]);
+          await Promise.all([refreshImages(), refreshStats(), refreshAlbums()]);
         }
         if (failedCount) {
           toast.error(
@@ -160,9 +242,11 @@ const Images = () => {
     },
     [
       maxImageBytes,
+      refreshAlbums,
       refreshImages,
       refreshStats,
       t,
+      uploadAlbumId,
       uploadEnabled,
       uploadVisibility,
     ],
@@ -204,16 +288,19 @@ const Images = () => {
     });
   };
 
+  const updateImage = (updated: HostedImage) => {
+    setImages((current) =>
+      current?.map((item) => (item.id === updated.id ? updated : item)),
+    );
+    setSelected((current) => (current?.id === updated.id ? updated : current));
+  };
+
   const updateVisibility = async (image: HostedImage) => {
     try {
-      const updated = await imageService.update(image.id, {
-        visibility: image.visibility === "PUBLIC" ? "PRIVATE" : "PUBLIC",
-      });
-      setImages((current) =>
-        current?.map((item) => (item.id === updated.id ? updated : item)),
-      );
-      setSelected((current) =>
-        current?.id === updated.id ? updated : current,
+      updateImage(
+        await imageService.update(image.id, {
+          visibility: image.visibility === "PUBLIC" ? "PRIVATE" : "PUBLIC",
+        }),
       );
       await refreshStats();
       toast.success(t("images.visibility.updated"));
@@ -222,23 +309,23 @@ const Images = () => {
     }
   };
 
-  const updateBatchVisibility = async (visibility: ImageVisibility) => {
+  const updateBatch = async (input: {
+    visibility?: ImageVisibility;
+    albumId?: string | null;
+  }) => {
     const ids = [...selectedIds];
     if (!ids.length) return;
     setBulkBusy(true);
     try {
-      const updated = await imageService.updateBatch(ids, visibility);
+      const updated = await imageService.updateBatch(ids, input);
       const updates = new Map(updated.map((image) => [image.id, image]));
       setImages((current) =>
         current?.map((image) => updates.get(image.id) ?? image),
       );
-      setSelected((current) =>
-        current ? (updates.get(current.id) ?? current) : current,
-      );
       setSelectedIds(new Set());
-      await refreshStats();
+      await Promise.all([refreshStats(), refreshAlbums()]);
       toast.success(
-        t("images.batch.visibility", { count: updated.length.toString() }),
+        t("images.batch.updated", { count: updated.length.toString() }),
       );
     } catch (error) {
       toast.axiosError(error);
@@ -252,13 +339,8 @@ const Images = () => {
     try {
       await imageService.remove(image.id);
       setImages((current) => current?.filter((item) => item.id !== image.id));
-      setSelectedIds((current) => {
-        const next = new Set(current);
-        next.delete(image.id);
-        return next;
-      });
       setSelected((current) => (current?.id === image.id ? null : current));
-      await refreshStats();
+      await Promise.all([refreshStats(), refreshAlbums()]);
       toast.success(t("images.delete.success"));
     } catch (error) {
       toast.axiosError(error);
@@ -276,10 +358,7 @@ const Images = () => {
         current?.filter((image) => !deletedIds.has(image.id)),
       );
       setSelectedIds(new Set());
-      setSelected((current) =>
-        current && deletedIds.has(current.id) ? null : current,
-      );
-      await refreshStats();
+      await Promise.all([refreshStats(), refreshAlbums()]);
       toast.success(t("images.batch.deleted", { count: deleted.toString() }));
     } catch (error) {
       toast.axiosError(error);
@@ -288,21 +367,13 @@ const Images = () => {
     }
   };
 
-  const openDetails = (image: HostedImage) => {
-    setSelected(image);
-    setDraftName(image.name);
-  };
-
   const saveName = async () => {
     const name = draftName.trim();
     if (!selected || !name || name === selected.name) return;
     setSavingName(true);
     try {
       const updated = await imageService.update(selected.id, { name });
-      setImages((current) =>
-        current?.map((image) => (image.id === updated.id ? updated : image)),
-      );
-      setSelected(updated);
+      updateImage(updated);
       setDraftName(updated.name);
       toast.success(t("images.rename.success"));
     } catch (error) {
@@ -312,7 +383,19 @@ const Images = () => {
     }
   };
 
-  if (!images) return <CenterLoader />;
+  if (!images) {
+    return (
+      <ImageLibraryLayout
+        active="library"
+        title="images.title"
+        description="images.description"
+      >
+        <ImagePanel>
+          <CenterLoader />
+        </ImagePanel>
+      </ImageLibraryLayout>
+    );
+  }
 
   const effectiveStats =
     stats ??
@@ -323,22 +406,15 @@ const Images = () => {
       privateCount: images.filter((image) => image.visibility === "PRIVATE")
         .length,
       totalSize: images.reduce((sum, image) => sum + Number(image.size), 0),
+      views: images.reduce((sum, image) => sum + image.views, 0),
     } satisfies HostedImageStats);
 
   return (
-    <>
-      <Meta title={t("images.title")} />
-      <div className={classes.hero}>
-        <div className={classes.heroCopy}>
-          <Title order={2} mb={6}>
-            <FormattedMessage id="images.title" />
-          </Title>
-          <Text c="dimmed">
-            <FormattedMessage id="images.description" />
-          </Text>
-        </div>
-      </div>
-
+    <ImageLibraryLayout
+      active="library"
+      title="images.title"
+      description="images.description"
+    >
       <ImageStats stats={effectiveStats} />
 
       {!uploadEnabled ? (
@@ -351,81 +427,147 @@ const Images = () => {
         </Alert>
       ) : null}
 
-      <ImageUploadPanel
-        uploadEnabled={uploadEnabled}
-        allowPublic={allowPublic}
-        uploading={uploading}
-        uploadVisibility={uploadVisibility}
-        maxImageBytes={maxImageBytes}
-        acceptedTypes={acceptedTypes}
-        onVisibilityChange={setUploadVisibility}
-        onFiles={(files) => void uploadFiles(files)}
-      />
-
-      <div className={classes.toolbar}>
-        <TextInput
-          className={classes.search}
-          leftSection={<Search size={17} />}
-          placeholder={t("images.search")}
-          value={search}
-          onChange={(event) => setSearch(event.currentTarget.value)}
-        />
-        <SegmentedControl
-          value={filter}
-          onChange={(value) => setFilter(value as VisibilityFilter)}
-          data={[
-            { value: "ALL", label: t("images.filter.all") },
-            { value: "PUBLIC", label: t("images.visibility.public") },
-            { value: "PRIVATE", label: t("images.visibility.private") },
-          ]}
-        />
-      </div>
-
-      {images.length > 0 ? (
-        <ImageBulkBar
-          visibleIds={visibleIds}
-          selectedIds={selectedIds}
+      <ImagePanel>
+        <ImageUploadPanel
+          uploadEnabled={uploadEnabled}
           allowPublic={allowPublic}
-          busy={bulkBusy}
-          onToggleVisible={toggleVisibleSelection}
-          onUpdateVisibility={(visibility) =>
-            void updateBatchVisibility(visibility)
-          }
-          onRemove={() => void removeSelected()}
-          onClear={() => setSelectedIds(new Set())}
+          uploading={uploading}
+          uploadVisibility={uploadVisibility}
+          maxImageBytes={maxImageBytes}
+          acceptedTypes={acceptedTypes}
+          albums={albums}
+          albumId={uploadAlbumId}
+          onAlbumChange={setUploadAlbumId}
+          onVisibilityChange={setUploadVisibility}
+          onFiles={(files) => void uploadFiles(files)}
         />
-      ) : null}
+      </ImagePanel>
 
-      {images.length === 0 ? (
-        <EmptyState
-          icon={<ImagesIcon size={22} />}
-          title={<FormattedMessage id="images.empty.title" />}
-          description={<FormattedMessage id="images.empty.description" />}
-        />
-      ) : (
-        <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
-          {images.map((image) => (
-            <HostedImageCard
-              key={image.id}
-              image={image}
-              selected={selectedIds.has(image.id)}
-              allowPublic={allowPublic}
-              onSelect={(checked) => toggleImageSelection(image.id, checked)}
-              onOpen={() => openDetails(image)}
-              onToggleVisibility={() => void updateVisibility(image)}
-              onRemove={() => void remove(image)}
-            />
-          ))}
-        </SimpleGrid>
-      )}
+      <ImagePanel>
+        <div className={classes.toolbar}>
+          <TextInput
+            className={classes.search}
+            leftSection={<Search size={17} />}
+            placeholder={t("images.search")}
+            value={search}
+            onChange={(event) => setSearch(event.currentTarget.value)}
+          />
+          <Select
+            clearable
+            searchable
+            placeholder={t("images.album.all")}
+            data={albums.map((album) => ({
+              value: album.id,
+              label: album.name,
+            }))}
+            value={albumFilter}
+            onChange={setAlbumFilter}
+          />
+          <Select
+            value={sort}
+            allowDeselect={false}
+            data={[
+              { value: "createdAt_desc", label: t("images.sort.newest") },
+              { value: "createdAt_asc", label: t("images.sort.oldest") },
+              { value: "name_asc", label: t("images.sort.nameAsc") },
+              { value: "name_desc", label: t("images.sort.nameDesc") },
+            ]}
+            onChange={(value) =>
+              setSort((value as ImageSort) ?? "createdAt_desc")
+            }
+          />
+          <Select
+            clearable
+            searchable
+            placeholder={t("images.tags.all")}
+            data={tags.map((tag) => ({
+              value: tag.name,
+              label: `${tag.name} (${tag._count.assignments})`,
+            }))}
+            value={tagFilter}
+            onChange={setTagFilter}
+          />
+          <Switch
+            label={t("images.favoriteOnly")}
+            checked={favoriteOnly}
+            onChange={(event) => setFavoriteOnly(event.currentTarget.checked)}
+          />
+          <SegmentedControl
+            value={filter}
+            onChange={(value) => setFilter(value as VisibilityFilter)}
+            data={[
+              { value: "ALL", label: t("images.filter.all") },
+              { value: "PUBLIC", label: t("images.visibility.public") },
+              { value: "PRIVATE", label: t("images.visibility.private") },
+            ]}
+          />
+        </div>
 
-      <ImageApiPanel enabled={apiUploadEnabled && uploadEnabled} />
+        {images.length > 0 ? (
+          <ImageBulkBar
+            visibleIds={visibleIds}
+            selectedIds={selectedIds}
+            allowPublic={allowPublic}
+            busy={bulkBusy}
+            albums={albums}
+            onToggleVisible={toggleVisibleSelection}
+            onUpdateVisibility={(visibility) =>
+              void updateBatch({ visibility })
+            }
+            onMove={(albumId) => void updateBatch({ albumId })}
+            onRemove={() => void removeSelected()}
+            onClear={() => setSelectedIds(new Set())}
+          />
+        ) : null}
+
+        {images.length === 0 ? (
+          <EmptyState
+            icon={<ImagesIcon size={22} />}
+            title={<FormattedMessage id="images.empty.title" />}
+            description={<FormattedMessage id="images.empty.description" />}
+          />
+        ) : (
+          <>
+            <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
+              {images.map((image) => (
+                <HostedImageCard
+                  key={image.id}
+                  image={image}
+                  selected={selectedIds.has(image.id)}
+                  allowPublic={allowPublic}
+                  onSelect={(checked) =>
+                    toggleImageSelection(image.id, checked)
+                  }
+                  onOpen={() => {
+                    setSelected(image);
+                    setDraftName(image.name);
+                  }}
+                  onToggleVisibility={() => void updateVisibility(image)}
+                  onRemove={() => void remove(image)}
+                />
+              ))}
+            </SimpleGrid>
+            {nextCursor ? (
+              <Group justify="center" mt="xl">
+                <Button
+                  variant="light"
+                  loading={loadingMore}
+                  onClick={() => void loadMore()}
+                >
+                  {t("images.loadMore")}
+                </Button>
+              </Group>
+            ) : null}
+          </>
+        )}
+      </ImagePanel>
 
       <HostedImageDetailsModal
         image={selected}
         draftName={draftName}
         savingName={savingName}
         allowPublic={allowPublic}
+        albums={albums}
         onClose={() => setSelected(null)}
         onDraftNameChange={setDraftName}
         onSaveName={() => void saveName()}
@@ -435,8 +577,18 @@ const Images = () => {
         onRemove={() => {
           if (selected) void remove(selected);
         }}
+        onUpdateDetails={async (input) => {
+          if (!selected) return;
+          try {
+            updateImage(await imageService.update(selected.id, input));
+            await Promise.all([refreshAlbums(), refreshTags()]);
+            toast.success(t("images.details.updated"));
+          } catch (error) {
+            toast.axiosError(error);
+          }
+        }}
       />
-    </>
+    </ImageLibraryLayout>
   );
 };
 

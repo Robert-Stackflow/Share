@@ -15,6 +15,12 @@
 	reverse_proxy /dav* http://localhost:{$BACKEND_PORT:8080} {
 		trusted_proxies 0.0.0.0/0
 	}
+	@imageThumbnail path_regexp imageThumbnail ^/i/([^/]+)/thumbnail/?$
+	handle @imageThumbnail {
+		rewrite * /api/images/public/{re.imageThumbnail.1}/thumbnail
+		reverse_proxy http://localhost:{$BACKEND_PORT:8080}
+	}
+
 	@image path_regexp image ^/i/([^/]+)/?$
 	route @image {
 		rewrite * /api/images/public/{re.image.1}

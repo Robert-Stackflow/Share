@@ -1,0 +1,14 @@
+.card {
+  overflow: hidden;
+}
+
+.preview {
+  background: light-dark(#f3f5f8, #171c24);
+  height: 180px;
+  object-fit: cover;
+  width: 100%;
+}
+
+.body {
+  padding: 16px;
+}

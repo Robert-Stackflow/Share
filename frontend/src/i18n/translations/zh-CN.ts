@@ -17,7 +17,8 @@ export default {
   "passkey.created": "添加时间",
   "passkey.lastUsed": "最近使用",
   "credentials.title": "API 密钥",
-  "credentials.description": "为 WebDAV 客户端和图床上传工具创建独立密钥，无需使用账户密码。",
+  "credentials.description":
+    "为 WebDAV 客户端和图床上传工具创建独立密钥，无需使用账户密码。",
   "credentials.name": "名称",
   "credentials.namePlaceholder": "笔记本、PicGo、自动化任务…",
   "credentials.type": "凭据类型",
@@ -36,7 +37,8 @@ export default {
   "credentials.lastUsedAt": "最近使用",
   "credentials.expiresAt": "到期于",
   "credentials.revoke": "撤销",
-  "credentials.revokeConfirm": "确定撤销这个凭据？正在使用它的客户端会立即失效。",
+  "credentials.revokeConfirm":
+    "确定撤销这个凭据？正在使用它的客户端会立即失效。",
   "credentials.revoked": "凭据已撤销",
   "credentials.created": "凭据已创建",
   "credentials.createdTitle": "保存应用凭据",
@@ -67,20 +69,38 @@ export default {
   "credentials.listTitle": "我的密钥",
   "credentials.listDescription": "密钥只会显示一次，请及时撤销不再使用的密钥。",
   "images.title": "图床",
-  "images.description": "集中上传和管理图片，支持批量操作、公开范围控制，并一键复制常用链接格式。",
+  "images.description":
+    "集中上传和管理图片，支持批量操作、公开范围控制，并一键复制常用链接格式。",
   "images.stats.count": "{count} 张图片",
   "images.stats.total": "图片总数",
   "images.stats.public": "公开图片",
   "images.stats.private": "私有图片",
   "images.stats.storage": "占用空间",
+  "images.stats.views": "访问次数",
+  "images.nav.library": "图片库",
+  "images.nav.albums": "相册",
+  "images.nav.trash": "回收站",
+  "images.nav.preferences": "上传设置",
+  "images.nav.clients": "客户端与 API",
+  "images.album.none": "不放入相册",
+  "images.album.all": "全部相册",
+  "images.tags.all": "全部标签",
+  "images.favoriteOnly": "仅看收藏",
+  "images.sort.newest": "最新上传",
+  "images.sort.oldest": "最早上传",
+  "images.sort.nameAsc": "名称升序",
+  "images.sort.nameDesc": "名称降序",
+  "images.loadMore": "加载更多",
   "images.upload.title": "拖放图片到这里",
-  "images.upload.description": "支持 JPEG、PNG、WebP、GIF、AVIF，单张不超过 {size}",
+  "images.upload.description":
+    "支持 JPEG、PNG、WebP、GIF、AVIF，单张不超过 {size}",
   "images.upload.paste": "也可以直接粘贴剪贴板中的图片",
   "images.upload.button": "选择图片",
   "images.upload.invalid": "请选择受支持且不超过 {size} 的图片。",
   "images.upload.disabled": "管理员已关闭图片上传。",
   "images.upload.success": "已上传 {count} 张图片",
-  "images.upload.partial": "有 {count} 张图片上传失败，请检查格式或大小后重试。",
+  "images.upload.partial":
+    "有 {count} 张图片上传失败，请检查格式或大小后重试。",
   "images.search": "搜索图片",
   "images.filter.all": "全部",
   "images.visibility.public": "公开",
@@ -97,22 +117,27 @@ export default {
   "images.copy.html": "复制 HTML",
   "images.copy.bbcode": "复制 BBCode",
   "images.copy.copied": "已复制",
-  "images.delete.confirm": "确定删除这张图片及其存储文件？",
-  "images.delete.success": "图片已删除",
+  "images.delete.confirm": "确定将这张图片移入回收站？",
+  "images.delete.success": "图片已移入回收站",
   "images.rename.success": "图片名称已更新",
   "images.batch.selectVisible": "选择当前 {count} 张",
   "images.batch.selectImage": "选择 {name}",
   "images.batch.selected": "已选择 {count} 张",
   "images.batch.clear": "清除选择",
   "images.batch.visibility": "已更新 {count} 张图片的可见范围",
-  "images.batch.deleteConfirm": "确定删除选中的图片及其存储文件？此操作无法撤销。",
-  "images.batch.deleted": "已删除 {count} 张图片",
+  "images.batch.move": "移动到相册",
+  "images.batch.updated": "已更新 {count} 张图片",
+  "images.batch.deleteConfirm": "确定将选中的图片移入回收站？",
+  "images.batch.deleted": "已将 {count} 张图片移入回收站",
   "images.policy.uploadDisabled.title": "图片上传已停用",
-  "images.policy.uploadDisabled.description": "已有图片仍然可以浏览和管理，但网页及 API 暂时不能上传新图片。",
+  "images.policy.uploadDisabled.description":
+    "已有图片仍然可以浏览和管理，但网页及 API 暂时不能上传新图片。",
   "images.policy.privateOnly.title": "当前仅允许私有图片",
-  "images.policy.privateOnly.description": "管理员已关闭公开直链，新上传图片将保持私有。",
+  "images.policy.privateOnly.description":
+    "管理员已关闭公开直链，新上传图片将保持私有。",
   "images.api.title": "客户端与 API 上传",
-  "images.api.description": "同时支持 multipart/form-data 的 file 字段和直接发送原始图片内容，可用于 Clipper、PicGo、ShareX 与自动化任务。",
+  "images.api.description":
+    "同时支持 multipart/form-data 的 file 字段和直接发送原始图片内容，可用于 Clipper、PicGo、ShareX 与自动化任务。",
   "images.api.manageKeys": "管理 API 密钥",
   "images.details.title": "图片详情",
   "images.details.name": "图片名称",
@@ -120,6 +145,91 @@ export default {
   "images.details.size": "文件大小",
   "images.details.type": "文件类型",
   "images.details.created": "上传时间",
+  "images.details.album": "所属相册",
+  "images.details.tags": "标签",
+  "images.details.downloadOriginal": "下载原图",
+  "images.details.favorite": "收藏",
+  "images.details.unfavorite": "取消收藏",
+  "images.details.updated": "图片信息已更新",
+  "images.albums.title": "相册",
+  "images.albums.description": "用相册整理图片；移动图片不会改变现有直链。",
+  "images.albums.create": "新建相册",
+  "images.albums.createDescription": "相册仅用于整理，不会额外复制存储文件。",
+  "images.albums.name": "相册名称",
+  "images.albums.albumDescription": "相册说明（可选）",
+  "images.albums.createButton": "创建相册",
+  "images.albums.created": "相册已创建",
+  "images.albums.renamePrompt": "输入新的相册名称",
+  "images.albums.deleteConfirm":
+    "确定删除这个相册？其中的图片会保留在图片库中。",
+  "images.albums.deleted": "相册已删除",
+  "images.albums.empty": "还没有相册",
+  "images.albums.emptyDescription":
+    "创建相册后，可以在上传或批量操作时把图片放进去。",
+  "images.albums.count": "{count} 张图片",
+  "images.trash.title": "回收站",
+  "images.trash.description": "恢复误删图片，或提前永久删除存储文件。",
+  "images.trash.retention": "回收站中的图片会在 {days} 天后自动永久删除。",
+  "images.trash.empty": "回收站为空",
+  "images.trash.emptyDescription": "从图片库删除的图片会暂时保留在这里。",
+  "images.trash.restore": "恢复",
+  "images.trash.restored": "图片已恢复",
+  "images.trash.destroy": "永久删除",
+  "images.trash.destroyConfirm": "永久删除后无法恢复，确定继续吗？",
+  "images.trash.destroyed": "图片已永久删除",
+  "images.preferences.title": "上传设置",
+  "images.preferences.description":
+    "设置图片上传后的默认可见范围和自动处理方式。",
+  "images.preferences.disabled": "图片处理已停用",
+  "images.preferences.disabledDescription":
+    "管理员已关闭图片处理，新上传图片将保留原始格式。",
+  "images.preferences.uploadDefaults": "上传默认值",
+  "images.preferences.uploadDefaultsDescription":
+    "网页和 API 未明确指定时使用这些设置。",
+  "images.preferences.defaultVisibility": "默认可见范围",
+  "images.preferences.deduplicate": "自动去重",
+  "images.preferences.deduplicateDescription":
+    "重复上传相同内容时复用已有图片。",
+  "images.preferences.processing": "图片处理",
+  "images.preferences.processingDescription":
+    "转换格式、限制尺寸，并控制元数据和水印。",
+  "images.preferences.outputFormat": "输出格式",
+  "images.preferences.quality": "图片质量",
+  "images.preferences.maxWidth": "最大宽度",
+  "images.preferences.maxWidthDescription": "留空表示不限制；不会放大小图。",
+  "images.preferences.autoOrient": "自动校正方向",
+  "images.preferences.stripMetadata": "移除 EXIF 等元数据",
+  "images.preferences.watermark": "文字水印",
+  "images.preferences.watermarkDescription":
+    "为新上传图片添加可配置位置和透明度的文字水印。",
+  "images.preferences.watermarkEnabled": "启用水印",
+  "images.preferences.watermarkText": "水印文字",
+  "images.preferences.watermarkPosition": "水印位置",
+  "images.preferences.watermarkOpacity": "水印透明度",
+  "images.preferences.saved": "上传设置已保存",
+  "images.format.original": "保持原格式",
+  "images.position.northwest": "左上",
+  "images.position.north": "上方居中",
+  "images.position.northeast": "右上",
+  "images.position.west": "左侧居中",
+  "images.position.center": "居中",
+  "images.position.east": "右侧居中",
+  "images.position.southwest": "左下",
+  "images.position.south": "下方居中",
+  "images.position.southeast": "右下",
+  "images.clients.title": "客户端与 API",
+  "images.clients.description":
+    "查看图床接口地址、认证方式和第三方客户端配置。",
+  "images.clients.clipper": "Clipper 配置",
+  "images.clients.clipperDescription": "按以下参数配置 Clipper 的图床上传。",
+  "images.clients.uploadUrl": "上传地址",
+  "images.clients.auth": "认证方式",
+  "images.clients.requestFormat": "请求格式",
+  "images.clients.rawPng": "原始 PNG",
+  "images.clients.responsePath": "响应链接路径",
+  "images.clients.headers": "请求头",
+  "images.clients.headersDescription":
+    "Token 只保存在客户端本机，请勿写入公开脚本。",
   // Navbar
   "navbar.upload": "上传",
   "navbar.menu.open": "打开菜单",
@@ -148,7 +258,8 @@ export default {
   "home.bullet.b.name": "完全隐私",
   "home.bullet.b.description": "您的文件只属于您，永远无法被第三方访问。",
   "home.bullet.c.name": "完全无限",
-  "home.bullet.c.description": "您希望上传多大的文件都可以。硬盘容量的大小是您唯一的限制。",
+  "home.bullet.c.description":
+    "您希望上传多大的文件都可以。硬盘容量的大小是您唯一的限制。",
   "home.button.start": "开始使用",
   "home.button.source": "源代码",
   // END /
@@ -192,7 +303,8 @@ export default {
   // /auth/reset-password
   "resetPassword.title": "忘记密码？",
   "resetPassword.description": "请输入电子邮箱地址来接收重置密码邮件",
-  "resetPassword.notify.success": "系统已向您的邮箱发送一条包含重置密码链接的邮件。（若该电子邮箱存在）",
+  "resetPassword.notify.success":
+    "系统已向您的邮箱发送一条包含重置密码链接的邮件。（若该电子邮箱存在）",
   "resetPassword.button.back": "返回登录页面",
   "resetPassword.text.resetPassword": "重置密码",
   "resetPassword.text.enterNewPassword": "请输入新密码",
@@ -204,18 +316,26 @@ export default {
   "account.nav.security": "安全",
   "account.nav.credentials": "API 密钥",
   "account.nav.preferences": "偏好设置",
-  "account.section.profile.description": "管理身份信息、登录方式和账户生命周期。",
-  "account.section.profile.infoDescription": "修改与账户关联的用户名和电子邮箱。",
-  "account.section.profile.passwordDescription": "请使用未在其他服务中重复使用的独立密码。",
+  "account.section.profile.description":
+    "管理身份信息、登录方式和账户生命周期。",
+  "account.section.profile.infoDescription":
+    "修改与账户关联的用户名和电子邮箱。",
+  "account.section.profile.passwordDescription":
+    "请使用未在其他服务中重复使用的独立密码。",
   "account.section.profile.oauthDescription": "关联或移除外部登录方式。",
-  "account.section.security.description": "通过两步验证和通行密钥保护账户安全。",
-  "account.section.credentials.description": "为 WebDAV 客户端和图床上传工具创建独立密钥。",
+  "account.section.security.description":
+    "通过两步验证和通行密钥保护账户安全。",
+  "account.section.credentials.description":
+    "为 WebDAV 客户端和图床上传工具创建独立密钥。",
   "account.section.preferences.description": "选择账户使用的语言与界面外观。",
   "account.section.activity.description": "查看该账户最近执行的操作。",
   "account.security.totp.title": "两步验证",
-  "account.security.totp.description": "登录时使用基于时间的一次性验证码进行额外验证。",
-  "account.security.passkey.description": "使用设备、安全密钥或密码管理器安全登录。",
-  "account.preferences.theme.description": "选择明亮、暗黑或跟随系统的界面模式。",
+  "account.security.totp.description":
+    "登录时使用基于时间的一次性验证码进行额外验证。",
+  "account.security.passkey.description":
+    "使用设备、安全密钥或密码管理器安全登录。",
+  "account.preferences.theme.description":
+    "选择明亮、暗黑或跟随系统的界面模式。",
   "account.danger.title": "危险操作",
   "account.danger.description": "删除账户会永久移除账户数据和仍在使用的分享。",
   "account.card.info.title": "账户信息",
@@ -225,7 +345,8 @@ export default {
   "account.card.password.title": "密码",
   "account.card.password.old": "旧密码",
   "account.card.password.new": "新密码",
-  "account.card.password.noPasswordSet": "您还未设置密码。如果您想通过邮箱和密码登录，请先设置密码。",
+  "account.card.password.noPasswordSet":
+    "您还未设置密码。如果您想通过邮箱和密码登录，请先设置密码。",
   "account.notify.password.success": "密码更改成功！",
   "account.card.oauth.title": "社交账号登录",
   "account.card.oauth.github": "GitHub",
@@ -237,11 +358,13 @@ export default {
   "account.card.oauth.unlink": "解除关联",
   "account.card.oauth.unlinked": "已解除关联",
   "account.modal.unlink.title": "解除关联",
-  "account.modal.unlink.description": "如果您不记得您的用户名和密码，解除和社交账号的关联可能会导致丢失账户",
+  "account.modal.unlink.description":
+    "如果您不记得您的用户名和密码，解除和社交账号的关联可能会导致丢失账户",
   "account.notify.oauth.unlinked.success": "解除关联成功",
   "account.card.security.title": "安全",
   "account.card.security.totp.enable.description": "请输入当前密码开启两步验证",
-  "account.card.security.totp.disable.description": "请输入当前密码关闭两步验证",
+  "account.card.security.totp.disable.description":
+    "请输入当前密码关闭两步验证",
   "account.card.security.totp.button.start": "开启",
   "account.modal.totp.title": "开启两步验证",
   "account.modal.totp.step1": "第一步：添加验证器 Authenticator",
@@ -255,7 +378,8 @@ export default {
   "account.notify.totp.enable": "成功开启两步验证！",
   "account.card.language.title": "语言",
   "account.card.language.error": "切换语言失败，请重试。",
-  "account.card.language.description": "本项目由社区成员翻译，部分语言可能暂未提供翻译。",
+  "account.card.language.description":
+    "本项目由社区成员翻译，部分语言可能暂未提供翻译。",
   "account.card.color.title": "颜色外观",
   // ThemeSwitcher.tsx
   "account.theme.dark": "暗黑模式",
@@ -263,7 +387,8 @@ export default {
   "account.theme.system": "跟随系统",
   "account.button.delete": "删除账户",
   "account.modal.delete.title": "删除账户",
-  "account.modal.delete.description": "你真的想删除你的账户，并删除所有的共享吗？",
+  "account.modal.delete.description":
+    "你真的想删除你的账户，并删除所有的共享吗？",
   // END /account
 
   // /account/shares
@@ -298,13 +423,15 @@ export default {
   // /account/assets
   "account.assets.title": "我的资源",
   "account.assets.title.empty": "还没有资源",
-  "account.assets.description.empty": "选择文件、粘贴内容或输入链接，保存第一项资源。",
+  "account.assets.description.empty":
+    "选择文件、粘贴内容或输入链接，保存第一项资源。",
   "account.assets.title.noResults": "没有匹配的资源",
   "account.assets.description.noResults": "换个搜索词，或清除筛选条件。",
   "account.assets.filter.clear": "清除筛选",
   "account.shortLinks.quick-url": "粘贴网址以创建短链接",
   "account.shortLinks.quick-next": "设置短链接",
-  "account.shortLinks.error.drop-url": "请拖入单个网页网址。文件请到上传页添加。",
+  "account.shortLinks.error.drop-url":
+    "请拖入单个网页网址。文件请到上传页添加。",
   "shortLinkAccess.title": "打开短链接",
   "shortLinkAccess.unavailable": "这个短链接不可用。",
   "shortLinkAccess.disabled": "所有者已停用这个短链接。",
@@ -317,7 +444,8 @@ export default {
   "shortLinkAccess.denied": "无法验证访问权限。请检查密码或访问规则后重试。",
   "account.shortLinks.remove-password": "保存时移除当前密码",
   "account.shortLinks.keep-password": "保留当前密码",
-  "account.shortLinks.password-active": "当前需要访问密码。留空可保留原密码，也可以输入新密码。",
+  "account.shortLinks.password-active":
+    "当前需要访问密码。留空可保留原密码，也可以输入新密码。",
   "account.assets.type.file": "文件",
   "account.assets.type.text": "文本",
   "account.assets.type.link": "链接",
@@ -329,7 +457,8 @@ export default {
   "account.assets.table.createdAt": "创建于",
   "account.assets.table.size": "大小",
   "account.assets.modal.delete.title": "删除资源",
-  "account.assets.modal.delete.description": "删除此资源库内容？已经加入独立分享或房间的副本仍可使用。",
+  "account.assets.modal.delete.description":
+    "删除此资源库内容？已经加入独立分享或房间的副本仍可使用。",
   "account.assets.rename.title": "重命名资源",
   "account.assets.rename.name": "名称",
   "account.assets.action.rename": "重命名",
@@ -422,7 +551,8 @@ export default {
   "account.shortLinks.targetPicker.shares": "独立分享",
   "account.shortLinks.targetPicker.placeholder": "搜索房间或分享",
   "account.shortLinks.targetPicker.empty": "没有可选的房间或分享",
-  "account.shortLinks.targetPicker.loadFailed": "部分目标加载失败，可直接输入路径。",
+  "account.shortLinks.targetPicker.loadFailed":
+    "部分目标加载失败，可直接输入路径。",
   "account.shortLinks.targetPicker.path": "站内路径",
   "account.shortLinks.error.target": "请输入有效的网址或站内路径",
   "account.shortLinks.filter.search": "搜索短码、标题或目标",
@@ -593,8 +723,7 @@ export default {
   "room.rooms.protected": "有口令",
   "room.rooms.open": "公开",
   "room.rooms.delete.title": "删除房间",
-  "room.rooms.delete.description":
-    "房间 {room} 和其中的内容将被永久删除。",
+  "room.rooms.delete.description": "房间 {room} 和其中的内容将被永久删除。",
   "room.rooms.edit.title": "编辑房间",
   "room.rooms.editor.title": "房间",
   "room.rooms.editor.empty": "创建或选择一个房间后添加内容。",
@@ -616,7 +745,8 @@ export default {
 
   // /account/reverseShares
   "account.reverseShares.title": "投递箱",
-  "account.reverseShares.description": "投递箱允许外部用户提交文件、文本和链接，等待你审核。",
+  "account.reverseShares.description":
+    "投递箱允许外部用户提交文件、文本和链接，等待你审核。",
   "account.reverseShares.title.empty": "还没有投递箱",
   "account.reverseShares.description.empty":
     "创建投递箱链接，让别人提交内容供你审核。",
@@ -646,7 +776,8 @@ export default {
   "account.reverseShares.modal.reviewNotice":
     "提交内容先进入待审核列表，审核前不会公开。",
   "account.reverseShares.modal.send-email": "发送电子邮件通知",
-  "account.reverseShares.modal.send-email.description": "当使用此预留共享链接创建共享时，向您发送电子邮件通知。",
+  "account.reverseShares.modal.send-email.description":
+    "当使用此预留共享链接创建共享时，向您发送电子邮件通知。",
   "account.reverseShares.modal.simplified": "简单模式",
   "account.reverseShares.modal.simplified.description":
     "向投递者显示更精简的填写表单。",
@@ -654,8 +785,7 @@ export default {
   "account.reverseShares.modal.public-access.description":
     "仅在你选择“接收为共享”时生效。",
   "account.reverseShares.modal.max-use.label": "最大使用次数",
-  "account.reverseShares.modal.max-use.description":
-    "每次投递会占用一次次数。",
+  "account.reverseShares.modal.max-use.description": "每次投递会占用一次次数。",
   "account.reverseShare.never-expires": "这个投递箱永不过期",
   "account.reverseShare.expires-on": "这个投递箱将过期于 {expiration}",
   "account.reverseShares.table.unnamed": "未命名投递箱",
@@ -682,22 +812,32 @@ export default {
   "account.reverseShares.submissions.acceptShare": "创建分享",
   "account.reverseShares.submissions.reject": "拒绝",
   "account.reverseShares.submissions.reject.title": "拒绝投递",
-  "account.reverseShares.submissions.reject.description": "拒绝此投递并删除其中上传的资产吗？",
+  "account.reverseShares.submissions.reject.description":
+    "拒绝此投递并删除其中上传的资产吗？",
   "account.reverseShares.submissions.notify.acceptedAssets":
     "投递内容已保存到资源库",
   "account.reverseShares.submissions.notify.acceptedShare": "投递已接收为共享",
   "account.reverseShares.submissions.notify.rejected": "投递已拒绝",
   "account.reverseShares.modal.reverse-share-link": "投递箱链接",
   "account.reverseShares.modal.delete.title": "删除投递箱",
-  "account.reverseShares.modal.delete.description": "你真的想删除此投递箱吗？链接下所有关联的共享都将被删除",
+  "account.reverseShares.modal.delete.description":
+    "你真的想删除此投递箱吗？链接下所有关联的共享都将被删除",
   // END /account/reverseShares
 
   // /admin
   "admin.title": "管理",
   "admin.button.users": "用户管理",
   "admin.button.shares": "共享管理",
+  "admin.button.images": "图床管理",
   "admin.button.config": "配置管理",
   "admin.button.activity": "操作日志",
+  "admin.images.title": "图床管理",
+  "admin.images.description":
+    "查看全站 {users} 位图床用户的图片占用、访问情况和所属关系，并处理违规内容。",
+  "admin.images.deleteConfirm":
+    "永久删除这张图片及其全部衍生文件？此操作无法撤销。",
+  "admin.images.deleted": "图片已永久删除",
+  "admin.images.views": "{count} 次访问",
   "admin.version": "版本",
   // END /admin
 
@@ -721,16 +861,19 @@ export default {
   "admin.users.edit.update.change-password.button": "保存新密码",
   "admin.users.edit.update.notify.password.success": "密码更新成功！",
   "admin.users.edit.delete.title": "删除用户 {username} ？",
-  "admin.users.edit.delete.description": "你真的想删除这个账户，并删除该用户所有的共享吗？",
+  "admin.users.edit.delete.description":
+    "你真的想删除这个账户，并删除该用户所有的共享吗？",
   // showCreateUserModal.tsx
   "admin.users.modal.create.title": "创建用户",
   "admin.users.modal.create.username": "用户名",
   "admin.users.modal.create.email": "电子邮件",
   "admin.users.modal.create.password": "密码",
   "admin.users.modal.create.manual-password": "手动设置密码",
-  "admin.users.modal.create.manual-password.description": "如果不勾选，用户将会收到一封电子邮件来设置他们的密码",
+  "admin.users.modal.create.manual-password.description":
+    "如果不勾选，用户将会收到一封电子邮件来设置他们的密码",
   "admin.users.modal.create.admin": "管理员",
-  "admin.users.modal.create.admin.description": "如果勾选，用户将能访问管理员面板",
+  "admin.users.modal.create.admin.description":
+    "如果勾选，用户将能访问管理员面板",
   // END /admin/users
 
   // /admin/shares
@@ -758,10 +901,12 @@ export default {
   "upload.notify.generic-error": "创建共享的过程中发生了错误",
   "upload.notify.count-failed": "{count} 文件上传失败，请重试",
   "upload.reverse-share.error.invalid.title": "无效的预留共享链接",
-  "upload.reverse-share.error.invalid.description": "这个预留分享已过期或无效。",
+  "upload.reverse-share.error.invalid.description":
+    "这个预留分享已过期或无效。",
   // Dropzone.tsx
   "upload.dropzone.title": "上传文件",
-  "upload.dropzone.description": "将文件拖放到此处开始分享，或按 'Ctrl+V' 从剪贴板上传文本内容。总大小最多接受 {maxSize}。",
+  "upload.dropzone.description":
+    "将文件拖放到此处开始分享，或按 'Ctrl+V' 从剪贴板上传文本内容。总大小最多接受 {maxSize}。",
   "upload.dropzone.notify.file-too-big": "你的文件超过了最大上传限制 {maxSize}",
   // FileList.tsx
   "upload.filelist.name": "文件名",
@@ -771,7 +916,8 @@ export default {
   "upload.modal.link.error.invalid": "只能包括字母，数字，下划线(_)，和横线(-)",
   "upload.modal.link.error.taken": "这个链接已经存在了",
   "upload.modal.not-signed-in": "当前没有登录",
-  "upload.modal.not-signed-in-description": "你将不能删除你的共享或查看访问次数",
+  "upload.modal.not-signed-in-description":
+    "你将不能删除你的共享或查看访问次数",
   "upload.modal.expires.never": "永不",
   "upload.modal.expires.never-long": "永久分享",
   "upload.modal.expires.error.too-long": "有效期超过 {max} 的最大值。",
@@ -780,7 +926,8 @@ export default {
   "upload.modal.delivery.link": "链接分享",
   "upload.modal.delivery.pickup": "取件码",
   "upload.modal.delivery.linkDescription": "生成专属链接，发给接收者即可访问。",
-  "upload.modal.delivery.pickupDescription": "默认生成 6 位取件码，也可直接修改。接收者在「取件」页面输入后访问。",
+  "upload.modal.delivery.pickupDescription":
+    "默认生成 6 位取件码，也可直接修改。接收者在「取件」页面输入后访问。",
   "upload.modal.delivery.resetCode": "重新生成取件码",
   "upload.modal.delivery.customPlaceholder": "输入 6 位数字",
   "upload.modal.delivery.customInvalid": "请输入 6 位数字取件码",
@@ -803,7 +950,8 @@ export default {
   "upload.modal.content.description": "文件、文本和链接会一起创建为共享内容。",
   "upload.modal.content.total": "{count, plural, =0 {无内容} other {# 项内容}}",
   "upload.modal.content.files": "文件",
-  "upload.modal.content.files.summary": "{count, plural, other {已选择 # 个文件}} · {size}",
+  "upload.modal.content.files.summary":
+    "{count, plural, other {已选择 # 个文件}} · {size}",
   "upload.modal.content.files.empty": "还没有选择文件。",
   "upload.modal.content.files.more": "{count, plural, other {另有 # 个文件}}",
   "upload.modal.content.text": "文本",
@@ -846,7 +994,8 @@ export default {
   "upload.modal.access.security.max-views.placeholder": "无限",
   "upload.modal.accordion.name-and-description.title": "名称与描述",
   "upload.modal.accordion.name-and-description.name.placeholder": "名称",
-  "upload.modal.accordion.name-and-description.description.placeholder": "写给接收者的备注",
+  "upload.modal.accordion.name-and-description.description.placeholder":
+    "写给接收者的备注",
   "upload.modal.accordion.email.title": "邮件提醒",
   "upload.modal.accordion.email.placeholder": "收件人电子邮件地址",
   "upload.modal.accordion.email.invalid-email": "邮件地址不可用",
@@ -859,7 +1008,8 @@ export default {
   "upload.modal.completed.never-expires": "这个共享永不过期",
   "upload.modal.completed.expires-on": "这个共享将过期于 {expiration}.",
   "upload.modal.completed.share-ready": "共享创建完毕",
-  "upload.modal.completed.pickupInstructions": "将取件码发给接收者，告知他们在「取件」页面输入。",
+  "upload.modal.completed.pickupInstructions":
+    "将取件码发给接收者，告知他们在「取件」页面输入。",
   "pickup.nav": "取件",
   "pickup.title": "取件",
   "pickup.code": "取件码",
@@ -867,14 +1017,17 @@ export default {
   "pickup.open": "打开分享",
   "pickup.entry": "取件入口",
   "pickup.copied": "已复制取件码",
-  "upload.modal.completed.notified-reverse-share-creator": "我们已经通知预留共享的创建者。您也可以通过其他方式将该链接手动分享给他们。",
+  "upload.modal.completed.notified-reverse-share-creator":
+    "我们已经通知预留共享的创建者。您也可以通过其他方式将该链接手动分享给他们。",
   // END /upload
 
   // /share/[id]
   "share.title": "共享 {shareId}",
   "share.description": "瞧瞧我给你共享了些什么！",
-  "share.fileCount": "{count, plural, other {# 个文件}} · {size}（zip 文件经过压缩后可能更小）",
-  "share.assetCount": "{count, plural, other {# 项}} · {fileCount, plural, other {# 个文件}} · {size}",
+  "share.fileCount":
+    "{count, plural, other {# 个文件}} · {size}（zip 文件经过压缩后可能更小）",
+  "share.assetCount":
+    "{count, plural, other {# 项}} · {fileCount, plural, other {# 个文件}} · {size}",
   "share.asset.add.title": "添加项目",
   "share.asset.add": "添加项目",
   "share.asset.copy-text": "复制文本",
@@ -883,7 +1036,8 @@ export default {
   "share.asset.manage.title": "项目列表",
   "share.asset.manage.empty": "还没有任何项目。",
   "share.asset.modal.delete.title": "删除共享项目",
-  "share.asset.modal.delete.description": "该文本或链接项目将从共享中永久删除。",
+  "share.asset.modal.delete.description":
+    "该文本或链接项目将从共享中永久删除。",
   "share.copy-text-contents": "复制文件内容到剪贴板",
   "share.error.visitor-limit-exceeded.title": "访问次数达到上限",
   "share.error.visitor-limit-exceeded.description": "访问次数达到上限",
@@ -906,7 +1060,8 @@ export default {
   "share.table.name": "文件名",
   "share.table.size": "文件大小",
   "share.modal.file-preview.error.not-supported.title": "该文件类型不支持预览",
-  "share.modal.file-preview.error.not-supported.description": "这种类型的文件不支持预览。请下载文件查看。",
+  "share.modal.file-preview.error.not-supported.description":
+    "这种类型的文件不支持预览。请下载文件查看。",
   // END /share/[id]
 
   // /share/[id]/edit
@@ -926,7 +1081,8 @@ export default {
 
   // /admin/config
   "admin.config.config-file-warning.title": "配置文件已存在",
-  "admin.config.config-file-warning.description": "由于您已配置了Share 共享的配置文件，您无法通过UI更改配置。",
+  "admin.config.config-file-warning.description":
+    "由于您已配置了Share 共享的配置文件，您无法通过UI更改配置。",
   "admin.config.title": "配置管理",
   "admin.config.category.general": "通用",
   "admin.config.category.appearance": "外观",
@@ -938,96 +1094,134 @@ export default {
   "admin.config.general.app-name": "App 名称",
   "admin.config.general.app-name.description": "自定义 App 的名称",
   "admin.config.general.default-language": "默认语言",
-  "admin.config.general.default-language.description": "此设置应用于所有用户，每位用户仍可在其个人资料中自定义语言。",
+  "admin.config.general.default-language.description":
+    "此设置应用于所有用户，每位用户仍可在其个人资料中自定义语言。",
   "admin.config.appearance.theme-primary-color": "主题主色",
-  "admin.config.appearance.theme-primary-color.description": "用于按钮、链接和强调元素的主色。选择“自定义”可使用颜色覆盖。",
+  "admin.config.appearance.theme-primary-color.description":
+    "用于按钮、链接和强调元素的主色。选择“自定义”可使用颜色覆盖。",
   "admin.config.appearance.theme-primary-color-override": "自定义主色",
-  "admin.config.appearance.theme-primary-color-override.description": "当主题主色设为“自定义”时使用的十六进制覆盖颜色。",
+  "admin.config.appearance.theme-primary-color-override.description":
+    "当主题主色设为“自定义”时使用的十六进制覆盖颜色。",
   "admin.config.appearance.theme-font-preset": "字体预设",
-  "admin.config.appearance.theme-font-preset.description": "在构建时加载的字体预设。可选择系统默认或内置的 Google Fonts。",
+  "admin.config.appearance.theme-font-preset.description":
+    "在构建时加载的字体预设。可选择系统默认或内置的 Google Fonts。",
   "admin.config.appearance.theme-color-scheme": "默认配色方案（访客）",
-  "admin.config.appearance.theme-color-scheme.description": "未登录用户的默认浅色/深色模式。已登录用户使用其个人账户偏好。",
+  "admin.config.appearance.theme-color-scheme.description":
+    "未登录用户的默认浅色/深色模式。已登录用户使用其个人账户偏好。",
   "admin.config.appearance.theme-radius": "主题圆角",
-  "admin.config.appearance.theme-radius.description": "Mantine 组件使用的默认圆角半径。",
+  "admin.config.appearance.theme-radius.description":
+    "Mantine 组件使用的默认圆角半径。",
   "admin.config.appearance.custom-css": "自定义 CSS",
-  "admin.config.appearance.custom-css.description": "应用到前端的全局 CSS。请谨慎使用，错误的 CSS 可能影响界面。",
+  "admin.config.appearance.custom-css.description":
+    "应用到前端的全局 CSS。请谨慎使用，错误的 CSS 可能影响界面。",
   "admin.config.general.app-url": "App 的地址",
   "admin.config.general.app-url.description": "Share 的 URL 地址",
   "admin.config.general.secure-cookies": "安全 Cookie",
-  "admin.config.general.secure-cookies.description": "是否为 cookie 设置安全标志。如果启用，当通过 HTTP 访问时站点将无法运行。",
+  "admin.config.general.secure-cookies.description":
+    "是否为 cookie 设置安全标志。如果启用，当通过 HTTP 访问时站点将无法运行。",
   "admin.config.general.show-home-page": "显示首页",
   "admin.config.general.show-home-page.description": "是否显示首页",
   "admin.config.general.session-duration": "会话时长",
-  "admin.config.general.session-duration.description": "用户必须重新登录的时间 (默认：3 个月)。",
+  "admin.config.general.session-duration.description":
+    "用户必须重新登录的时间 (默认：3 个月)。",
   "admin.config.general.logo": "Logo",
-  "admin.config.general.logo.description": "上传你的个性化 Logo，图片必须是长宽比 1:1 的 PNG 格式",
+  "admin.config.general.logo.description":
+    "上传你的个性化 Logo，图片必须是长宽比 1:1 的 PNG 格式",
   "admin.config.general.logo-dark": "深色模式 Logo",
-  "admin.config.general.logo-dark.description": "为深色模式上传一个单独的 Logo。图片必须是长宽比 1:1 的 PNG 格式。",
+  "admin.config.general.logo-dark.description":
+    "为深色模式上传一个单独的 Logo。图片必须是长宽比 1:1 的 PNG 格式。",
   "admin.config.general.logo.placeholder": "选择图片",
   "admin.config.cache.ttl": "TTL",
   "admin.config.cache.ttl.description": "缓存中信息的保留时间（秒）。",
   "admin.config.cache.max-items": "最大条目数",
   "admin.config.cache.max-items.description": "缓存中的最大条目数量。",
   "admin.config.cache.redis-enabled": "启用 Redis",
-  "admin.config.cache.redis-enabled.description": "Share 通常将信息缓存在内存中。如果你运行多个 Share 实例，则需要启用 Redis 缓存，以便在各实例间共享缓存。",
+  "admin.config.cache.redis-enabled.description":
+    "Share 通常将信息缓存在内存中。如果你运行多个 Share 实例，则需要启用 Redis 缓存，以便在各实例间共享缓存。",
   "admin.config.cache.redis-url": "Redis URL",
-  "admin.config.cache.redis-url.description": "用于连接缓存所用 Redis 实例的 URL。",
+  "admin.config.cache.redis-url.description":
+    "用于连接缓存所用 Redis 实例的 URL。",
   "admin.config.cache.button.test-redis": "测试 Redis 连接",
   "admin.config.cache.test-redis.success": "已成功连接到 Redis",
-  "admin.config.cache.test-redis.success-disabled": "已成功连接到 Redis（Redis 缓存当前已禁用）。",
+  "admin.config.cache.test-redis.success-disabled":
+    "已成功连接到 Redis（Redis 缓存当前已禁用）。",
   "admin.config.cache.test-redis.modal.error.title": "连接 Redis 失败",
-  "admin.config.cache.test-redis.modal.error.description": "连接 Redis 时发生以下错误：",
+  "admin.config.cache.test-redis.modal.error.description":
+    "连接 Redis 时发生以下错误：",
   "admin.config.cache.test-redis.modal.save.title": "保存配置",
-  "admin.config.cache.test-redis.modal.save.description": "继续之前需要先保存配置。是否保存配置并测试 Redis 连接？",
+  "admin.config.cache.test-redis.modal.save.description":
+    "继续之前需要先保存配置。是否保存配置并测试 Redis 连接？",
   "admin.config.cache.test-redis.modal.save.confirm": "保存并测试",
   "admin.config.email.enable-share-email-recipients": "启用邮件收件人共享",
-  "admin.config.email.enable-share-email-recipients.description": "是否允许通过邮件向收件人分享。仅在启用 SMTP 后才能开启。",
+  "admin.config.email.enable-share-email-recipients.description":
+    "是否允许通过邮件向收件人分享。仅在启用 SMTP 后才能开启。",
   "admin.config.email.share-recipients-subject": "共享邮件通知主题",
-  "admin.config.email.share-recipients-subject.description": "发送共享邮件通知的邮件主题",
+  "admin.config.email.share-recipients-subject.description":
+    "发送共享邮件通知的邮件主题",
   "admin.config.email.share-recipients-message": "共享邮件通知内容",
-  "admin.config.email.share-recipients-message.description": "发给接收者的共享邮件通知的具体内容。可选的变量有：\n {creator} - 该共享的创建者\n {creatorEmail} - 共享创建者的电子邮箱\n {shareUrl} - 该共享的链接\n {desc} - 该共享的描述\n {expires} - 该共享的过期时间\n 这些变量会被实际的值所替代。",
+  "admin.config.email.share-recipients-message.description":
+    "发给接收者的共享邮件通知的具体内容。可选的变量有：\n {creator} - 该共享的创建者\n {creatorEmail} - 共享创建者的电子邮箱\n {shareUrl} - 该共享的链接\n {desc} - 该共享的描述\n {expires} - 该共享的过期时间\n 这些变量会被实际的值所替代。",
   "admin.config.email.reverse-share-subject": "预留共享邮件通知主题",
-  "admin.config.email.reverse-share-subject.description": "当有人使用您的预留共享链接创建共享时发送电子邮件的主题",
+  "admin.config.email.reverse-share-subject.description":
+    "当有人使用您的预留共享链接创建共享时发送电子邮件的主题",
   "admin.config.email.reverse-share-message": "预留共享邮件通知内容",
-  "admin.config.email.reverse-share-message.description": "当有人使用了你的预留共享链接时，发送的通知内容。{shareUrl} 会被创建者的用户名和共享链接代替",
+  "admin.config.email.reverse-share-message.description":
+    "当有人使用了你的预留共享链接时，发送的通知内容。{shareUrl} 会被创建者的用户名和共享链接代替",
   "admin.config.email.reset-password-subject": "重置密码邮件通知主题",
-  "admin.config.email.reset-password-subject.description": "当用户发起重置密码时，发送的重置密码邮件通知主题",
+  "admin.config.email.reset-password-subject.description":
+    "当用户发起重置密码时，发送的重置密码邮件通知主题",
   "admin.config.email.reset-password-message": "重置密码邮件通知内容",
-  "admin.config.email.reset-password-message.description": "当用户发起重置密码时，重置密码邮件通知内容。{url} 会被重置密码链接代替",
+  "admin.config.email.reset-password-message.description":
+    "当用户发起重置密码时，重置密码邮件通知内容。{url} 会被重置密码链接代替",
   "admin.config.email.invite-subject": "邀请邮件通知主题",
-  "admin.config.email.invite-subject.description": "当管理员邀请用户时，发送的邀请邮件通知主题",
+  "admin.config.email.invite-subject.description":
+    "当管理员邀请用户时，发送的邀请邮件通知主题",
   "admin.config.email.invite-message": "邀请邮件通知内容",
-  "admin.config.email.invite-message.description": "管理员邀请用户时发送的消息。{url} 将被替换为邀请链接，{email} 将被替换为电子邮件，{password} 将被替换为用户的密码。",
+  "admin.config.email.invite-message.description":
+    "管理员邀请用户时发送的消息。{url} 将被替换为邀请链接，{email} 将被替换为电子邮件，{password} 将被替换为用户的密码。",
   "admin.config.email.enable-share-download-notifications": "启用下载通知",
-  "admin.config.email.enable-share-download-notifications.description": "当邮件收件人下载文件时，是否向分享创建者发送邮件。此功能需要 SMTP 和邮件收件人分享。",
+  "admin.config.email.enable-share-download-notifications.description":
+    "当邮件收件人下载文件时，是否向分享创建者发送邮件。此功能需要 SMTP 和邮件收件人分享。",
   "admin.config.email.share-download-notification-subject": "下载通知主题",
-  "admin.config.email.share-download-notification-subject.description": "收件人下载文件时发送给分享创建者的邮件主题。",
+  "admin.config.email.share-download-notification-subject.description":
+    "收件人下载文件时发送给分享创建者的邮件主题。",
   "admin.config.email.share-download-notification-message": "下载通知内容",
-  "admin.config.email.share-download-notification-message.description": "收件人下载文件时发送给分享创建者的邮件内容。可用变量：\n {recipientEmail} - 收件人的邮箱\n {fileName} - 下载的文件名\n {shareUrl} - 分享的链接",
+  "admin.config.email.share-download-notification-message.description":
+    "收件人下载文件时发送给分享创建者的邮件内容。可用变量：\n {recipientEmail} - 收件人的邮箱\n {fileName} - 下载的文件名\n {shareUrl} - 分享的链接",
   "admin.config.share.allow-registration": "允许注册",
   "admin.config.share.allow-registration.description": "是否允许注册",
   "admin.config.share.allow-unauthenticated-shares": "是否允许未验证的共享",
-  "admin.config.share.allow-unauthenticated-shares.description": "是否允许未验证的用户创建共享",
+  "admin.config.share.allow-unauthenticated-shares.description":
+    "是否允许未验证的用户创建共享",
   "admin.config.share.default-expiration": "默认过期时间",
-  "admin.config.share.default-expiration.description": "创建新分享时默认选中的过期时间。",
+  "admin.config.share.default-expiration.description":
+    "创建新分享时默认选中的过期时间。",
   "admin.config.share.max-expiration": "最长过期时间",
-  "admin.config.share.max-expiration.description": "“最长过期时间”以小时为单位，如果将其设置为“0”则为永不过期。",
+  "admin.config.share.max-expiration.description":
+    "“最长过期时间”以小时为单位，如果将其设置为“0”则为永不过期。",
   "admin.config.share.share-id-length": "默认共享ID长度",
-  "admin.config.share.share-id-length.description": "生成的共享 ID 的默认长度。该值也用于生成预留共享的链接。低于 8 的值不安全。",
+  "admin.config.share.share-id-length.description":
+    "生成的共享 ID 的默认长度。该值也用于生成预留共享的链接。低于 8 的值不安全。",
   "admin.config.share.max-size": "最大文件上限",
   "admin.config.share.max-size.description": "最大文件上限",
   "admin.config.share.zip-compression-level": "Zip 文件压缩质量",
-  "admin.config.share.zip-compression-level.description": "调整压缩质量来平衡压缩文件的大小和压缩的速度。有效值介于 0 和 9 之间，0 为不压缩，9 为最高质量压缩。 ",
+  "admin.config.share.zip-compression-level.description":
+    "调整压缩质量来平衡压缩文件的大小和压缩的速度。有效值介于 0 和 9 之间，0 为不压缩，9 为最高质量压缩。 ",
   "admin.config.share.chunk-size": "块大小",
-  "admin.config.share.chunk-size.description": "根据你的互联网连接情况调整上传文件的块大小（以字节为单位），以平衡效率和可靠性。 较小的块有助于提高不稳定网络环境中的上传成功率，而较大的块则可以加快稳定网络环境中的上传速度。",
+  "admin.config.share.chunk-size.description":
+    "根据你的互联网连接情况调整上传文件的块大小（以字节为单位），以平衡效率和可靠性。 较小的块有助于提高不稳定网络环境中的上传成功率，而较大的块则可以加快稳定网络环境中的上传速度。",
   "admin.config.share.auto-open-share-modal": "自动打开创建共享对话框",
-  "admin.config.share.auto-open-share-modal.description": "每当用户选择完将要被上传的文件后，自动打开创建共享的对话框。",
+  "admin.config.share.auto-open-share-modal.description":
+    "每当用户选择完将要被上传的文件后，自动打开创建共享的对话框。",
   "admin.config.share.allow-admin-access-all-shares": "允许管理员访问所有分享",
-  "admin.config.share.allow-admin-access-all-shares.description": "允许管理员访问所有分享，即使分享受密码保护、已过期或已删除。",
+  "admin.config.share.allow-admin-access-all-shares.description":
+    "允许管理员访问所有分享，即使分享受密码保护、已过期或已删除。",
   "admin.config.share.file-retention-period": "文件保留期",
-  "admin.config.share.file-retention-period.description": "分享过期或被删除后文件的保留时长。仅在同时启用「允许管理员访问所有分享」时有意义。设为 -1 可永久保留文件。",
+  "admin.config.share.file-retention-period.description":
+    "分享过期或被删除后文件的保留时长。仅在同时启用「允许管理员访问所有分享」时有意义。设为 -1 可永久保留文件。",
   "admin.config.smtp.enabled": "启用",
-  "admin.config.smtp.enabled.description": "是否开启 SMTP，仅当输入主机名、端口、发送邮箱、用户名和密码后开启",
+  "admin.config.smtp.enabled.description":
+    "是否开启 SMTP，仅当输入主机名、端口、发送邮箱、用户名和密码后开启",
   "admin.config.smtp.host": "主机名",
   "admin.config.smtp.host.description": "SMTP 主机名",
   "admin.config.smtp.port": "端口",
@@ -1041,68 +1235,101 @@ export default {
   "admin.config.smtp.button.test": "发送测试邮件",
   "admin.config.smtp.test-email.success": "邮件发送成功",
   "admin.config.smtp.test-email.error.title": "邮件发送失败",
-  "admin.config.smtp.test-email.error.description": "发送测试邮件时发生以下错误：",
+  "admin.config.smtp.test-email.error.description":
+    "发送测试邮件时发生以下错误：",
   "admin.config.smtp.test-email.save.title": "保存配置",
-  "admin.config.smtp.test-email.save.description": "继续之前需要先保存配置。是否保存配置并发送测试邮件？",
+  "admin.config.smtp.test-email.save.description":
+    "继续之前需要先保存配置。是否保存配置并发送测试邮件？",
   "admin.config.smtp.test-email.save.confirm": "保存并发送",
-  "admin.config.smtp.allow-unauthorized-certificates": "信任未经授权的 SMTP 服务器证书",
-  "admin.config.smtp.allow-unauthorized-certificates.description": "仅在需要信任自签名证书时将其开启",
+  "admin.config.smtp.allow-unauthorized-certificates":
+    "信任未经授权的 SMTP 服务器证书",
+  "admin.config.smtp.allow-unauthorized-certificates.description":
+    "仅在需要信任自签名证书时将其开启",
   "admin.config.oauth.allow-registration": "允许注册",
-  "admin.config.oauth.allow-registration.description": "允许用户通过登录社交账号来注册",
+  "admin.config.oauth.allow-registration.description":
+    "允许用户通过登录社交账号来注册",
   "admin.config.oauth.ignore-totp": "忽略两步验证",
-  "admin.config.oauth.ignore-totp.description": "用户通过社交账号登录时是否忽略两步验证",
+  "admin.config.oauth.ignore-totp.description":
+    "用户通过社交账号登录时是否忽略两步验证",
   "admin.config.oauth.disable-password": "禁用密码登录",
-  "admin.config.oauth.disable-password.description": "是否禁用密码登录\n确保在激活此配置之前，OAuth 已正确配置，以避免被锁定。",
+  "admin.config.oauth.disable-password.description":
+    "是否禁用密码登录\n确保在激活此配置之前，OAuth 已正确配置，以避免被锁定。",
   "admin.config.oauth.github-enabled": "GitHub",
   "admin.config.oauth.github-enabled.description": "是否启用 GitHub 账号登录",
   "admin.config.oauth.github-client-id": "GitHub Client ID",
-  "admin.config.oauth.github-client-id.description": "GitHub OAuth App 的 Client ID",
+  "admin.config.oauth.github-client-id.description":
+    "GitHub OAuth App 的 Client ID",
   "admin.config.oauth.github-client-secret": "GitHub 的 Client secret",
-  "admin.config.oauth.github-client-secret.description": "GitHub OAuth App 的 Client secret",
+  "admin.config.oauth.github-client-secret.description":
+    "GitHub OAuth App 的 Client secret",
   "admin.config.oauth.google-enabled": "谷歌",
   "admin.config.oauth.google-enabled.description": "是否启用谷歌账号登录",
   "admin.config.oauth.google-client-id": "谷歌 Client ID",
-  "admin.config.oauth.google-client-id.description": "Google OAuth App 的 Client ID",
+  "admin.config.oauth.google-client-id.description":
+    "Google OAuth App 的 Client ID",
   "admin.config.oauth.google-client-secret": "谷歌 Client secret",
-  "admin.config.oauth.google-client-secret.description": "Google OAuth App 的 Client secret",
+  "admin.config.oauth.google-client-secret.description":
+    "Google OAuth App 的 Client secret",
   "admin.config.oauth.microsoft-enabled": "Microsoft",
   "admin.config.oauth.microsoft-enabled.description": "是否启用微软账号登录",
   "admin.config.oauth.microsoft-tenant": "Microsoft 租户（Tenant）",
-  "admin.config.oauth.microsoft-tenant.description": "Microsoft OAuth 应用的 租户（Tenant） ID，共有四种类型，参阅https://learn.microsoft.com/zh-cn/security/zero-trust/develop/identity-supported-account-types。\ncommon（常规）：个人 Microsoft 账户和 Microsoft Entra ID 工作或学校账户均可登录。\norganizations（组织）：只有Microsoft Entra ID 工作或学校账户可以登录。\nconsumers（客户）：只有个人 Microsoft 账户可以登录。\nMicrosoft Entra 租户的域名或 GUID 格式的租户 ID：只有来自特定 Microsoft Entra 租户的用户（具有工作或学校账户的目录成员或具有个人 Microsoft 账户的目录来宾）才能登录。",
+  "admin.config.oauth.microsoft-tenant.description":
+    "Microsoft OAuth 应用的 租户（Tenant） ID，共有四种类型，参阅https://learn.microsoft.com/zh-cn/security/zero-trust/develop/identity-supported-account-types。\ncommon（常规）：个人 Microsoft 账户和 Microsoft Entra ID 工作或学校账户均可登录。\norganizations（组织）：只有Microsoft Entra ID 工作或学校账户可以登录。\nconsumers（客户）：只有个人 Microsoft 账户可以登录。\nMicrosoft Entra 租户的域名或 GUID 格式的租户 ID：只有来自特定 Microsoft Entra 租户的用户（具有工作或学校账户的目录成员或具有个人 Microsoft 账户的目录来宾）才能登录。",
   "admin.config.oauth.microsoft-client-id": "Microsoft Client ID",
-  "admin.config.oauth.microsoft-client-id.description": "Microsoft OAuth App 的 Client ID",
+  "admin.config.oauth.microsoft-client-id.description":
+    "Microsoft OAuth App 的 Client ID",
   "admin.config.oauth.microsoft-client-secret": "Microsoft 的 Client secret",
-  "admin.config.oauth.microsoft-client-secret.description": "Microsoft OAuth App 的 Client secret",
+  "admin.config.oauth.microsoft-client-secret.description":
+    "Microsoft OAuth App 的 Client secret",
   "admin.config.oauth.discord-enabled": "Discord",
   "admin.config.oauth.discord-enabled.description": "是否启用 Discord 账号登录",
   "admin.config.oauth.discord-limited-users": "Discord 受限用户",
-  "admin.config.oauth.discord-limited-users.description": "使用Discord ID限制登录到特定的用户。留空以禁用。",
+  "admin.config.oauth.discord-limited-users.description":
+    "使用Discord ID限制登录到特定的用户。留空以禁用。",
   "admin.config.oauth.discord-limited-guild": "Discord 的 limited server ID",
-  "admin.config.oauth.discord-limited-guild.description": "限制特定服务器中的用户登录。留空来禁用。",
+  "admin.config.oauth.discord-limited-guild.description":
+    "限制特定服务器中的用户登录。留空来禁用。",
   "admin.config.oauth.discord-client-id": "Discord 的 Client ID",
-  "admin.config.oauth.discord-client-id.description": "Discord OAuth App 的 Client ID",
+  "admin.config.oauth.discord-client-id.description":
+    "Discord OAuth App 的 Client ID",
   "admin.config.oauth.discord-client-secret": "Discord 的 Client secret",
-  "admin.config.oauth.discord-client-secret.description": "Discord OAuth App 的 Client secret",
+  "admin.config.oauth.discord-client-secret.description":
+    "Discord OAuth App 的 Client secret",
   "admin.config.oauth.oidc-enabled": "OpenID Connect",
   "admin.config.oauth.oidc-enabled.description": "是否启用 OpenID Connect 登录",
   "admin.config.oauth.oidc-discovery-uri": "OpenID Connect 的 Discovery URI",
-  "admin.config.oauth.oidc-discovery-uri.description": "OpenID Connect OAuth App 的 Discovery URI",
+  "admin.config.oauth.oidc-discovery-uri.description":
+    "OpenID Connect OAuth App 的 Discovery URI",
   "admin.config.oauth.oidc-sign-out": "从 OpenID Connect 注销",
-  "admin.config.oauth.oidc-sign-out.description": "“注销”按钮是否会退出OpenID连接提供商",
+  "admin.config.oauth.oidc-sign-out.description":
+    "“注销”按钮是否会退出OpenID连接提供商",
   "admin.config.oauth.oidc-scope": "OpenID Connect 授权范围",
-  "admin.config.oauth.oidc-scope.description": "从 OpenID Connect 提供商请求的范围。",
+  "admin.config.oauth.oidc-scope.description":
+    "从 OpenID Connect 提供商请求的范围。",
   "admin.config.oauth.oidc-username-claim": "OpenID Connect 用户名请求",
-  "admin.config.oauth.oidc-username-claim.description": "OpenID Connect ID token 中的用户名请求。如果您不知道这项配置是什么，请留空。",
+  "admin.config.oauth.oidc-username-claim.description":
+    "OpenID Connect ID token 中的用户名请求。如果您不知道这项配置是什么，请留空。",
   "admin.config.oauth.oidc-role-path": "在 OpenID Connect 令牌中的角色路径",
-  "admin.config.oauth.oidc-role-path.description": "必须是引用角色数组的有效 JMES 路径。" + "只有在没有配置其他身份提供商且密码登录被禁用的情况下，才建议使用 OpenID Connect 角色来管理访问权限。 " + "如果您不知道此配置是什么，请留空。",
-  "admin.config.oauth.oidc-role-general-access": "常规访问的 OpenID Connect 角色",
-  "admin.config.oauth.oidc-role-general-access.description": "一般访问所需的角色。必须在用户角色中显示才能登录。 " + "如果您不知道此配置是什么，请留空。",
-  "admin.config.oauth.oidc-role-admin-access": "管理员访问的 OpenID Connect 角色",
-  "admin.config.oauth.oidc-role-admin-access.description": "管理权限所需的角色。必须在用户角色中显示他们才能访问管理面板。 " + "如果您不知道此配置是什么，请留空。",
+  "admin.config.oauth.oidc-role-path.description":
+    "必须是引用角色数组的有效 JMES 路径。" +
+    "只有在没有配置其他身份提供商且密码登录被禁用的情况下，才建议使用 OpenID Connect 角色来管理访问权限。 " +
+    "如果您不知道此配置是什么，请留空。",
+  "admin.config.oauth.oidc-role-general-access":
+    "常规访问的 OpenID Connect 角色",
+  "admin.config.oauth.oidc-role-general-access.description":
+    "一般访问所需的角色。必须在用户角色中显示才能登录。 " +
+    "如果您不知道此配置是什么，请留空。",
+  "admin.config.oauth.oidc-role-admin-access":
+    "管理员访问的 OpenID Connect 角色",
+  "admin.config.oauth.oidc-role-admin-access.description":
+    "管理权限所需的角色。必须在用户角色中显示他们才能访问管理面板。 " +
+    "如果您不知道此配置是什么，请留空。",
   "admin.config.oauth.oidc-client-id": "OpenID Connect 的 Client ID",
-  "admin.config.oauth.oidc-client-id.description": "OpenID Connect OAuth App 的 Client ID",
+  "admin.config.oauth.oidc-client-id.description":
+    "OpenID Connect OAuth App 的 Client ID",
   "admin.config.oauth.oidc-client-secret": "OpenID Connect 的 Client secret",
-  "admin.config.oauth.oidc-client-secret.description": "OpenID Connect OAuth App 的 Client secret",
+  "admin.config.oauth.oidc-client-secret.description":
+    "OpenID Connect OAuth App 的 Client secret",
   "admin.config.category.ldap": "LDAP",
   "admin.config.ldap.enabled": "启用 LDAP",
   "admin.config.ldap.enabled.description": "使用 LDAP 身份认证进行用户登录",
@@ -1115,21 +1342,26 @@ export default {
   "admin.config.ldap.search-base": "用户基准 DN",
   "admin.config.ldap.search-base.description": "进行用户搜索的基本位置",
   "admin.config.ldap.search-query": "用户查询",
-  "admin.config.ldap.search-query.description": "将用于在 'User base'中搜索 LDAP 用户。%username% 可以作为用户输入的占位符。",
+  "admin.config.ldap.search-query.description":
+    "将用于在 'User base'中搜索 LDAP 用户。%username% 可以作为用户输入的占位符。",
   "admin.config.ldap.admin-groups": "管理员群组",
   "admin.config.ldap.admin-groups.description": "进行管理访问所需的用户组。",
   "admin.config.ldap.field-name-member-of": "用户组属性名",
-  "admin.config.ldap.field-name-member-of.description": "表示用户所属用户组的 LDAP 属性名。用于检查管理员用户组。",
+  "admin.config.ldap.field-name-member-of.description":
+    "表示用户所属用户组的 LDAP 属性名。用于检查管理员用户组。",
   "admin.config.ldap.field-name-email": "用户邮箱属性名",
-  "admin.config.ldap.field-name-email.description": "表示用户邮箱的 LDAP 属性名。",
+  "admin.config.ldap.field-name-email.description":
+    "表示用户邮箱的 LDAP 属性名。",
   "admin.config.notify.success": "配置更新成功。",
-  "admin.config.notify.logo-success": "Logo 更新成功。可能需要几分钟时间才能在网站上更新。",
+  "admin.config.notify.logo-success":
+    "Logo 更新成功。可能需要几分钟时间才能在网站上更新。",
   "admin.config.notify.no-changes": "没有要保存的更改。",
   "admin.config.category.s3": "对象存储",
   "admin.config.category.webdav": "WebDAV",
   "admin.config.category.images": "图床",
   "admin.config.s3.enabled": "启用",
-  "admin.config.s3.enabled.description": "是否使用 S3 而非本地文件系统来存储共享文件。警告：如果启用了 ClamAV，文件将临时从 S3 下载以进行检查。",
+  "admin.config.s3.enabled.description":
+    "是否使用 S3 而非本地文件系统来存储共享文件。警告：如果启用了 ClamAV，文件将临时从 S3 下载以进行检查。",
   "admin.config.s3.endpoint": "Endpoint",
   "admin.config.s3.endpoint.description": "S3 桶的 URL 地址。",
   "admin.config.s3.region": "Region",
@@ -1137,17 +1369,21 @@ export default {
   "admin.config.s3.bucket-name": "Bucket名称",
   "admin.config.s3.bucket-name.description": "S3 桶的名称。",
   "admin.config.s3.bucket-path": "路径",
-  "admin.config.s3.bucket-path.description": "用于在 S3 桶中存储文件的默认路径。",
+  "admin.config.s3.bucket-path.description":
+    "用于在 S3 桶中存储文件的默认路径。",
   "admin.config.s3.key": "Key",
   "admin.config.s3.key.description": "允许您访问 S3 桶的密钥。",
   "admin.config.s3.secret": "Secret",
   "admin.config.s3.secret.description": "允许您访问 S3 桶的密钥。",
   "admin.config.s3.use-checksum": "使用校验和",
-  "admin.config.s3.use-checksum.description": "对于不支持校验和的后端（如 B2），请关闭此项。",
+  "admin.config.s3.use-checksum.description":
+    "对于不支持校验和的后端（如 B2），请关闭此项。",
   "admin.config.s3.force-path-style": "强制路径风格",
-  "admin.config.s3.force-path-style.description": "使用路径风格寻址（如 endpoint/bucket），而非虚拟主机风格（如 bucket.endpoint）。对于要求虚拟主机风格的服务商（如腾讯云 COS），请关闭此项。",
+  "admin.config.s3.force-path-style.description":
+    "使用路径风格寻址（如 endpoint/bucket），而非虚拟主机风格（如 bucket.endpoint）。对于要求虚拟主机风格的服务商（如腾讯云 COS），请关闭此项。",
   "admin.config.s3.file-rename-rules": "文件重命名规则",
-  "admin.config.s3.file-rename-rules.description": "上传时自动重命名匹配的文件。每条规则包含匹配模式和替换式。「通配符」规则中 * 表示任意字符，捕获的内容会回填到替换式的 * 占位（如 *.apk → *.apk.1）；「正则」规则中模式为正则表达式，替换式用 $1、$2 回填。命中第一条匹配的规则即生效。",
+  "admin.config.s3.file-rename-rules.description":
+    "上传时自动重命名匹配的文件。每条规则包含匹配模式和替换式。「通配符」规则中 * 表示任意字符，捕获的内容会回填到替换式的 * 占位（如 *.apk → *.apk.1）；「正则」规则中模式为正则表达式，替换式用 $1、$2 回填。命中第一条匹配的规则即生效。",
   "admin.config.s3.file-rename-rules.pattern": "匹配模式",
   "admin.config.s3.file-rename-rules.replacement": "替换式",
   "admin.config.s3.file-rename-rules.type": "类型",
@@ -1175,17 +1411,46 @@ export default {
   "admin.config.images.max-size": "单张图片大小上限",
   "admin.config.images.max-size.description":
     "网页和 API 上传共用此限制，可设置为 1 MB 至 100 MB。",
+  "admin.config.images.max-pixels": "最大像素数",
+  "admin.config.images.max-pixels.description":
+    "限制图片宽度乘高度，避免超大尺寸图片消耗过多处理内存。",
+  "admin.config.images.thumbnail-size": "缩略图尺寸",
+  "admin.config.images.thumbnail-size.description":
+    "图片库缩略图的最大边长，单位为像素。",
+  "admin.config.images.allow-processing": "允许图片处理",
+  "admin.config.images.allow-processing.description":
+    "允许用户转换格式、调整尺寸、移除元数据并添加水印。",
+  "admin.config.images.user-quota": "每位用户的图床配额",
+  "admin.config.images.user-quota.description":
+    "每位用户可用于图床的存储空间；设置为 0 表示不限制。",
+  "admin.config.images.uploads-per-minute": "每分钟上传次数",
+  "admin.config.images.uploads-per-minute.description":
+    "限制每位用户每分钟可提交的图片数量。",
+  "admin.config.images.recycle-retention-days": "回收站保留天数",
+  "admin.config.images.recycle-retention-days.description":
+    "超过该天数的回收站图片将连同存储文件自动永久删除。",
+  "admin.config.images.public-base-url": "公开图片域名",
+  "admin.config.images.public-base-url.description":
+    "可填写 CDN 或独立图片域名，例如 https://img.example.com；留空使用当前站点。",
+  "admin.config.images.cache-max-age": "公开图片缓存时间",
+  "admin.config.images.cache-max-age.description":
+    "浏览器和 CDN 缓存公开图片的秒数。",
   "admin.config.category.legal": "合规",
   "admin.config.legal.enabled": "启用合规提醒",
-  "admin.config.legal.enabled.description": "是否在页脚中显示版权信息和隐私政策。",
+  "admin.config.legal.enabled.description":
+    "是否在页脚中显示版权信息和隐私政策。",
   "admin.config.legal.imprint-text": "版权信息",
-  "admin.config.legal.imprint-text.description": "文本将会显示在版权信息中。支持Markdown。留空以链接到版权信息页面。",
+  "admin.config.legal.imprint-text.description":
+    "文本将会显示在版权信息中。支持Markdown。留空以链接到版权信息页面。",
   "admin.config.legal.imprint-url": "版权信息 URL",
-  "admin.config.legal.imprint-url.description": "如果您已经有一个版权信息页面，您可以在此链接它，而不是使用文本字段。",
+  "admin.config.legal.imprint-url.description":
+    "如果您已经有一个版权信息页面，您可以在此链接它，而不是使用文本字段。",
   "admin.config.legal.privacy-policy-text": "隐私政策文本",
-  "admin.config.legal.privacy-policy-text.description": "文本将会显示在隐私政策页面中。支持Markdown。留空以链接到隐私政策页面。",
+  "admin.config.legal.privacy-policy-text.description":
+    "文本将会显示在隐私政策页面中。支持Markdown。留空以链接到隐私政策页面。",
   "admin.config.legal.privacy-policy-url": "隐私政策网址",
-  "admin.config.legal.privacy-policy-url.description": "如果您已经有一个隐私政策页面，您可以在此链接它，而不是使用文本字段。",
+  "admin.config.legal.privacy-policy-url.description":
+    "如果您已经有一个隐私政策页面，您可以在此链接它，而不是使用文本字段。",
   // 404
   "404.description": "当前的页面走丢啦",
   "404.button.home": "返回主页",
@@ -1260,7 +1525,8 @@ export default {
   "accessControl.allowDownload": "允许下载",
   "accessControl.allowDownload.description": "访客可以下载文件，而不仅是预览。",
   "accessControl.allowAnonymous": "允许匿名访问",
-  "accessControl.allowAnonymous.description": "任何拿到链接的人无需登录即可打开。",
+  "accessControl.allowAnonymous.description":
+    "任何拿到链接的人无需登录即可打开。",
   "accessControl.oneTime": "一次性访问",
-  "accessControl.oneTime.description": "链接被打开一次后即失效。"
+  "accessControl.oneTime.description": "链接被打开一次后即失效。",
 };

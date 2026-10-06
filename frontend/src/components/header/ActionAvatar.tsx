@@ -1,6 +1,7 @@
 import {
   Activity,
   CircleUser,
+  Images,
   Link2,
   LogOut,
   Settings,
@@ -70,6 +71,14 @@ const ActionAvatar = ({ active }: { active: boolean }) => {
               leftSection={<Link2 size={14} />}
             >
               <FormattedMessage id="admin.button.shares" />
+            </Menu.Item>
+            <Menu.Item
+              component={Link}
+              href="/admin/images"
+              {...menuItemProps("/admin/images")}
+              leftSection={<Images size={14} />}
+            >
+              <FormattedMessage id="admin.button.images" />
             </Menu.Item>
             <Menu.Item
               component={Link}

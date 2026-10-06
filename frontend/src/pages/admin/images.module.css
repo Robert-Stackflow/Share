@@ -1,0 +1,38 @@
+.panel {
+  padding: 20px;
+}
+
+.search {
+  flex: 1;
+  max-width: 420px;
+}
+
+.card {
+  overflow: hidden;
+}
+
+.preview {
+  background: light-dark(#f3f5f8, #171c24);
+  height: 190px;
+  object-fit: cover;
+  width: 100%;
+}
+
+.body {
+  padding: 15px;
+}
+
+.copy {
+  min-width: 0;
+}
+
+@media (max-width: 48em) {
+  .panel > :global(.mantine-Group-root):first-child {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .search {
+    max-width: none;
+  }
+}

@@ -1,5 +1,14 @@
 import { ImageVisibility } from "@prisma/client";
-import { IsEnum, IsOptional, IsString, MaxLength } from "class-validator";
+import {
+  IsArray,
+  IsBoolean,
+  IsEnum,
+  IsOptional,
+  IsString,
+  IsUUID,
+  MaxLength,
+  ValidateIf,
+} from "class-validator";
 
 export class UpdateHostedImageDTO {
   @IsOptional()
@@ -10,4 +19,19 @@ export class UpdateHostedImageDTO {
   @IsString()
   @MaxLength(255)
   name?: string;
+
+  @IsOptional()
+  @ValidateIf((_, value) => value !== null)
+  @IsUUID("4")
+  albumId?: string | null;
+
+  @IsOptional()
+  @IsBoolean()
+  favorite?: boolean;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  @MaxLength(48, { each: true })
+  tags?: string[];
 }

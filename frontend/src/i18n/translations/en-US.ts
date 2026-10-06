@@ -1,10 +1,13 @@
 export default {
   "passkey.title": "Passkeys",
   "passkey.signIn": "Sign in with a passkey",
-  "passkey.unsupported": "This browser or device does not support passkeys. Use another sign-in method.",
-  "passkey.cancelled": "Passkey verification was cancelled. You can try again or use another sign-in method.",
+  "passkey.unsupported":
+    "This browser or device does not support passkeys. Use another sign-in method.",
+  "passkey.cancelled":
+    "Passkey verification was cancelled. You can try again or use another sign-in method.",
   "passkey.networkError": "The connection was interrupted. Please try again.",
-  "passkey.failed": "Passkey verification failed. Try again or use another sign-in method.",
+  "passkey.failed":
+    "Passkey verification failed. Try again or use another sign-in method.",
   "passkey.empty": "No passkeys yet.",
   "passkey.name": "Passkey name",
   "passkey.defaultName": "My passkey",
@@ -12,7 +15,8 @@ export default {
   "passkey.added": "Passkey added",
   "passkey.rename": "Rename",
   "passkey.remove": "Remove",
-  "passkey.removeConfirm": "Remove this passkey? You will no longer be able to sign in with it.",
+  "passkey.removeConfirm":
+    "Remove this passkey? You will no longer be able to sign in with it.",
   "passkey.removed": "Passkey removed",
   "passkey.created": "Added",
   "passkey.lastUsed": "Last used",
@@ -37,7 +41,8 @@ export default {
   "credentials.lastUsedAt": "Last used",
   "credentials.expiresAt": "Expires",
   "credentials.revoke": "Revoke",
-  "credentials.revokeConfirm": "Revoke this credential? Existing clients will stop working immediately.",
+  "credentials.revokeConfirm":
+    "Revoke this credential? Existing clients will stop working immediately.",
   "credentials.revoked": "Credential revoked",
   "credentials.created": "Credential created",
   "credentials.createdTitle": "Save your credential",
@@ -77,14 +82,32 @@ export default {
   "images.stats.public": "Public images",
   "images.stats.private": "Private images",
   "images.stats.storage": "Storage used",
+  "images.stats.views": "Views",
+  "images.nav.library": "Library",
+  "images.nav.albums": "Albums",
+  "images.nav.trash": "Recycle bin",
+  "images.nav.preferences": "Upload settings",
+  "images.nav.clients": "Clients & API",
+  "images.album.none": "No album",
+  "images.album.all": "All albums",
+  "images.tags.all": "All tags",
+  "images.favoriteOnly": "Favorites only",
+  "images.sort.newest": "Newest first",
+  "images.sort.oldest": "Oldest first",
+  "images.sort.nameAsc": "Name A–Z",
+  "images.sort.nameDesc": "Name Z–A",
+  "images.loadMore": "Load more",
   "images.upload.title": "Drop images here",
-  "images.upload.description": "JPEG, PNG, WebP, GIF or AVIF · up to {size} each",
+  "images.upload.description":
+    "JPEG, PNG, WebP, GIF or AVIF · up to {size} each",
   "images.upload.paste": "You can also paste an image from the clipboard",
   "images.upload.button": "Choose images",
   "images.upload.invalid": "Choose a supported image no larger than {size}.",
-  "images.upload.disabled": "Image uploads have been disabled by an administrator.",
+  "images.upload.disabled":
+    "Image uploads have been disabled by an administrator.",
   "images.upload.success": "Uploaded {count} image(s)",
-  "images.upload.partial": "{count} image(s) could not be uploaded. Check their format or size and try again.",
+  "images.upload.partial":
+    "{count} image(s) could not be uploaded. Check their format or size and try again.",
   "images.search": "Search images",
   "images.filter.all": "All",
   "images.visibility.public": "Public",
@@ -93,7 +116,8 @@ export default {
   "images.makePublic": "Make public",
   "images.makePrivate": "Make private",
   "images.empty.title": "No images yet",
-  "images.empty.description": "Upload or paste an image to create your first hosted link.",
+  "images.empty.description":
+    "Upload or paste an image to create your first hosted link.",
   "images.preview": "Preview {name}",
   "images.actions": "Image actions",
   "images.copy.direct": "Copy direct link",
@@ -101,22 +125,27 @@ export default {
   "images.copy.html": "Copy HTML",
   "images.copy.bbcode": "Copy BBCode",
   "images.copy.copied": "Copied",
-  "images.delete.confirm": "Delete this image and its stored file?",
-  "images.delete.success": "Image deleted",
+  "images.delete.confirm": "Move this image to the recycle bin?",
+  "images.delete.success": "Image moved to the recycle bin",
   "images.rename.success": "Image name updated",
   "images.batch.selectVisible": "Select all {count} shown",
   "images.batch.selectImage": "Select {name}",
   "images.batch.selected": "{count} selected",
   "images.batch.clear": "Clear selection",
   "images.batch.visibility": "Updated visibility for {count} image(s)",
-  "images.batch.deleteConfirm": "Delete the selected images and their stored files? This cannot be undone.",
-  "images.batch.deleted": "Deleted {count} image(s)",
+  "images.batch.move": "Move to album",
+  "images.batch.updated": "Updated {count} image(s)",
+  "images.batch.deleteConfirm": "Move the selected images to the recycle bin?",
+  "images.batch.deleted": "Moved {count} image(s) to the recycle bin",
   "images.policy.uploadDisabled.title": "Image uploads are disabled",
-  "images.policy.uploadDisabled.description": "Existing images remain available and manageable, but the web app and API cannot upload new images.",
+  "images.policy.uploadDisabled.description":
+    "Existing images remain available and manageable, but the web app and API cannot upload new images.",
   "images.policy.privateOnly.title": "Only private images are allowed",
-  "images.policy.privateOnly.description": "Public links have been disabled by an administrator. New uploads will remain private.",
+  "images.policy.privateOnly.description":
+    "Public links have been disabled by an administrator. New uploads will remain private.",
   "images.api.title": "Client and API uploads",
-  "images.api.description": "Use multipart/form-data with the file field or send raw image bytes directly from Clipper, PicGo, ShareX and automation tools.",
+  "images.api.description":
+    "Use multipart/form-data with the file field or send raw image bytes directly from Clipper, PicGo, ShareX and automation tools.",
   "images.api.manageKeys": "Manage API keys",
   "images.details.title": "Image details",
   "images.details.name": "Image name",
@@ -124,6 +153,99 @@ export default {
   "images.details.size": "File size",
   "images.details.type": "File type",
   "images.details.created": "Uploaded",
+  "images.details.album": "Album",
+  "images.details.tags": "Tags",
+  "images.details.downloadOriginal": "Download original",
+  "images.details.favorite": "Favorite",
+  "images.details.unfavorite": "Remove favorite",
+  "images.details.updated": "Image details updated",
+  "images.albums.title": "Albums",
+  "images.albums.description":
+    "Organize images into albums without changing existing links.",
+  "images.albums.create": "Create album",
+  "images.albums.createDescription":
+    "Albums organize images without duplicating stored files.",
+  "images.albums.name": "Album name",
+  "images.albums.albumDescription": "Description (optional)",
+  "images.albums.createButton": "Create album",
+  "images.albums.created": "Album created",
+  "images.albums.renamePrompt": "Enter a new album name",
+  "images.albums.deleteConfirm":
+    "Delete this album? Its images will remain in the library.",
+  "images.albums.deleted": "Album deleted",
+  "images.albums.empty": "No albums yet",
+  "images.albums.emptyDescription":
+    "Create an album, then choose it during upload or bulk actions.",
+  "images.albums.count": "{count} images",
+  "images.trash.title": "Recycle bin",
+  "images.trash.description":
+    "Restore deleted images or permanently remove their stored files.",
+  "images.trash.retention":
+    "Images are permanently deleted after {days} days in the recycle bin.",
+  "images.trash.empty": "The recycle bin is empty",
+  "images.trash.emptyDescription":
+    "Images removed from the library are kept here temporarily.",
+  "images.trash.restore": "Restore",
+  "images.trash.restored": "Image restored",
+  "images.trash.destroy": "Delete permanently",
+  "images.trash.destroyConfirm":
+    "Permanent deletion cannot be undone. Continue?",
+  "images.trash.destroyed": "Image permanently deleted",
+  "images.preferences.title": "Upload settings",
+  "images.preferences.description":
+    "Choose default visibility and automatic processing for new images.",
+  "images.preferences.disabled": "Image processing is disabled",
+  "images.preferences.disabledDescription":
+    "An administrator disabled processing. New uploads keep their original format.",
+  "images.preferences.uploadDefaults": "Upload defaults",
+  "images.preferences.uploadDefaultsDescription":
+    "Used when the web app or API does not specify a value.",
+  "images.preferences.defaultVisibility": "Default visibility",
+  "images.preferences.deduplicate": "Deduplicate uploads",
+  "images.preferences.deduplicateDescription":
+    "Reuse an existing image when identical content is uploaded again.",
+  "images.preferences.processing": "Image processing",
+  "images.preferences.processingDescription":
+    "Convert formats, limit dimensions, and control metadata and watermarks.",
+  "images.preferences.outputFormat": "Output format",
+  "images.preferences.quality": "Image quality",
+  "images.preferences.maxWidth": "Maximum width",
+  "images.preferences.maxWidthDescription":
+    "Leave blank for no limit; smaller images are never enlarged.",
+  "images.preferences.autoOrient": "Correct orientation automatically",
+  "images.preferences.stripMetadata": "Remove EXIF and other metadata",
+  "images.preferences.watermark": "Text watermark",
+  "images.preferences.watermarkDescription":
+    "Add a text watermark with configurable position and opacity.",
+  "images.preferences.watermarkEnabled": "Enable watermark",
+  "images.preferences.watermarkText": "Watermark text",
+  "images.preferences.watermarkPosition": "Watermark position",
+  "images.preferences.watermarkOpacity": "Watermark opacity",
+  "images.preferences.saved": "Upload settings saved",
+  "images.format.original": "Keep original format",
+  "images.position.northwest": "Top left",
+  "images.position.north": "Top center",
+  "images.position.northeast": "Top right",
+  "images.position.west": "Middle left",
+  "images.position.center": "Center",
+  "images.position.east": "Middle right",
+  "images.position.southwest": "Bottom left",
+  "images.position.south": "Bottom center",
+  "images.position.southeast": "Bottom right",
+  "images.clients.title": "Clients & API",
+  "images.clients.description":
+    "Find image upload endpoints, authentication details, and client setup values.",
+  "images.clients.clipper": "Clipper setup",
+  "images.clients.clipperDescription":
+    "Use these values to configure Clipper image uploads.",
+  "images.clients.uploadUrl": "Upload URL",
+  "images.clients.auth": "Authentication",
+  "images.clients.requestFormat": "Request format",
+  "images.clients.rawPng": "Raw PNG",
+  "images.clients.responsePath": "Response URL path",
+  "images.clients.headers": "Request headers",
+  "images.clients.headersDescription":
+    "Keep the token on your device and never put it in public scripts.",
   // Navbar
   "navbar.upload": "Upload",
   "navbar.menu.open": "Open menu",
@@ -348,13 +470,16 @@ export default {
   // /account/assets
   "account.assets.title": "My assets",
   "account.assets.title.empty": "No assets yet",
-  "account.assets.description.empty": "Choose a file, paste content, or type a link to save your first asset.",
+  "account.assets.description.empty":
+    "Choose a file, paste content, or type a link to save your first asset.",
   "account.assets.title.noResults": "No matching assets",
-  "account.assets.description.noResults": "Try another search or clear the filters.",
+  "account.assets.description.noResults":
+    "Try another search or clear the filters.",
   "account.assets.filter.clear": "Clear filters",
   "account.shortLinks.quick-url": "Paste a URL to create a short link",
   "account.shortLinks.quick-next": "Set up short link",
-  "account.shortLinks.error.drop-url": "Drop a single web URL here. Upload files from the Upload page.",
+  "account.shortLinks.error.drop-url":
+    "Drop a single web URL here. Upload files from the Upload page.",
   "shortLinkAccess.title": "Open short link",
   "shortLinkAccess.unavailable": "This short link is unavailable.",
   "shortLinkAccess.disabled": "The owner has disabled this short link.",
@@ -364,10 +489,12 @@ export default {
   "shortLinkAccess.signIn": "Sign in",
   "shortLinkAccess.password": "Password",
   "shortLinkAccess.open": "Open link",
-  "shortLinkAccess.denied": "Access could not be verified. Check the password or access rules and try again.",
+  "shortLinkAccess.denied":
+    "Access could not be verified. Check the password or access rules and try again.",
   "account.shortLinks.remove-password": "Remove current password when saving",
   "account.shortLinks.keep-password": "Keep current password",
-  "account.shortLinks.password-active": "A password is currently required. Leave the field empty to keep it, or enter a new one.",
+  "account.shortLinks.password-active":
+    "A password is currently required. Leave the field empty to keep it, or enter a new one.",
   "account.assets.type.file": "File",
   "account.assets.type.text": "Text",
   "account.assets.type.link": "Link",
@@ -397,7 +524,8 @@ export default {
   "account.assets.action.copyContent": "Copy content",
   "account.assets.action.copyLink": "Copy link",
   "account.assets.notify.contentCopied": "Content copied to clipboard",
-  "account.assets.notify.imageCopyUnavailable": "Could not copy this image to the clipboard.",
+  "account.assets.notify.imageCopyUnavailable":
+    "Could not copy this image to the clipboard.",
   "account.assets.action.createShare": "Create share",
   "account.assets.action.createShortLink": "Create short link",
   "account.assets.action.sendToRoom": "Send to room",
@@ -475,7 +603,8 @@ export default {
   "account.shortLinks.targetPicker.shares": "Independent shares",
   "account.shortLinks.targetPicker.placeholder": "Search rooms or shares",
   "account.shortLinks.targetPicker.empty": "No rooms or shares available",
-  "account.shortLinks.targetPicker.loadFailed": "Some targets could not be loaded. You can enter a path manually.",
+  "account.shortLinks.targetPicker.loadFailed":
+    "Some targets could not be loaded. You can enter a path manually.",
   "account.shortLinks.targetPicker.path": "Internal path",
   "account.shortLinks.error.target": "Enter a valid URL or internal path",
   "account.shortLinks.filter.search": "Search code, title, or target",
@@ -573,9 +702,11 @@ export default {
   "content.error.fileCount": "Up to {max} files per submission",
   "content.error.empty": "Enter content before adding",
   "content.error.link": "Enter one valid http or https URL",
-  "content.error.clipboard": "Clipboard access failed. Use the paste shortcut instead.",
+  "content.error.clipboard":
+    "Clipboard access failed. Use the paste shortcut instead.",
   "content.error.unsupported": "This dropped content is not supported",
-  "content.error.submit": "Could not add this content. Your draft is still here.",
+  "content.error.submit":
+    "Could not add this content. Your draft is still here.",
   "room.asset.file": "File",
   "room.asset.file.choose": "Choose files",
   "room.asset.file.empty": "No files selected",
@@ -722,8 +853,7 @@ export default {
   "account.reverseShares.modal.max-use.description":
     "Each submission uses one of these slots.",
   "account.reverseShare.never-expires": "This inbox will never expire.",
-  "account.reverseShare.expires-on":
-    "This inbox will expire on {expiration}.",
+  "account.reverseShare.expires-on": "This inbox will expire on {expiration}.",
 
   "account.reverseShares.table.unnamed": "Unnamed inbox",
   "account.reverseShares.table.no-shares": "No accepted shares",
@@ -746,7 +876,8 @@ export default {
   "account.reverseShares.submissions.acceptAssets": "Save to library",
   "account.reverseShares.submissions.approve": "Approve",
   "account.reverseShares.submissions.acceptRoom": "Add to room",
-  "account.reverseShares.submissions.notify.acceptedRoom": "Submission added to room",
+  "account.reverseShares.submissions.notify.acceptedRoom":
+    "Submission added to room",
   "account.reverseShares.submissions.acceptShare": "Create share",
   "account.reverseShares.submissions.reject": "Reject",
   "account.reverseShares.submissions.reject.title": "Reject submission",
@@ -770,8 +901,16 @@ export default {
   "admin.title": "Administration",
   "admin.button.users": "User management",
   "admin.button.shares": "Share management",
+  "admin.button.images": "Image management",
   "admin.button.config": "Configuration",
   "admin.button.activity": "Activity log",
+  "admin.images.title": "Image management",
+  "admin.images.description":
+    "Review storage, views, and ownership across {users} image-hosting user(s), and remove abusive content.",
+  "admin.images.deleteConfirm":
+    "Permanently delete this image and every derived file? This cannot be undone.",
+  "admin.images.deleted": "Image permanently deleted",
+  "admin.images.views": "{count} views",
   "admin.version": "Version",
   // END /admin
 
@@ -878,12 +1017,15 @@ export default {
   "upload.modal.delivery.title": "Share method",
   "upload.modal.delivery.link": "Share by link",
   "upload.modal.delivery.pickup": "Pickup code",
-  "upload.modal.delivery.linkDescription": "Send a unique link to your recipients.",
-  "upload.modal.delivery.pickupDescription": "A 6-digit code is ready for you to use or edit. Recipients enter it on the Pickup page.",
+  "upload.modal.delivery.linkDescription":
+    "Send a unique link to your recipients.",
+  "upload.modal.delivery.pickupDescription":
+    "A 6-digit code is ready for you to use or edit. Recipients enter it on the Pickup page.",
   "upload.modal.delivery.resetCode": "Generate a new pickup code",
   "upload.modal.delivery.customPlaceholder": "Enter 6 digits",
   "upload.modal.delivery.customInvalid": "Enter a 6-digit pickup code",
-  "upload.modal.delivery.customTaken": "This code is already in use. Choose another.",
+  "upload.modal.delivery.customTaken":
+    "This code is already in use. Choose another.",
   "upload.modal.expires.label": "Expiration",
   "upload.modal.expires.unit-label": "Unit",
   "upload.modal.expires.minute-singular": "Minute",
@@ -900,7 +1042,8 @@ export default {
   "upload.modal.expires.year-plural": "Years",
 
   "upload.modal.content.title": "Content",
-  "upload.modal.content.description": "Files, text, and links are shared together.",
+  "upload.modal.content.description":
+    "Files, text, and links are shared together.",
   "upload.modal.content.total":
     "{count, plural, =0 {No items} =1 {# item} other {# items}}",
   "upload.modal.content.files": "Files",
@@ -929,8 +1072,10 @@ export default {
   "inbox.submit.contentDescription":
     "Check the files, text, and links before submitting them.",
   "inbox.submit.receiptTitle": "Submission received",
-  "inbox.submit.failed": "Submission did not finish. Adjust the content and try again.",
-  "inbox.submit.cancelFailed": "Could not release this unfinished submission. Retry or keep its ID.",
+  "inbox.submit.failed":
+    "Submission did not finish. Adjust the content and try again.",
+  "inbox.submit.cancelFailed":
+    "Could not release this unfinished submission. Retry or keep its ID.",
   "inbox.submit.retryCancel": "Retry cancellation",
   "inbox.submit.limits": "Up to {count} files and {size} total per submission",
   "inbox.submit.receipt":
@@ -971,11 +1116,13 @@ export default {
   "upload.modal.completed.expires-on":
     "This share will expire on {expiration}.",
   "upload.modal.completed.share-ready": "Share ready",
-  "upload.modal.completed.pickupInstructions": "Send this code to your recipients and ask them to enter it on the Pickup page.",
+  "upload.modal.completed.pickupInstructions":
+    "Send this code to your recipients and ask them to enter it on the Pickup page.",
   "pickup.nav": "Pickup",
   "pickup.title": "Pickup",
   "pickup.code": "Pickup code",
-  "pickup.invalid": "This code is invalid, expired, or has reached its view limit. Check with the sender.",
+  "pickup.invalid":
+    "This code is invalid, expired, or has reached its view limit. Check with the sender.",
   "pickup.open": "Open share",
   "pickup.entry": "Pickup page",
   "pickup.copied": "Pickup code copied",
@@ -1092,8 +1239,7 @@ export default {
   "admin.config.appearance.custom-css.description":
     "Global CSS applied to the frontend. Use carefully, as invalid CSS may affect the UI.",
   "admin.config.general.app-url": "App URL",
-  "admin.config.general.app-url.description":
-    "On which URL Share is available",
+  "admin.config.general.app-url.description": "On which URL Share is available",
   "admin.config.general.secure-cookies": "Secure cookies",
   "admin.config.general.secure-cookies.description":
     "Whether to set the secure flag on cookies. If enabled, the site will not function when accessed over HTTP.",
@@ -1413,6 +1559,30 @@ export default {
   "admin.config.images.max-size": "Maximum image size",
   "admin.config.images.max-size.description":
     "This limit applies to web and API uploads and may be set from 1 MB to 100 MB.",
+  "admin.config.images.max-pixels": "Maximum pixel count",
+  "admin.config.images.max-pixels.description":
+    "Limit width multiplied by height to prevent oversized images from exhausting processing memory.",
+  "admin.config.images.thumbnail-size": "Thumbnail size",
+  "admin.config.images.thumbnail-size.description":
+    "Maximum edge length for image-library thumbnails, in pixels.",
+  "admin.config.images.allow-processing": "Allow image processing",
+  "admin.config.images.allow-processing.description":
+    "Let users convert formats, resize images, remove metadata, and add watermarks.",
+  "admin.config.images.user-quota": "Per-user image quota",
+  "admin.config.images.user-quota.description":
+    "Storage available to each user for image hosting. Set to 0 for unlimited.",
+  "admin.config.images.uploads-per-minute": "Uploads per minute",
+  "admin.config.images.uploads-per-minute.description":
+    "Limit how many images each user may submit per minute.",
+  "admin.config.images.recycle-retention-days": "Recycle-bin retention",
+  "admin.config.images.recycle-retention-days.description":
+    "Permanently remove recycled images and stored files after this many days.",
+  "admin.config.images.public-base-url": "Public image domain",
+  "admin.config.images.public-base-url.description":
+    "Optional CDN or dedicated image origin such as https://img.example.com. Leave blank to use this site.",
+  "admin.config.images.cache-max-age": "Public image cache lifetime",
+  "admin.config.images.cache-max-age.description":
+    "Number of seconds browsers and CDNs may cache public images.",
   "admin.config.category.legal": "Legal",
   "admin.config.legal.enabled": "Enable legal notices",
   "admin.config.legal.enabled.description":

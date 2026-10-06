@@ -4,12 +4,13 @@ import {
   Group,
   Paper,
   SegmentedControl,
+  Select,
   Text,
 } from "@mantine/core";
 import { Clipboard, UploadCloud } from "lucide-react";
 import { DragEvent, useState } from "react";
 import useTranslate from "../../hooks/useTranslate.hook";
-import { ImageVisibility } from "../../types/image.type";
+import { ImageAlbum, ImageVisibility } from "../../types/image.type";
 import { byteToHumanSizeString } from "../../utils/fileSize.util";
 import classes from "../../pages/account/images.module.css";
 
@@ -20,7 +21,10 @@ type ImageUploadPanelProps = {
   uploadVisibility: ImageVisibility;
   maxImageBytes: number;
   acceptedTypes: string[];
+  albums: ImageAlbum[];
+  albumId: string | null;
   onVisibilityChange: (visibility: ImageVisibility) => void;
+  onAlbumChange: (albumId: string | null) => void;
   onFiles: (files: File[]) => void;
 };
 
@@ -31,7 +35,10 @@ const ImageUploadPanel = ({
   uploadVisibility,
   maxImageBytes,
   acceptedTypes,
+  albums,
+  albumId,
   onVisibilityChange,
+  onAlbumChange,
   onFiles,
 }: ImageUploadPanelProps) => {
   const t = useTranslate();
@@ -74,6 +81,19 @@ const ImageUploadPanel = ({
         </div>
       </Group>
       <Group>
+        <Select
+          size="xs"
+          clearable
+          searchable
+          disabled={!uploadEnabled}
+          placeholder={t("images.album.none")}
+          data={albums.map((album) => ({
+            value: album.id,
+            label: album.name,
+          }))}
+          value={albumId}
+          onChange={onAlbumChange}
+        />
         <SegmentedControl
           size="xs"
           value={uploadVisibility}

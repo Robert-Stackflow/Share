@@ -13,7 +13,7 @@
 .statsGrid {
   display: grid;
   gap: 12px;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
   margin-bottom: 20px;
 }
 
@@ -70,13 +70,14 @@
 .toolbar {
   align-items: center;
   display: flex;
+  flex-wrap: wrap;
   gap: 12px;
-  justify-content: space-between;
+  justify-content: flex-start;
   margin: 28px 0 18px;
 }
 
 .search {
-  flex: 1;
+  flex: 1 1 240px;
   max-width: 420px;
 }
 

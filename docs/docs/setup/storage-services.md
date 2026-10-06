@@ -27,11 +27,19 @@ Each account is isolated under its own S3 prefix. Standard file and directory op
 
 ## Image hosting
 
-Open **Content & sharing → Images** to upload, paste, preview, search, rename, change visibility, and manage images in batches. JPEG, PNG, WebP, GIF, and AVIF are accepted. SVG is intentionally rejected.
+Open **Content & sharing → Images** to enter the image workspace. Its sidebar contains:
 
-Administrators can control web and API uploads, public links, default visibility, and the per-image size limit under **Administration → Configuration → Image hosting**.
+- **Library** for upload, search, sort, visibility, albums, tags, favorites, and batch actions.
+- **Albums** for creating and maintaining collections without changing existing image links.
+- **Recycle bin** for restoring deleted images or permanently deleting their files.
+- **Upload settings** for default visibility, deduplication, resize, format/quality conversion, metadata removal, orientation correction, and text watermarks.
+- **Clients & API** for endpoint and request-header examples.
 
-Public images receive a stable `/i/{slug}` URL and copy-ready direct, Markdown, HTML, and BBCode formats. Private images are available only through an authenticated account or an Image API token.
+JPEG, PNG, WebP, GIF, and AVIF are accepted. SVG is intentionally rejected. Animated images are retained without destructive processing. When a still image is processed, Share retains the original and exposes it to the owner from the image details dialog.
+
+Administrators can control web and API uploads, public links, default visibility, per-image byte and pixel limits, thumbnail size, processing, per-user quota, upload rate, recycle-bin retention, public image domain, and cache lifetime under **Administration → Configuration → Image hosting**. **Administration → Image management** provides global usage statistics and owner-aware moderation.
+
+Public images receive a stable `/i/{slug}` URL and copy-ready direct, Markdown, HTML, and BBCode formats. Their thumbnails use `/i/{slug}/thumbnail`. Private images are available only through an authenticated account or an Image API token. Public responses include configurable browser/CDN cache headers, and the public origin can be replaced with a dedicated image or CDN domain.
 
 ### Upload API
 
@@ -52,20 +60,24 @@ curl -X POST \
   -H "Authorization: Bearer share_your_token" \
   -H "Content-Type: image/png" \
   -H "X-File-Name: photo.png" \
+  -H "X-Image-Visibility: PUBLIC" \
+  -H "X-Image-Album: optional-album-uuid" \
   --data-binary @photo.png \
   https://share.example.com/api/image-api/images
 ```
 
-`visibility` can be `PUBLIC` or `PRIVATE`. For raw uploads it can be sent as the `visibility` query parameter or `X-Image-Visibility` header. The response contains the image metadata and, for public images, direct, Markdown, HTML, and BBCode links.
+`visibility` can be `PUBLIC` or `PRIVATE`, and `albumId` can contain one of the user's album UUIDs. For raw uploads these values can be sent as query parameters or as the `X-Image-Visibility` and `X-Image-Album` headers. The response contains image metadata, thumbnail and original endpoints, and, for public images, direct, Markdown, HTML, and BBCode links.
 
 The API also supports:
 
-- `GET /api/image-api/images`
+- `GET /api/image-api/images` with cursor pagination and optional `q`, `visibility`, `albumId`, `tag`, `favorite`, `sort`, and `limit` filters
 - `GET /api/image-api/images/stats`
 - `PATCH /api/image-api/images/batch`
 - `DELETE /api/image-api/images/batch`
 - `PATCH /api/image-api/images/{id}`
 - `GET /api/image-api/images/{id}/content`
 - `DELETE /api/image-api/images/{id}`
+
+The authenticated web API additionally exposes album, preference, recycle-bin restore, original download, thumbnail, and permanent-delete routes used by the image workspace.
 
 This is Share's own API and does not emulate the Lsky Pro upload API.

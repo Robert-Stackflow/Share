@@ -1,0 +1,29 @@
+.album {
+  overflow: hidden;
+}
+
+.cover {
+  align-items: center;
+  background: light-dark(#f3f5f8, #171c24);
+  color: var(--mantine-color-dimmed);
+  display: flex;
+  height: 150px;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.cover img {
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+.copy {
+  min-width: 0;
+}
+
+.copy :global(.mantine-Title-root) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

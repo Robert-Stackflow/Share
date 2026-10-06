@@ -213,6 +213,23 @@ export class ConfigService extends EventEmitter {
   }
 
   validateConfigVariable(key: string, value: string | number | boolean) {
+    if (key === "images.publicBaseUrl" && value) {
+      try {
+        const url = new URL(String(value));
+        if (
+          !["http:", "https:"].includes(url.protocol) ||
+          url.search ||
+          url.hash
+        ) {
+          throw new Error();
+        }
+      } catch {
+        throw new BadRequestException(
+          "Public image domain must be an absolute HTTP or HTTPS URL without a query or fragment",
+        );
+      }
+    }
+
     const validations = [
       {
         key: "share.shareIdLength",
@@ -238,6 +255,37 @@ export class ConfigService extends EventEmitter {
           "config.imageSizeValidation",
           "Image size limit must be between 1 MB and 100 MB",
         ),
+      },
+      {
+        key: "images.maxPixels",
+        condition: (value: number) =>
+          value >= 1_000_000 && value <= 250_000_000,
+        message: "Image pixel limit must be between 1 and 250 megapixels",
+      },
+      {
+        key: "images.thumbnailSize",
+        condition: (value: number) => value >= 160 && value <= 1600,
+        message: "Thumbnail size must be between 160 and 1600 pixels",
+      },
+      {
+        key: "images.userQuota",
+        condition: (value: number) => value >= 0,
+        message: "Image quota cannot be negative",
+      },
+      {
+        key: "images.uploadsPerMinute",
+        condition: (value: number) => value >= 1 && value <= 300,
+        message: "Upload limit must be between 1 and 300 per minute",
+      },
+      {
+        key: "images.recycleRetentionDays",
+        condition: (value: number) => value >= 1 && value <= 365,
+        message: "Recycle-bin retention must be between 1 and 365 days",
+      },
+      {
+        key: "images.cacheMaxAge",
+        condition: (value: number) => value >= 0 && value <= 31_536_000,
+        message: "Image cache lifetime must be between 0 and 31536000 seconds",
       },
       // TODO add validation for timespan type
     ];

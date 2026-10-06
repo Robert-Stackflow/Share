@@ -9,7 +9,15 @@ import {
   Paper,
   Text,
 } from "@mantine/core";
-import { Code2, Copy, Globe2, Lock, MoreVertical, Trash2 } from "lucide-react";
+import {
+  Code2,
+  Copy,
+  Globe2,
+  Lock,
+  MoreVertical,
+  Star,
+  Trash2,
+} from "lucide-react";
 import { useIntl } from "react-intl";
 import useTranslate from "../../hooks/useTranslate.hook";
 import { HostedImage } from "../../types/image.type";
@@ -56,11 +64,7 @@ const HostedImageCard = ({
         onClick={onOpen}
         aria-label={t("images.preview", { name: image.name })}
       >
-        <Image
-          src={image.url ?? image.contentUrl}
-          alt={image.name}
-          loading="lazy"
-        />
+        <Image src={image.thumbnailUrl} alt={image.name} loading="lazy" />
       </button>
       <div className={classes.cardBody}>
         <Group justify="space-between" wrap="nowrap" align="flex-start">
@@ -162,24 +166,41 @@ const HostedImageCard = ({
           </Menu>
         </Group>
         <Group justify="space-between" mt="md">
-          <Badge
-            size="sm"
-            variant="light"
-            color={image.visibility === "PUBLIC" ? "teal" : "gray"}
-            leftSection={
-              image.visibility === "PUBLIC" ? (
-                <Globe2 size={11} />
-              ) : (
-                <Lock size={11} />
-              )
-            }
-          >
-            {t(
-              image.visibility === "PUBLIC"
-                ? "images.visibility.public"
-                : "images.visibility.private",
-            )}
-          </Badge>
+          <Group gap={6} wrap="nowrap">
+            <Badge
+              size="sm"
+              variant="light"
+              color={image.visibility === "PUBLIC" ? "teal" : "gray"}
+              leftSection={
+                image.visibility === "PUBLIC" ? (
+                  <Globe2 size={11} />
+                ) : (
+                  <Lock size={11} />
+                )
+              }
+            >
+              {t(
+                image.visibility === "PUBLIC"
+                  ? "images.visibility.public"
+                  : "images.visibility.private",
+              )}
+            </Badge>
+            {image.album ? (
+              <Badge size="sm" variant="outline" color="gray">
+                {image.album.name}
+              </Badge>
+            ) : null}
+            {image.favorite ? (
+              <Badge
+                size="sm"
+                variant="light"
+                color="yellow"
+                aria-label={t("images.details.favorite")}
+              >
+                <Star size={11} fill="currentColor" />
+              </Badge>
+            ) : null}
+          </Group>
           <Text size="xs" c="dimmed">
             {intl.formatDate(image.createdAt, {
               month: "short",

@@ -481,6 +481,46 @@ export const configVariables = {
       defaultValue: "26214400",
       secret: false,
     },
+    maxPixels: {
+      type: "number",
+      defaultValue: "40000000",
+      secret: false,
+    },
+    thumbnailSize: {
+      type: "number",
+      defaultValue: "480",
+      secret: false,
+    },
+    allowProcessing: {
+      type: "boolean",
+      defaultValue: "true",
+      secret: false,
+    },
+    userQuota: {
+      type: "filesize",
+      defaultValue: "0",
+      secret: false,
+    },
+    uploadsPerMinute: {
+      type: "number",
+      defaultValue: "30",
+      secret: false,
+    },
+    recycleRetentionDays: {
+      type: "number",
+      defaultValue: "30",
+      secret: false,
+    },
+    publicBaseUrl: {
+      type: "string",
+      defaultValue: "",
+      secret: false,
+    },
+    cacheMaxAge: {
+      type: "number",
+      defaultValue: "86400",
+      secret: false,
+    },
   },
   legal: {
     enabled: {

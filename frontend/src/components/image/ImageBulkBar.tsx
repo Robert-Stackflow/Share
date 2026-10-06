@@ -5,10 +5,11 @@ import {
   Checkbox,
   Group,
   Paper,
+  Select,
 } from "@mantine/core";
 import { Globe2, Lock, Trash2, X } from "lucide-react";
 import useTranslate from "../../hooks/useTranslate.hook";
-import { ImageVisibility } from "../../types/image.type";
+import { ImageAlbum, ImageVisibility } from "../../types/image.type";
 import classes from "../../pages/account/images.module.css";
 
 type ImageBulkBarProps = {
@@ -16,8 +17,10 @@ type ImageBulkBarProps = {
   selectedIds: Set<string>;
   allowPublic: boolean;
   busy: boolean;
+  albums: ImageAlbum[];
   onToggleVisible: (checked: boolean) => void;
   onUpdateVisibility: (visibility: ImageVisibility) => void;
+  onMove: (albumId: string | null) => void;
   onRemove: () => void;
   onClear: () => void;
 };
@@ -27,8 +30,10 @@ const ImageBulkBar = ({
   selectedIds,
   allowPublic,
   busy,
+  albums,
   onToggleVisible,
   onUpdateVisibility,
+  onMove,
   onRemove,
   onClear,
 }: ImageBulkBarProps) => {
@@ -74,6 +79,18 @@ const ImageBulkBar = ({
           >
             {t("images.makePrivate")}
           </Button>
+          <Select
+            size="xs"
+            clearable
+            searchable
+            disabled={busy}
+            placeholder={t("images.batch.move")}
+            data={albums.map((album) => ({
+              value: album.id,
+              label: album.name,
+            }))}
+            onChange={onMove}
+          />
           <Button
             size="xs"
             variant="subtle"
