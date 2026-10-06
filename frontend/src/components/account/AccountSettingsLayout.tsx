@@ -29,6 +29,7 @@ type AccountSettingsLayoutProps = {
 type AccountPanelProps = {
   title?: string;
   description?: string;
+  action?: ReactNode;
   danger?: boolean;
   children: ReactNode;
 };
@@ -69,6 +70,7 @@ const navigation = [
 export const AccountPanel = ({
   title,
   description,
+  action,
   danger = false,
   children,
 }: AccountPanelProps) => {
@@ -80,11 +82,16 @@ export const AccountPanel = ({
     >
       {title ? (
         <header className={classes.panelHeader}>
-          <Title order={4}>{t(title)}</Title>
-          {description ? (
-            <Text c="dimmed" size="sm">
-              {t(description)}
-            </Text>
+          <div className={classes.panelHeaderCopy}>
+            <Title order={4}>{t(title)}</Title>
+            {description ? (
+              <Text c="dimmed" size="sm">
+                {t(description)}
+              </Text>
+            ) : null}
+          </div>
+          {action ? (
+            <div className={classes.panelHeaderAction}>{action}</div>
           ) : null}
         </header>
       ) : null}

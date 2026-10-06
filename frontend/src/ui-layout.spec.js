@@ -132,6 +132,22 @@ test("WebDAV and image API credentials live in their own workspaces", () => {
   assert.match(credentialManager, /credential\.type === type/);
 });
 
+test("passkeys use a header action and responsive item layout", () => {
+  const accountLayout = read("components/account/AccountSettingsLayout.tsx");
+  const passkeys = read("components/account/PasskeyManager.tsx");
+  const passkeyStyles = read("components/account/PasskeyManager.module.css");
+  const security = read("components/account/SecuritySettings.tsx");
+
+  assert.match(accountLayout, /action\?: ReactNode/);
+  assert.match(passkeys, /action=\{/);
+  assert.match(passkeys, /className=\{classes\.item\}/);
+  assert.match(passkeys, /className=\{classes\.metadata\}/);
+  assert.match(passkeys, /size="compact-sm"/);
+  assert.match(passkeyStyles, /grid-template-columns: auto minmax\(0, 1fr\) auto/);
+  assert.match(passkeyStyles, /@media \(max-width: 680px\)/);
+  assert.match(security, /<PasskeyManager \/>/);
+});
+
 test("administrator configuration navigation is grouped and collapsible", () => {
   const navigation = read(
     "components/admin/configuration/ConfigurationNavBar.tsx",

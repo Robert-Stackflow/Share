@@ -113,12 +113,7 @@ const SecuritySettings = () => {
         )}
       </AccountPanel>
 
-      <AccountPanel
-        title="passkey.title"
-        description="account.security.passkey.description"
-      >
-        <PasskeyManager />
-      </AccountPanel>
+      <PasskeyManager />
     </>
   );
 };

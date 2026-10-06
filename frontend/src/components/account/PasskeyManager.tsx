@@ -1,14 +1,16 @@
 import { Button, Group, Stack, Text } from "@mantine/core";
 import { useModals } from "@mantine/modals";
-import { KeyRound, Trash2 } from "lucide-react";
+import { KeyRound, Pencil, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useIntl } from "react-intl";
 import useTranslate from "../../hooks/useTranslate.hook";
+import authService from "../../services/auth.service";
+import { showPasskeyError } from "../../utils/passkey.util";
+import toast from "../../utils/toast.util";
 import PromptDialog from "../core/PromptDialog";
 import showConfirmDialog from "../core/showConfirmDialog";
-import authService from "../../services/auth.service";
-import toast from "../../utils/toast.util";
-import { showPasskeyError } from "../../utils/passkey.util";
+import { AccountPanel } from "./AccountSettingsLayout";
+import classes from "./PasskeyManager.module.css";
 
 type Passkey = {
   id: string;
@@ -102,8 +104,10 @@ const PasskeyManager = () => {
     });
 
   return (
-    <Stack mt="md" gap="sm">
-      <Group>
+    <AccountPanel
+      title="passkey.title"
+      description="account.security.passkey.description"
+      action={
         <Button
           leftSection={<KeyRound size={16} />}
           loading={busy}
@@ -111,48 +115,72 @@ const PasskeyManager = () => {
         >
           {t("passkey.add")}
         </Button>
-      </Group>
-      {keys.length === 0 ? <Text size="sm">{t("passkey.empty")}</Text> : null}
-      {keys.map((key) => (
-        <Group key={key.id} justify="space-between" wrap="wrap">
-          <div>
-            <Text size="sm" fw={600}>
-              {key.name}
-            </Text>
-            <Text size="xs" c="dimmed">
-              {t("passkey.created")}:{" "}
-              {intl.formatDate(key.createdAt, {
-                year: "numeric",
-                month: "short",
-                day: "numeric",
-              })}
-              {key.lastUsedAt &&
-                ` · ${t("passkey.lastUsed")}: ${intl.formatDate(
-                  key.lastUsedAt,
-                  {
-                    year: "numeric",
-                    month: "short",
-                    day: "numeric",
-                  },
-                )}`}
-            </Text>
-          </div>
-          <Group gap="xs">
-            <Button size="xs" variant="subtle" onClick={() => openRename(key)}>
-              {t("passkey.rename")}
-            </Button>
-            <Button
-              size="xs"
-              variant="subtle"
-              color="red"
-              leftSection={<Trash2 size={14} />}
-              onClick={() => void remove(key)}
-            >
-              {t("passkey.remove")}
-            </Button>
-          </Group>
-        </Group>
-      ))}
+      }
+    >
+      {keys.length === 0 ? (
+        <div className={classes.emptyState}>
+          <span className={classes.emptyIcon}>
+            <KeyRound size={20} />
+          </span>
+          <Text size="sm" c="dimmed">
+            {t("passkey.empty")}
+          </Text>
+        </div>
+      ) : (
+        <Stack gap="sm">
+          {keys.map((key) => (
+            <div className={classes.item} key={key.id}>
+              <span className={classes.itemIcon}>
+                <KeyRound size={19} />
+              </span>
+              <div className={classes.itemContent}>
+                <Text className={classes.itemName} fw={650}>
+                  {key.name}
+                </Text>
+                <div className={classes.metadata}>
+                  <Text component="span" size="xs" c="dimmed">
+                    {t("passkey.created")}:{" "}
+                    {intl.formatDate(key.createdAt, {
+                      year: "numeric",
+                      month: "short",
+                      day: "numeric",
+                    })}
+                  </Text>
+                  {key.lastUsedAt ? (
+                    <Text component="span" size="xs" c="dimmed">
+                      {t("passkey.lastUsed")}:{" "}
+                      {intl.formatDate(key.lastUsedAt, {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </Text>
+                  ) : null}
+                </div>
+              </div>
+              <Group className={classes.actions} gap={4} wrap="nowrap">
+                <Button
+                  size="compact-sm"
+                  variant="subtle"
+                  leftSection={<Pencil size={14} />}
+                  onClick={() => openRename(key)}
+                >
+                  {t("passkey.rename")}
+                </Button>
+                <Button
+                  size="compact-sm"
+                  variant="subtle"
+                  color="red"
+                  leftSection={<Trash2 size={14} />}
+                  onClick={() => void remove(key)}
+                >
+                  {t("passkey.remove")}
+                </Button>
+              </Group>
+            </div>
+          ))}
+        </Stack>
+      )}
       <PromptDialog
         opened={renamingKey !== null}
         title={t("passkey.rename")}
@@ -166,7 +194,7 @@ const PasskeyManager = () => {
         onCancel={() => setRenamingKey(null)}
         onConfirm={() => void rename()}
       />
-    </Stack>
+    </AccountPanel>
   );
 };
 

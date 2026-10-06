@@ -80,8 +80,20 @@
 }
 
 .panelHeader {
+  align-items: center;
   border-bottom: 1px solid var(--share-border);
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
   padding: 22px 26px 18px;
+}
+
+.panelHeaderCopy {
+  min-width: 0;
+}
+
+.panelHeaderAction {
+  flex: 0 0 auto;
 }
 
 .panelHeader :global(.mantine-Title-root) {
@@ -171,5 +183,17 @@
   .panelBody {
     padding-left: 16px;
     padding-right: 16px;
+  }
+}
+
+@media (max-width: 520px) {
+  .panelHeader {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .panelHeaderAction :global(.mantine-Button-root) {
+    width: 100%;
   }
 }
