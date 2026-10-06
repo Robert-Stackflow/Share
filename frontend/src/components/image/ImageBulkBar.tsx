@@ -41,10 +41,12 @@ const ImageBulkBar = ({
   const allVisibleSelected =
     visibleIds.length > 0 && visibleIds.every((id) => selectedIds.has(id));
   const someVisibleSelected = visibleIds.some((id) => selectedIds.has(id));
+  const hasSelection = selectedIds.size > 0;
 
   return (
     <Paper withBorder className={classes.bulkBar}>
       <Checkbox
+        className={classes.bulkSelectAll}
         checked={allVisibleSelected}
         indeterminate={!allVisibleSelected && someVisibleSelected}
         label={t("images.batch.selectVisible", {
@@ -52,65 +54,74 @@ const ImageBulkBar = ({
         })}
         onChange={(event) => onToggleVisible(event.currentTarget.checked)}
       />
-      {selectedIds.size > 0 ? (
-        <Group gap="xs">
-          <Badge variant="light">
-            {t("images.batch.selected", {
-              count: selectedIds.size.toString(),
-            })}
-          </Badge>
-          {allowPublic ? (
-            <Button
-              size="xs"
-              variant="light"
-              loading={busy}
-              leftSection={<Globe2 size={14} />}
-              onClick={() => onUpdateVisibility("PUBLIC")}
-            >
-              {t("images.makePublic")}
-            </Button>
-          ) : null}
+      <Group
+        gap="xs"
+        className={`${classes.bulkActions} ${
+          hasSelection ? "" : classes.bulkActionsHidden
+        }`}
+        aria-hidden={!hasSelection}
+      >
+        <Badge variant="light">
+          {t("images.batch.selected", {
+            count: selectedIds.size.toString(),
+          })}
+        </Badge>
+        {allowPublic ? (
           <Button
             size="xs"
             variant="light"
             loading={busy}
-            leftSection={<Lock size={14} />}
-            onClick={() => onUpdateVisibility("PRIVATE")}
+            disabled={!hasSelection}
+            leftSection={<Globe2 size={14} />}
+            onClick={() => onUpdateVisibility("PUBLIC")}
           >
-            {t("images.makePrivate")}
+            {t("images.makePublic")}
           </Button>
-          <Select
-            size="xs"
-            clearable
-            searchable
-            disabled={busy}
-            placeholder={t("images.batch.move")}
-            data={albums.map((album) => ({
-              value: album.id,
-              label: album.name,
-            }))}
-            onChange={onMove}
-          />
-          <Button
-            size="xs"
-            variant="subtle"
-            color="red"
-            loading={busy}
-            leftSection={<Trash2 size={14} />}
-            onClick={onRemove}
-          >
-            {t("common.button.delete")}
-          </Button>
-          <ActionIcon
-            variant="subtle"
-            color="gray"
-            aria-label={t("images.batch.clear")}
-            onClick={onClear}
-          >
-            <X size={16} />
-          </ActionIcon>
-        </Group>
-      ) : null}
+        ) : null}
+        <Button
+          size="xs"
+          variant="light"
+          loading={busy}
+          disabled={!hasSelection}
+          leftSection={<Lock size={14} />}
+          onClick={() => onUpdateVisibility("PRIVATE")}
+        >
+          {t("images.makePrivate")}
+        </Button>
+        <Select
+          size="xs"
+          clearable
+          searchable
+          disabled={!hasSelection || busy}
+          className={classes.bulkAlbumSelect}
+          placeholder={t("images.batch.move")}
+          data={albums.map((album) => ({
+            value: album.id,
+            label: album.name,
+          }))}
+          onChange={onMove}
+        />
+        <Button
+          size="xs"
+          variant="subtle"
+          color="red"
+          loading={busy}
+          disabled={!hasSelection}
+          leftSection={<Trash2 size={14} />}
+          onClick={onRemove}
+        >
+          {t("common.button.delete")}
+        </Button>
+        <ActionIcon
+          variant="subtle"
+          color="gray"
+          aria-label={t("images.batch.clear")}
+          disabled={!hasSelection}
+          onClick={onClear}
+        >
+          <X size={16} />
+        </ActionIcon>
+      </Group>
     </Paper>
   );
 };

@@ -165,8 +165,14 @@ const HostedImageCard = ({
             </Menu.Dropdown>
           </Menu>
         </Group>
-        <Group justify="space-between" mt="md">
-          <Group gap={6} wrap="nowrap">
+        <Group
+          justify="space-between"
+          mt="md"
+          align="flex-end"
+          wrap="nowrap"
+          className={classes.cardFooter}
+        >
+          <Group gap={6} className={classes.cardBadges}>
             <Badge
               size="sm"
               variant="light"
@@ -186,7 +192,12 @@ const HostedImageCard = ({
               )}
             </Badge>
             {image.album ? (
-              <Badge size="sm" variant="outline" color="gray">
+              <Badge
+                size="sm"
+                variant="outline"
+                color="gray"
+                title={image.album.name}
+              >
                 {image.album.name}
               </Badge>
             ) : null}

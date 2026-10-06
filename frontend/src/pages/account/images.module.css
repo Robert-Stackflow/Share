@@ -13,8 +13,7 @@
 .statsGrid {
   display: grid;
   gap: 12px;
-  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-  margin-bottom: 20px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 
 .statCard {
@@ -22,7 +21,8 @@
   display: flex;
   gap: 12px;
   min-width: 0;
-  padding: 15px 17px;
+  min-height: 72px;
+  padding: 14px 16px;
 }
 
 .statCard > svg {
@@ -34,10 +34,10 @@
   align-items: center;
   border: 1px dashed var(--mantine-primary-color-4);
   border-radius: 18px;
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  gap: 24px;
+  grid-template-columns: minmax(0, 1fr) auto;
   min-height: 132px;
-  margin-top: 16px;
   padding: 24px;
   transition:
     background-color 150ms ease,
@@ -67,27 +67,75 @@
   width: 52px;
 }
 
+.dropzoneIntro,
+.dropzoneCopy {
+  min-width: 0;
+}
+
+.dropzoneDescription {
+  max-width: 340px;
+}
+
+.uploadControls {
+  flex-wrap: nowrap;
+  justify-content: flex-end;
+}
+
+.uploadAlbumSelect {
+  flex: 0 0 190px;
+  width: 190px;
+}
+
 .toolbar {
   align-items: center;
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
   gap: 12px;
-  justify-content: flex-start;
-  margin: 28px 0 18px;
+  grid-template-columns:
+    minmax(230px, 1.6fr)
+    minmax(180px, 1fr)
+    minmax(180px, 1fr);
+  margin: 0 0 18px;
 }
 
 .search {
-  flex: 1 1 240px;
-  max-width: 420px;
+  min-width: 0;
+}
+
+.filterOptions {
+  align-items: center;
+  display: flex;
+  gap: 18px;
+  grid-column: span 2;
+  justify-content: space-between;
+  min-height: 36px;
 }
 
 .bulkBar {
   align-items: center;
   display: flex;
+  height: 60px;
   justify-content: space-between;
   margin-bottom: 18px;
-  min-height: 58px;
   padding: 10px 14px;
+}
+
+.bulkActions {
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+
+.bulkActions :global(.mantine-Button-label) {
+  white-space: nowrap;
+}
+
+.bulkActionsHidden {
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.bulkAlbumSelect {
+  flex: 0 0 190px;
+  width: 190px;
 }
 
 .card {
@@ -152,6 +200,9 @@
 }
 
 .cardBody {
+  display: flex;
+  flex-direction: column;
+  min-height: 112px;
   padding: 16px;
 }
 
@@ -163,6 +214,24 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.cardFooter {
+  margin-top: auto;
+  padding-top: 16px;
+}
+
+.cardBadges {
+  min-width: 0;
+}
+
+.cardBadges :global(.mantine-Badge-root) {
+  max-width: 130px;
+}
+
+.cardBadges :global(.mantine-Badge-label) {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .modalImage {
@@ -207,20 +276,80 @@
   padding: 16px;
 }
 
+@media (max-width: 75em) {
+  .statsGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .dropzone {
+    align-items: stretch;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .dropzoneDescription {
+    max-width: none;
+  }
+
+  .uploadControls {
+    justify-content: flex-start;
+  }
+
+  .toolbar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .search {
+    grid-column: 1 / -1;
+  }
+
+  .filterOptions {
+    grid-column: auto;
+  }
+}
+
 @media (max-width: 48em) {
   .hero,
-  .toolbar,
-  .dropzone {
+  .toolbar {
     align-items: stretch;
     flex-direction: column;
   }
 
-  .search {
-    max-width: none;
+  .dropzone {
+    padding: 18px;
+  }
+
+  .uploadControls {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .uploadAlbumSelect {
+    flex-basis: auto;
     width: 100%;
   }
 
-  .toolbar :global(.mantine-SegmentedControl-root) {
+  .uploadControls :global(.mantine-SegmentedControl-root),
+  .uploadControls :global(.mantine-Button-root) {
+    width: 100%;
+  }
+
+  .search {
+    grid-column: auto;
+    width: 100%;
+  }
+
+  .toolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .filterOptions {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .filterOptions :global(.mantine-SegmentedControl-root) {
     width: 100%;
   }
 
@@ -228,14 +357,40 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .bulkBar {
-    align-items: stretch;
-    flex-direction: column;
-    gap: 12px;
+  .statCard:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
   }
 
-  .bulkBar :global(.mantine-Group-root) {
-    align-items: stretch;
+  .bulkBar {
+    align-items: center;
+    flex-direction: row;
+    gap: 10px;
+    height: 60px;
+    overflow: hidden;
+  }
+
+  .bulkActions {
+    align-items: center;
+    flex: 1 1 auto;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .bulkActions::-webkit-scrollbar {
+    display: none;
+  }
+
+  .bulkActions > * {
+    flex: 0 0 auto;
+  }
+
+  .bulkSelectAll {
+    flex: 0 0 auto;
+  }
+
+  .bulkAlbumSelect {
+    flex: 0 0 180px;
   }
 
   .detailsGrid {

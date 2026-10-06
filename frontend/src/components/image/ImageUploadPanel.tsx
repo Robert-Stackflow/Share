@@ -61,13 +61,13 @@ const ImageUploadPanel = ({
       onDragOver={(event) => event.preventDefault()}
       onDrop={onDrop}
     >
-      <Group wrap="nowrap">
+      <Group wrap="nowrap" className={classes.dropzoneIntro}>
         <div className={classes.dropIcon}>
           <UploadCloud size={25} />
         </div>
-        <div>
+        <div className={classes.dropzoneCopy}>
           <Text fw={650}>{t("images.upload.title")}</Text>
-          <Text size="sm" c="dimmed">
+          <Text size="sm" c="dimmed" className={classes.dropzoneDescription}>
             {t("images.upload.description", {
               size: byteToHumanSizeString(maxImageBytes),
             })}
@@ -80,12 +80,13 @@ const ImageUploadPanel = ({
           </Group>
         </div>
       </Group>
-      <Group>
+      <Group className={classes.uploadControls}>
         <Select
           size="xs"
           clearable
           searchable
           disabled={!uploadEnabled}
+          className={classes.uploadAlbumSelect}
           placeholder={t("images.album.none")}
           data={albums.map((album) => ({
             value: album.id,

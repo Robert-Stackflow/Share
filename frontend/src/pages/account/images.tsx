@@ -79,10 +79,9 @@ const Images = () => {
   const [tagFilter, setTagFilter] = useState<string | null>(null);
   const [favoriteOnly, setFavoriteOnly] = useState(false);
   const [uploadAlbumId, setUploadAlbumId] = useState<string | null>(null);
-  const [uploadVisibility, setUploadVisibility] =
-    useState<ImageVisibility>(
-      allowPublic && defaultPublic ? "PUBLIC" : "PRIVATE",
-    );
+  const [uploadVisibility, setUploadVisibility] = useState<ImageVisibility>(
+    allowPublic && defaultPublic ? "PUBLIC" : "PRIVATE",
+  );
   const [uploading, setUploading] = useState(false);
   const [bulkBusy, setBulkBusy] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
@@ -487,20 +486,22 @@ const Images = () => {
             value={tagFilter}
             onChange={setTagFilter}
           />
-          <Switch
-            label={t("images.favoriteOnly")}
-            checked={favoriteOnly}
-            onChange={(event) => setFavoriteOnly(event.currentTarget.checked)}
-          />
-          <SegmentedControl
-            value={filter}
-            onChange={(value) => setFilter(value as VisibilityFilter)}
-            data={[
-              { value: "ALL", label: t("images.filter.all") },
-              { value: "PUBLIC", label: t("images.visibility.public") },
-              { value: "PRIVATE", label: t("images.visibility.private") },
-            ]}
-          />
+          <div className={classes.filterOptions}>
+            <Switch
+              label={t("images.favoriteOnly")}
+              checked={favoriteOnly}
+              onChange={(event) => setFavoriteOnly(event.currentTarget.checked)}
+            />
+            <SegmentedControl
+              value={filter}
+              onChange={(value) => setFilter(value as VisibilityFilter)}
+              data={[
+                { value: "ALL", label: t("images.filter.all") },
+                { value: "PUBLIC", label: t("images.visibility.public") },
+                { value: "PRIVATE", label: t("images.visibility.private") },
+              ]}
+            />
+          </div>
         </div>
 
         {images.length > 0 ? (
