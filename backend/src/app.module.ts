@@ -29,6 +29,7 @@ import { ShortLinkModule } from "./shortLink/shortLink.module";
 import { UserModule } from "./user/user.module";
 import { SystemModule } from "./system/system.module";
 import { StorageModule } from "./storage/storage.module";
+import { AppCredentialModule } from "./appCredential/appCredential.module";
 
 import { SystemLanguageResolver } from "./i18n/systemLanguage.resolver";
 
@@ -54,6 +55,7 @@ const i18nPath = existsSync(join(__dirname, "../i18n"))
     UserModule,
     SystemModule,
     StorageModule,
+    AppCredentialModule,
     ThrottlerModule.forRoot([
       {
         ttl: 60,

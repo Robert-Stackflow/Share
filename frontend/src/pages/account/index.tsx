@@ -1,4 +1,4 @@
-import { KeyRound, ShieldCheck } from "lucide-react";
+import { KeyRound, ShieldCheck, Waypoints } from "lucide-react";
 import {
   Badge,
   Button,
@@ -21,6 +21,7 @@ import * as yup from "yup";
 import Meta from "../../components/Meta";
 import LanguagePicker from "../../components/account/LanguagePicker";
 import PasskeyManager from "../../components/account/PasskeyManager";
+import AppCredentialManager from "../../components/account/AppCredentialManager";
 import ThemeSwitcher from "../../components/account/ThemeSwitcher";
 import showEnableTotpModal from "../../components/account/showEnableTotpModal";
 import useConfig from "../../hooks/config.hook";
@@ -141,86 +142,86 @@ const Account = () => {
         <FormattedMessage id="account.title" />
       </Title>
       <div className={classes.primaryGrid}>
-      <Paper withBorder p="xl" className={classes.card}>
-        <Title order={5} mb="xs">
-          <FormattedMessage id="account.card.info.title" />
-          {user?.isLdap ? (
-            <Badge style={{ marginLeft: "1em" }}>LDAP</Badge>
-          ) : null}
-        </Title>
-        <form
-          onSubmit={accountForm.onSubmit((values) =>
-            userService
-              .updateCurrentUser({
-                username: values.username,
-                email: values.email,
-              })
-              .then(() => toast.success(t("account.notify.info.success")))
-              .catch(toast.axiosError),
-          )}
-        >
-          <Stack>
-            <TextInput
-              label={t("account.card.info.username")}
-              disabled={user?.isLdap}
-              {...accountForm.getInputProps("username")}
-            />
-            <TextInput
-              label={t("account.card.info.email")}
-              disabled={user?.isLdap}
-              {...accountForm.getInputProps("email")}
-            />
-            {!user?.isLdap && (
-              <Group justify="flex-end">
-                <Button type="submit">
-                  <FormattedMessage id="common.button.save" />
-                </Button>
-              </Group>
-            )}
-          </Stack>
-        </form>
-      </Paper>
-      {user?.isLdap ? null : (
         <Paper withBorder p="xl" className={classes.card}>
           <Title order={5} mb="xs">
-            <FormattedMessage id="account.card.password.title" />
+            <FormattedMessage id="account.card.info.title" />
+            {user?.isLdap ? (
+              <Badge style={{ marginLeft: "1em" }}>LDAP</Badge>
+            ) : null}
           </Title>
           <form
-            onSubmit={passwordForm.onSubmit((values) =>
-              authService
-                .updatePassword(values.oldPassword, values.password)
-                .then(async () => {
-                  refreshUser();
-                  toast.success(t("account.notify.password.success"));
-                  passwordForm.reset();
+            onSubmit={accountForm.onSubmit((values) =>
+              userService
+                .updateCurrentUser({
+                  username: values.username,
+                  email: values.email,
                 })
+                .then(() => toast.success(t("account.notify.info.success")))
                 .catch(toast.axiosError),
             )}
           >
             <Stack>
-              {user?.hasPassword ? (
-                <PasswordInput
-                  label={t("account.card.password.old")}
-                  {...passwordForm.getInputProps("oldPassword")}
-                />
-              ) : (
-                <Text size="sm" c="dimmed">
-                  <FormattedMessage id="account.card.password.noPasswordSet" />
-                </Text>
-              )}
-              <PasswordInput
-                label={t("account.card.password.new")}
-                {...passwordForm.getInputProps("password")}
+              <TextInput
+                label={t("account.card.info.username")}
+                disabled={user?.isLdap}
+                {...accountForm.getInputProps("username")}
               />
-              <Group justify="flex-end">
-                <Button type="submit">
-                  <FormattedMessage id="common.button.save" />
-                </Button>
-              </Group>
+              <TextInput
+                label={t("account.card.info.email")}
+                disabled={user?.isLdap}
+                {...accountForm.getInputProps("email")}
+              />
+              {!user?.isLdap && (
+                <Group justify="flex-end">
+                  <Button type="submit">
+                    <FormattedMessage id="common.button.save" />
+                  </Button>
+                </Group>
+              )}
             </Stack>
           </form>
         </Paper>
-      )}
+        {user?.isLdap ? null : (
+          <Paper withBorder p="xl" className={classes.card}>
+            <Title order={5} mb="xs">
+              <FormattedMessage id="account.card.password.title" />
+            </Title>
+            <form
+              onSubmit={passwordForm.onSubmit((values) =>
+                authService
+                  .updatePassword(values.oldPassword, values.password)
+                  .then(async () => {
+                    refreshUser();
+                    toast.success(t("account.notify.password.success"));
+                    passwordForm.reset();
+                  })
+                  .catch(toast.axiosError),
+              )}
+            >
+              <Stack>
+                {user?.hasPassword ? (
+                  <PasswordInput
+                    label={t("account.card.password.old")}
+                    {...passwordForm.getInputProps("oldPassword")}
+                  />
+                ) : (
+                  <Text size="sm" c="dimmed">
+                    <FormattedMessage id="account.card.password.noPasswordSet" />
+                  </Text>
+                )}
+                <PasswordInput
+                  label={t("account.card.password.new")}
+                  {...passwordForm.getInputProps("password")}
+                />
+                <Group justify="flex-end">
+                  <Button type="submit">
+                    <FormattedMessage id="common.button.save" />
+                  </Button>
+                </Group>
+              </Stack>
+            </form>
+          </Paper>
+        )}
       </div>
       {oauth.length > 0 && (
         <Paper withBorder p="xl" mt="lg" className={classes.card}>
@@ -296,7 +297,12 @@ const Account = () => {
           </Tabs>
         </Paper>
       )}
-      <Paper withBorder p="xl" mt="lg" className={`${classes.card} ${classes.security}`}>
+      <Paper
+        withBorder
+        p="xl"
+        mt="lg"
+        className={`${classes.card} ${classes.security}`}
+      >
         <Title order={5} mb="xs">
           <FormattedMessage id="account.card.security.title" />
         </Title>
@@ -309,10 +315,17 @@ const Account = () => {
             <Tabs.Tab value="passkeys" leftSection={<KeyRound size={14} />}>
               {t("passkey.title")}
             </Tabs.Tab>
+            <Tabs.Tab value="credentials" leftSection={<Waypoints size={14} />}>
+              {t("credentials.title")}
+            </Tabs.Tab>
           </Tabs.List>
 
           <Tabs.Panel value="passkeys" pt="xs">
             <PasskeyManager />
+          </Tabs.Panel>
+
+          <Tabs.Panel value="credentials" pt="xs">
+            <AppCredentialManager />
           </Tabs.Panel>
 
           <Tabs.Panel value="totp" pt="xs">
@@ -393,18 +406,18 @@ const Account = () => {
         </Tabs>
       </Paper>
       <div className={classes.preferenceGrid}>
-      <Paper withBorder p="xl" className={classes.card}>
-        <Title order={5} mb="xs">
-          <FormattedMessage id="account.card.language.title" />
-        </Title>
-        <LanguagePicker />
-      </Paper>
-      <Paper withBorder p="xl" className={classes.card}>
-        <Title order={5} mb="xs">
-          <FormattedMessage id="account.card.color.title" />
-        </Title>
-        <ThemeSwitcher />
-      </Paper>
+        <Paper withBorder p="xl" className={classes.card}>
+          <Title order={5} mb="xs">
+            <FormattedMessage id="account.card.language.title" />
+          </Title>
+          <LanguagePicker />
+        </Paper>
+        <Paper withBorder p="xl" className={classes.card}>
+          <Title order={5} mb="xs">
+            <FormattedMessage id="account.card.color.title" />
+          </Title>
+          <ThemeSwitcher />
+        </Paper>
       </div>
       <Center mt={80} mb="lg">
         <Stack>

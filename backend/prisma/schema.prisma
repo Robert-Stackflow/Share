@@ -18,6 +18,11 @@ enum StorageProvider {
   S3
 }
 
+enum AppCredentialType {
+  APP_PASSWORD
+  API_TOKEN
+}
+
 enum RoomVisibility {
   PRIVATE
   SHARED
@@ -62,6 +67,7 @@ model User {
   activityEvents    ActivityEvent[]
   passkeys          PasskeyCredential[]
   passkeyChallenges PasskeyChallenge[]
+  appCredentials    AppCredential[]
   refreshTokens     RefreshToken[]
   loginTokens       LoginToken[]
   reverseShares     ReverseShare[]
@@ -260,6 +266,27 @@ model StorageMultipartUpload {
   expectedParts Int
 
   @@index([updatedAt])
+}
+
+model AppCredential {
+  id         String            @id
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+  name       String
+  type       AppCredentialType
+  tokenHint  String
+  secretHash String
+  scopes     String
+  expiresAt  DateTime?
+  lastUsedAt DateTime?
+  revokedAt  DateTime?
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([expiresAt])
+  @@index([revokedAt])
 }
 
 model Room {
