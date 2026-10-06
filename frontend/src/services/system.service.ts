@@ -35,6 +35,38 @@ export interface StorageConnectionTest {
   error?: string;
 }
 
+export interface StorageWebDavUsage {
+  available: boolean;
+  allowWrite: boolean;
+  path: string;
+  namespace: string;
+  objectCount: number;
+  totalBytes: number;
+  lastModified?: string;
+  reason?: "disabled" | "requires_s3";
+}
+
+export interface StorageAudit {
+  available: boolean;
+  provider: "LOCAL" | "S3";
+  checkedAt: string;
+  namespace: string;
+  protectionCutoff: string;
+  objects: { count: number; totalBytes: number };
+  database: { referencedObjects: number };
+  orphaned: { count: number; totalBytes: number; samples: string[] };
+  protectedUnreferenced: { count: number; totalBytes: number };
+  missing: { count: number; samples: string[] };
+  staleMultipartUploads: number;
+  reason?: "requires_s3";
+}
+
+export interface StorageCleanupResult {
+  deletedOrphanedObjects: number;
+  abortedMultipartUploads: number;
+  audit: StorageAudit;
+}
+
 const getSystemInfo = async (): Promise<SystemInfo | null> => {
   return (await api.get("system/info")).data;
 };
@@ -53,8 +85,23 @@ const testStorageConnection = async (
   ).data;
 };
 
+const getWebDavUsage = async (): Promise<StorageWebDavUsage> => {
+  return (await api.get("system/storage/webdav/usage")).data;
+};
+
+const auditStorage = async (): Promise<StorageAudit> => {
+  return (await api.post("system/storage/audit")).data;
+};
+
+const cleanupStorage = async (): Promise<StorageCleanupResult> => {
+  return (await api.post("system/storage/cleanup")).data;
+};
+
 export default {
+  auditStorage,
+  cleanupStorage,
   getSystemInfo,
   getStorageStatus,
+  getWebDavUsage,
   testStorageConnection,
 };

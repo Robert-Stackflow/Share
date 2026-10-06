@@ -68,6 +68,19 @@ export default {
   "credentials.createTitle": "创建密钥",
   "credentials.listTitle": "我的密钥",
   "credentials.listDescription": "密钥只会显示一次，请及时撤销不再使用的密钥。",
+  "credentials.webdavUsage.title": "WebDAV 存储",
+  "credentials.webdavUsage.description":
+    "查看你的独立 WebDAV 目录当前保存的文件和空间占用。",
+  "credentials.webdavUsage.loading": "正在加载 WebDAV 用量",
+  "credentials.webdavUsage.objects": "存储文件",
+  "credentials.webdavUsage.storage": "占用空间",
+  "credentials.webdavUsage.latest": "最近变更",
+  "credentials.webdavUsage.namespace": "S3 目录",
+  "credentials.webdavUsage.never": "还没有文件",
+  "credentials.webdavUsage.disabled":
+    "WebDAV 当前已停用，服务启用后这里会显示用量。",
+  "credentials.webdavUsage.requiresS3":
+    "启用 S3 对象存储后才能查看 WebDAV 用量。",
   "images.title": "图床",
   "images.description":
     "集中上传和管理图片，支持批量操作、公开范围控制，并一键复制常用链接格式。",
@@ -1401,6 +1414,38 @@ export default {
   "admin.storage.webdav.requiresS3.title": "WebDAV 依赖 S3",
   "admin.storage.webdav.requiresS3.description":
     "请先启用并正确配置 S3 对象存储，然后再启用 WebDAV。",
+  "admin.storage.audit.title": "存储体检",
+  "admin.storage.audit.description":
+    "比对 S3 对象与数据库引用，并检查遗留的分片上传。",
+  "admin.storage.audit.readOnly": "只读检测",
+  "admin.storage.audit.button": "开始体检",
+  "admin.storage.audit.completed": "存储体检已完成。",
+  "admin.storage.audit.protection":
+    "体检不会修改数据；上传不足 24 小时的对象会受到保护，不参与清理。",
+  "admin.storage.audit.unavailable": "暂时无法执行 S3 体检",
+  "admin.storage.audit.objects": "S3 对象",
+  "admin.storage.audit.references": "数据库引用",
+  "admin.storage.audit.orphaned": "可安全清理",
+  "admin.storage.audit.missing": "缺失对象",
+  "admin.storage.audit.multipart": "遗留分片",
+  "admin.storage.audit.healthy": "存储状态一致",
+  "admin.storage.audit.healthyDescription":
+    "没有发现过期孤立对象、缺失文件或遗留分片上传。",
+  "admin.storage.audit.orphanedFinding":
+    "发现 {count} 个超过保护期、且已没有数据库引用的 S3 对象。",
+  "admin.storage.audit.missingFinding":
+    "有 {count} 条数据库引用找不到对应 S3 对象；安全清理不会删除这些记录。",
+  "admin.storage.audit.multipartFinding":
+    "有 {count} 个分片上传超过 24 小时没有活动。",
+  "admin.storage.audit.protectedObjects":
+    "另有 {count} 个未引用对象（{size}）仍处在 24 小时保护期内，不会被清理。",
+  "admin.storage.audit.checkedAt": "检测时间：{date}",
+  "admin.storage.cleanup.button": "清理安全项",
+  "admin.storage.cleanup.confirmTitle": "确认安全清理？",
+  "admin.storage.cleanup.confirmDescription":
+    "将永久删除 {objects} 个超过保护期的孤立对象，并终止 {uploads} 个遗留分片上传；缺失对象对应的数据库记录不会被修改。",
+  "admin.storage.cleanup.completed":
+    "已删除 {objects} 个孤立对象，并终止 {uploads} 个遗留分片上传。",
   "admin.config.s3.enabled": "启用",
   "admin.config.s3.enabled.description":
     "是否使用 S3 而非本地文件系统来存储共享文件。警告：如果启用了 ClamAV，文件将临时从 S3 下载以进行检查。",

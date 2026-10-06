@@ -1,6 +1,8 @@
 import {
   CompleteMultipartUploadCommand,
   CreateMultipartUploadCommand,
+  DeleteObjectsCommand,
+  ListObjectsV2Command,
   UploadPartCommand,
 } from "@aws-sdk/client-s3";
 import { BadRequestException } from "@nestjs/common";
@@ -153,5 +155,66 @@ test("persists multipart state so another service instance can finish it", async
   assert.deepEqual(complete.input.MultipartUpload?.Parts, [
     { ETag: "etag-1", PartNumber: 1 },
     { ETag: "etag-2", PartNumber: 2 },
+  ]);
+});
+
+test("lists every object page under a logical namespace", async () => {
+  const { prisma } = createPrisma();
+  const service = new S3ObjectStorageService(
+    createConfig() as any,
+    prisma as any,
+  );
+  let page = 0;
+  attachClient(service, async (command) => {
+    assert.ok(command instanceof ListObjectsV2Command);
+    page++;
+    return page === 1
+      ? {
+          Contents: [
+            {
+              Key: "tenant/root/assets/first",
+              Size: 10,
+              LastModified: new Date("2026-10-01T00:00:00Z"),
+            },
+          ],
+          NextContinuationToken: "next-page",
+        }
+      : {
+          Contents: [{ Key: "tenant/root/assets/second", Size: 20 }],
+        };
+  });
+
+  const objects = await service.listAll("assets/");
+
+  assert.deepEqual(
+    objects.map((object) => object.key),
+    ["assets/first", "assets/second"],
+  );
+  assert.equal(page, 2);
+});
+
+test("deletes logical object keys in a validated batch", async () => {
+  const { prisma } = createPrisma();
+  const service = new S3ObjectStorageService(
+    createConfig() as any,
+    prisma as any,
+  );
+  let command: DeleteObjectsCommand | undefined;
+  attachClient(service, async (nextCommand) => {
+    command = nextCommand as DeleteObjectsCommand;
+    return {};
+  });
+
+  const deleted = await service.deleteMany([
+    "assets/first",
+    "assets/second",
+    "assets/first",
+  ]);
+
+  assert.equal(deleted, 2);
+  assert.ok(command instanceof DeleteObjectsCommand);
+  assert.deepEqual(command.input.Delete?.Objects, [
+    { Key: "tenant/root/assets/first" },
+    { Key: "tenant/root/assets/second" },
   ]);
 });

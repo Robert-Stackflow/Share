@@ -87,6 +87,11 @@ test("default app shell and header share a calmer page width", () => {
 test("storage and WebDAV settings expose a shared status control plane", () => {
   const configPage = read("pages/admin/config/[category].tsx");
   const panel = read("components/admin/configuration/StorageStatusPanel.tsx");
+  const auditPanel = read(
+    "components/admin/configuration/StorageAuditPanel.tsx",
+  );
+  const credentialsPage = read("pages/account/credentials.tsx");
+  const usagePanel = read("components/account/WebDavUsagePanel.tsx");
   const systemService = read("services/system.service.ts");
 
   assert.match(configPage, /categoryId === "s3"/);
@@ -96,8 +101,16 @@ test("storage and WebDAV settings expose a shared status control plane", () => {
   assert.match(panel, /admin\.storage\.namespace\.webdav/);
   assert.match(panel, /hasUnsavedChanges/);
   assert.match(panel, /aria-live="polite"/);
+  assert.match(configPage, /<StorageAuditPanel/);
+  assert.match(auditPanel, /showConfirmDialog/);
+  assert.match(auditPanel, /admin\.storage\.audit\.protection/);
+  assert.match(auditPanel, /protectedUnreferenced/);
+  assert.match(credentialsPage, /<WebDavUsagePanel/);
+  assert.match(usagePanel, /systemService\.getWebDavUsage/);
   assert.match(systemService, /api\.get\("system\/storage"\)/);
   assert.match(systemService, /api\.post\("system\/storage\/test"/);
+  assert.match(systemService, /api\.post\("system\/storage\/audit"\)/);
+  assert.match(systemService, /api\.post\("system\/storage\/cleanup"\)/);
 });
 
 test("a single AssetComposer powers file/text/link with aligned chat fields", () => {

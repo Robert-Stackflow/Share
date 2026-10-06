@@ -4,6 +4,7 @@ import {
   CopyObjectCommand,
   CreateMultipartUploadCommand,
   DeleteObjectCommand,
+  DeleteObjectsCommand,
   GetObjectCommand,
   HeadObjectCommand,
   ListObjectsV2Command,
@@ -337,6 +338,32 @@ export class S3ObjectStorageService {
     };
   }
 
+  async listAll(prefix: string): Promise<StorageObject[]> {
+    const objects: StorageObject[] = [];
+    const seenTokens = new Set<string>();
+    let continuationToken: string | undefined;
+
+    do {
+      const page = await this.list(prefix, {
+        continuationToken,
+        maxKeys: 1000,
+      });
+      objects.push(...page.objects);
+      continuationToken = page.continuationToken;
+
+      if (continuationToken) {
+        if (seenTokens.has(continuationToken)) {
+          throw new InternalServerErrorException(
+            "S3 returned a repeated continuation token",
+          );
+        }
+        seenTokens.add(continuationToken);
+      }
+    } while (continuationToken);
+
+    return objects;
+  }
+
   async copy(sourceKey: string, targetKey: string): Promise<void> {
     const source = `${this.getBucket()}/${this.resolveKey(sourceKey)}`;
     await this.getClient().send(
@@ -355,6 +382,32 @@ export class S3ObjectStorageService {
         Key: this.resolveKey(key),
       }),
     );
+  }
+
+  async deleteMany(keys: string[]): Promise<number> {
+    const uniqueKeys = Array.from(new Set(keys));
+    if (uniqueKeys.length === 0) return 0;
+
+    let deleted = 0;
+    for (let index = 0; index < uniqueKeys.length; index += 1000) {
+      const batch = uniqueKeys.slice(index, index + 1000).map((key) => ({
+        Key: this.resolveKey(key),
+      }));
+      const response = await this.getClient().send(
+        new DeleteObjectsCommand({
+          Bucket: this.getBucket(),
+          Delete: { Objects: batch, Quiet: true },
+        }),
+      );
+      if (response.Errors?.length) {
+        throw new InternalServerErrorException(
+          `S3 failed to delete ${response.Errors.length} storage object(s)`,
+        );
+      }
+      deleted += batch.length;
+    }
+
+    return deleted;
   }
 
   getS3ClientConfig(): S3ClientConfig {

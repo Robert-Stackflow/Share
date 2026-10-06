@@ -74,6 +74,19 @@ export default {
   "credentials.listTitle": "Your keys",
   "credentials.listDescription":
     "Secrets are shown once. Revoke keys that you no longer use.",
+  "credentials.webdavUsage.title": "WebDAV storage",
+  "credentials.webdavUsage.description":
+    "Review the files and space currently used by your isolated WebDAV directory.",
+  "credentials.webdavUsage.loading": "Loading WebDAV usage",
+  "credentials.webdavUsage.objects": "Stored files",
+  "credentials.webdavUsage.storage": "Space used",
+  "credentials.webdavUsage.latest": "Latest change",
+  "credentials.webdavUsage.namespace": "S3 directory",
+  "credentials.webdavUsage.never": "No files yet",
+  "credentials.webdavUsage.disabled":
+    "WebDAV is currently disabled. Usage will appear after the service is enabled.",
+  "credentials.webdavUsage.requiresS3":
+    "WebDAV usage is unavailable until S3 object storage is enabled.",
   "images.title": "Image hosting",
   "images.description":
     "Upload and manage images with bulk actions, visibility controls, and ready-to-use link formats.",
@@ -1548,6 +1561,38 @@ export default {
   "admin.storage.webdav.requiresS3.title": "WebDAV requires S3",
   "admin.storage.webdav.requiresS3.description":
     "Enable and configure S3 object storage before enabling WebDAV.",
+  "admin.storage.audit.title": "Storage health check",
+  "admin.storage.audit.description":
+    "Compare S3 objects with database references and find stale uploads.",
+  "admin.storage.audit.readOnly": "Read-only scan",
+  "admin.storage.audit.button": "Run health check",
+  "admin.storage.audit.completed": "Storage health check completed.",
+  "admin.storage.audit.protection":
+    "The scan does not change data. Objects newer than 24 hours are protected from cleanup.",
+  "admin.storage.audit.unavailable": "S3 health check unavailable",
+  "admin.storage.audit.objects": "S3 objects",
+  "admin.storage.audit.references": "Database references",
+  "admin.storage.audit.orphaned": "Safe to clean",
+  "admin.storage.audit.missing": "Missing objects",
+  "admin.storage.audit.multipart": "Stale uploads",
+  "admin.storage.audit.healthy": "Storage is consistent",
+  "admin.storage.audit.healthyDescription":
+    "No aged orphan objects, missing files, or stale multipart uploads were found.",
+  "admin.storage.audit.orphanedFinding":
+    "{count} aged S3 object(s) are no longer referenced.",
+  "admin.storage.audit.missingFinding":
+    "{count} database reference(s) have no matching S3 object. Cleanup will not remove these records.",
+  "admin.storage.audit.multipartFinding":
+    "{count} multipart upload(s) have been inactive for more than 24 hours.",
+  "admin.storage.audit.protectedObjects":
+    "{count} unreferenced object(s) ({size}) are still inside the 24-hour protection window and will not be cleaned.",
+  "admin.storage.audit.checkedAt": "Checked {date}",
+  "admin.storage.cleanup.button": "Clean safe items",
+  "admin.storage.cleanup.confirmTitle": "Clean storage safely?",
+  "admin.storage.cleanup.confirmDescription":
+    "This will permanently delete {objects} aged orphan object(s) and abort {uploads} stale multipart upload(s). Missing database references are left unchanged.",
+  "admin.storage.cleanup.completed":
+    "Deleted {objects} orphan object(s) and aborted {uploads} stale upload(s).",
   "admin.config.s3.enabled": "Enabled",
   "admin.config.s3.enabled.description":
     "Whether S3 should be used to store the shared files instead of the local file system. WARNING: If ClamAV is active, files will be temporarily downloaded from S3 to be checked.",

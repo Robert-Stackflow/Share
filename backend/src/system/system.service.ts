@@ -5,8 +5,11 @@ import { SystemInfoDTO } from "./dto/systemInfo.dto";
 import { ConfigService } from "src/config/config.service";
 import { StorageService } from "src/storage/storage.service";
 import {
+  StorageAudit,
+  StorageCleanupResult,
   StorageConnectionTest,
   StorageStatus,
+  StorageWebDavUsage,
 } from "src/storage/storage.types";
 import { StorageProvider } from "@prisma/client";
 import * as path from "path";
@@ -28,6 +31,18 @@ export class SystemService {
     provider?: StorageProvider,
   ): Promise<StorageConnectionTest> {
     return this.storage.testConnection(provider);
+  }
+
+  getWebDavUsage(userId: string): Promise<StorageWebDavUsage> {
+    return this.storage.getWebDavUsage(userId);
+  }
+
+  auditStorage(): Promise<StorageAudit> {
+    return this.storage.auditStorage();
+  }
+
+  cleanupStorage(): Promise<StorageCleanupResult> {
+    return this.storage.cleanupStorage();
   }
 
   async getSystemInfo(): Promise<SystemInfoDTO | null> {
