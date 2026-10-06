@@ -1,0 +1,47 @@
+.preview {
+  align-items: center;
+  background: light-dark(#f2f4f7, #141922);
+  border-radius: 14px;
+  display: flex;
+  justify-content: center;
+  min-height: 280px;
+  overflow: hidden;
+  padding: 18px 52px;
+  position: relative;
+}
+
+.preview :global(.mantine-Image-root) {
+  max-height: min(58vh, 620px);
+}
+
+.previous,
+.next {
+  box-shadow: 0 4px 16px rgb(0 0 0 / 20%);
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+}
+
+.previous {
+  left: 12px;
+}
+
+.next {
+  right: 12px;
+}
+
+@media (max-width: 48em) {
+  .preview {
+    min-height: 220px;
+    padding: 12px 42px;
+  }
+
+  .previous {
+    left: 7px;
+  }
+
+  .next {
+    right: 7px;
+  }
+}

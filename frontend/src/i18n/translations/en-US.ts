@@ -246,6 +246,9 @@ export default {
   "images.clients.headers": "Request headers",
   "images.clients.headersDescription":
     "Keep the token on your device and never put it in public scripts.",
+  "images.details.previous": "Previous image",
+  "images.details.next": "Next image",
+  "images.details.position": "{current} / {total}",
   // Navbar
   "navbar.upload": "Upload",
   "navbar.menu.open": "Open menu",

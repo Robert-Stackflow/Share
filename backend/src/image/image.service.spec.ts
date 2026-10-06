@@ -1,6 +1,11 @@
 import { strict as assert } from "node:assert";
 import { test } from "node:test";
-import { AssetType, ImageVisibility, StorageProvider } from "@prisma/client";
+import {
+  AssetType,
+  ImageVariantKind,
+  ImageVisibility,
+  StorageProvider,
+} from "@prisma/client";
 import * as sharp from "sharp";
 import { ImageService } from "./image.service";
 
@@ -200,6 +205,44 @@ test("returns copy-ready links only for public images", () => {
     adminResponse.thumbnailUrl,
     "/api/admin/images/image-1/thumbnail",
   );
+  assert.equal(adminResponse.contentUrl, "/api/admin/images/image-1/content");
+  assert.equal(adminResponse.originalUrl, "/api/admin/images/image-1/original");
+});
+
+test("serves processed and original image bytes to administrators", async () => {
+  const streamedAssets: string[] = [];
+  const originalAsset = { ...asset, id: "asset-original" };
+  const service = new ImageService(
+    {
+      hostedImage: {
+        findUnique: async () => ({
+          id: "image-1",
+          asset,
+          variants: [
+            {
+              kind: ImageVariantKind.ORIGINAL,
+              asset: originalAsset,
+            },
+          ],
+        }),
+      },
+    } as any,
+    {
+      getDownloadStream: async (item: { id: string }) => {
+        streamedAssets.push(item.id);
+        return { assetId: item.id };
+      },
+    } as any,
+    createConfig() as any,
+  );
+
+  assert.deepEqual(await service.getAdminContent("image-1"), {
+    assetId: asset.id,
+  });
+  assert.deepEqual(await service.getAdminOriginalContent("image-1"), {
+    assetId: originalAsset.id,
+  });
+  assert.deepEqual(streamedAssets, [asset.id, originalAsset.id]);
 });
 
 test("applies administrator upload and visibility policies", async () => {

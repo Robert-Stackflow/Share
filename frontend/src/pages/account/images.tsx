@@ -299,11 +299,17 @@ const Images = () => {
 
   const updateVisibility = async (image: HostedImage) => {
     try {
-      updateImage(
-        await imageService.update(image.id, {
-          visibility: image.visibility === "PUBLIC" ? "PRIVATE" : "PUBLIC",
-        }),
-      );
+      const updated = await imageService.update(image.id, {
+        visibility: image.visibility === "PUBLIC" ? "PRIVATE" : "PUBLIC",
+      });
+      if (filter !== "ALL" && filter !== updated.visibility) {
+        setImages((current) =>
+          current?.filter((item) => item.id !== updated.id),
+        );
+        setSelected((current) => (current?.id === updated.id ? null : current));
+      } else {
+        updateImage(updated);
+      }
       await refreshStats();
       toast.success(t("images.visibility.updated"));
     } catch (error) {
@@ -321,8 +327,18 @@ const Images = () => {
     try {
       const updated = await imageService.updateBatch(ids, input);
       const updates = new Map(updated.map((image) => [image.id, image]));
+      const leavesVisibilityFilter =
+        input.visibility !== undefined &&
+        filter !== "ALL" &&
+        input.visibility !== filter;
+      const leavesAlbumFilter =
+        "albumId" in input &&
+        albumFilter !== null &&
+        input.albumId !== albumFilter;
       setImages((current) =>
-        current?.map((image) => updates.get(image.id) ?? image),
+        leavesVisibilityFilter || leavesAlbumFilter
+          ? current?.filter((image) => !updates.has(image.id))
+          : current?.map((image) => updates.get(image.id) ?? image),
       );
       setSelectedIds(new Set());
       await Promise.all([refreshStats(), refreshAlbums()]);

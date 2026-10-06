@@ -230,6 +230,9 @@ export default {
   "images.clients.headers": "请求头",
   "images.clients.headersDescription":
     "Token 只保存在客户端本机，请勿写入公开脚本。",
+  "images.details.previous": "上一张图片",
+  "images.details.next": "下一张图片",
+  "images.details.position": "{current} / {total}",
   // Navbar
   "navbar.upload": "上传",
   "navbar.menu.open": "打开菜单",

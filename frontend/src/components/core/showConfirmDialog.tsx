@@ -11,6 +11,8 @@ type ConfirmDialogOptions = {
   destructive?: boolean;
 };
 
+let confirmDialogSequence = 0;
+
 const showConfirmDialog = (
   modals: ModalsContextProps,
   {
@@ -22,10 +24,15 @@ const showConfirmDialog = (
     onCancel,
     destructive = true,
   }: ConfirmDialogOptions,
-) =>
-  modals.openConfirmModal({
+) => {
+  const modalId = `share-confirm-${++confirmDialogSequence}`;
+  let confirming = false;
+
+  return modals.openConfirmModal({
+    modalId,
     title,
     centered: true,
+    closeOnConfirm: false,
     children: (
       <Text size="sm" c="dimmed" lh={1.6}>
         {message}
@@ -36,8 +43,28 @@ const showConfirmDialog = (
       cancel: cancelLabel,
     },
     confirmProps: destructive ? { color: "red" } : undefined,
-    onConfirm,
+    onConfirm: async () => {
+      if (confirming) return;
+      confirming = true;
+      modals.updateModal({
+        modalId,
+        closeOnClickOutside: false,
+        closeOnEscape: false,
+        withCloseButton: false,
+        confirmProps: {
+          ...(destructive ? { color: "red" } : {}),
+          loading: true,
+        },
+        cancelProps: { disabled: true },
+      });
+      try {
+        await onConfirm();
+      } finally {
+        modals.closeModal(modalId, false);
+      }
+    },
     onCancel,
   });
+};
 
 export default showConfirmDialog;

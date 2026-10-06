@@ -105,6 +105,9 @@ const AdminImages = () => {
     () => (images ?? []).map((image) => image.id),
     [images],
   );
+  const selectedIndex = selected
+    ? (images ?? []).findIndex((image) => image.id === selected.id)
+    : -1;
 
   const toggleImageSelection = (id: string, checked: boolean) => {
     setSelectedIds((current) => {
@@ -133,9 +136,18 @@ const AdminImages = () => {
       const updated = await imageService.adminUpdateBatch(ids, visibility);
       const updatedIds = new Set(ids);
       setImages((current) =>
-        current?.map((image) =>
-          updatedIds.has(image.id) ? { ...image, visibility } : image,
-        ),
+        filter !== "ALL" && filter !== visibility
+          ? current?.filter((image) => !updatedIds.has(image.id))
+          : current?.map((image) =>
+              updatedIds.has(image.id) ? { ...image, visibility } : image,
+            ),
+      );
+      setSelected((current) =>
+        current && updatedIds.has(current.id)
+          ? filter !== "ALL" && filter !== visibility
+            ? null
+            : { ...current, visibility }
+          : current,
       );
       setSelectedIds(new Set());
       setStats(await imageService.adminStats());
@@ -155,9 +167,17 @@ const AdminImages = () => {
       await imageService.adminUpdateBatch([image.id], visibility);
       const updated = { ...image, visibility };
       setImages((current) =>
-        current?.map((item) => (item.id === image.id ? updated : item)),
+        filter !== "ALL" && filter !== visibility
+          ? current?.filter((item) => item.id !== image.id)
+          : current?.map((item) => (item.id === image.id ? updated : item)),
       );
-      setSelected((current) => (current?.id === image.id ? updated : current));
+      setSelected((current) =>
+        current?.id === image.id
+          ? filter !== "ALL" && filter !== visibility
+            ? null
+            : updated
+          : current,
+      );
       setStats(await imageService.adminStats());
       toast.success(t("images.visibility.updated"));
     } catch (error) {
@@ -332,7 +352,25 @@ const AdminImages = () => {
         image={selected}
         allowPublic={allowPublic}
         busy={bulkBusy}
+        positionLabel={
+          selectedIndex >= 0
+            ? t("images.details.position", {
+                current: (selectedIndex + 1).toString(),
+                total: images.length.toString(),
+              })
+            : undefined
+        }
+        hasPrevious={selectedIndex > 0}
+        hasNext={selectedIndex >= 0 && selectedIndex < images.length - 1}
         onClose={() => setSelected(null)}
+        onPrevious={() => {
+          if (selectedIndex > 0) setSelected(images[selectedIndex - 1]);
+        }}
+        onNext={() => {
+          if (selectedIndex >= 0 && selectedIndex < images.length - 1) {
+            setSelected(images[selectedIndex + 1]);
+          }
+        }}
         onToggleVisibility={() => {
           if (selected) void updateVisibility(selected);
         }}

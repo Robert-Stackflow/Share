@@ -71,7 +71,7 @@ const Header = () => {
       label: t("navbar.upload"),
     },
     { link: "/rooms", label: t("navbar.rooms") },
-    { link: "/pickup", label: t("pickup.nav") },
+    { link: "/account/images", label: t("navbar.links.images") },
     {
       link: "/short-links",
       label: t("navbar.links.shortLinks"),
@@ -125,9 +125,9 @@ const Header = () => {
           icon: <MessageCircleMore size={19} />,
         },
         {
-          link: "/pickup",
-          label: t("pickup.nav"),
-          icon: <KeyRound size={19} />,
+          link: "/account/images",
+          label: t("navbar.links.images"),
+          icon: <Images size={19} />,
         },
         {
           link: "/short-links",
@@ -149,9 +149,9 @@ const Header = () => {
 
   const mobileShareLinks: NavLink[] = [
     {
-      link: "/account/images",
-      label: t("navbar.links.images"),
-      icon: <Images size={19} />,
+      link: "/pickup",
+      label: t("pickup.nav"),
+      icon: <KeyRound size={19} />,
     },
     {
       link: "/account/shares",

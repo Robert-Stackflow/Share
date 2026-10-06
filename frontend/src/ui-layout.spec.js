@@ -14,6 +14,18 @@ test("short links are promoted to a top-level authenticated navigation item", ()
   assert.doesNotMatch(shareMenu, /account\/short-links/);
 });
 
+test("image hosting is primary navigation and pickup lives under content sharing", () => {
+  const header = read("components/header/Header.tsx");
+  const shareMenu = read("components/header/NavbarShareMenu.tsx");
+  const navigation = read("components/header/navigation.util.ts");
+
+  assert.match(header, /link:\s*"\/account\/images"/);
+  assert.match(shareMenu, /href="\/pickup"/);
+  assert.doesNotMatch(shareMenu, /href="\/account\/images"/);
+  assert.match(navigation, /primaryAccountRoutes = \["\/account\/images"\]/);
+  assert.match(navigation, /contentRoutes = \[\s*"\/pickup"/);
+});
+
 test("short link workspace uses a table list with modal creation", () => {
   assert.ok(fs.existsSync(path.join(root, "pages/short-links.tsx")));
   const workspace = read("components/shortLink/ShortLinksWorkspace.tsx");
@@ -63,9 +75,11 @@ test("default app shell and header share a calmer page width", () => {
   const headerCss = read("components/header/Header.module.css");
   const globalCss = read("styles/global.css");
 
-  assert.match(app, /<Container\s+size=\{1080\}/);
-  assert.match(header, /<Container\s+size=\{1080\}/);
-  assert.doesNotMatch(headerCss, /mantine-primary-color/);
+  assert.match(app, /<Container[^>]*size=\{1200\}/);
+  assert.match(header, /<Container[^>]*size=\{1200\}/);
+  assert.match(headerCss, /\.linkActive/);
+  assert.match(headerCss, /transition:/);
+  assert.match(headerCss, /:focus-visible/);
   assert.match(globalCss, /scrollbar-width/);
   assert.match(globalCss, /::-webkit-scrollbar/);
 });
@@ -461,8 +475,7 @@ test("create share dialog treats files text and links as first-class content tab
   assert.match(createUpload, /activeContentTab/);
   assert.match(createUpload, /pendingTextAssets/);
   assert.match(createUpload, /pendingLinkAssets/);
-  assert.match(createUpload, /addPendingTextAsset/);
-  assert.match(createUpload, /addPendingLinkAsset/);
+  assert.match(createUpload, /initialAssets/);
   assert.match(createUpload, /modalClasses\.contentTabs/);
   assert.match(createUpload, /modalClasses\.pendingAssetList/);
   assert.match(createUpload, /upload\.modal\.content\.files/);
@@ -484,6 +497,7 @@ test("activity log pages and nav surface user and admin events", () => {
   const service = read("services/activity.service.ts");
   const types = read("types/activity.type.ts");
   const avatar = read("components/header/ActionAvatar.tsx");
+  const accountLayout = read("components/account/AccountSettingsLayout.tsx");
   const en = read("i18n/translations/en-US.ts");
   const zh = read("i18n/translations/zh-CN.ts");
 
@@ -502,7 +516,7 @@ test("activity log pages and nav surface user and admin events", () => {
   assert.match(service, /params/);
 
   // Account page: filterable table of the current user's events
-  assert.match(accountActivity, /activityService\.list/);
+  assert.match(accountActivity, /activityService\s*\.\s*list/);
   assert.match(accountActivity, /<Table/);
   assert.match(accountActivity, /<Select/);
   assert.match(accountActivity, /CenterLoader/);
@@ -510,14 +524,15 @@ test("activity log pages and nav surface user and admin events", () => {
   assert.match(accountActivity, /account\.activity\.title/);
 
   // Admin page: all events, guarded by isAdmin
-  assert.match(adminActivity, /activityService\.listAll/);
+  assert.match(adminActivity, /activityService\s*\.\s*listAll/);
   assert.match(adminActivity, /isAdmin/);
   assert.match(adminActivity, /<Table/);
   assert.match(adminActivity, /<Select/);
   assert.match(adminActivity, /admin\.activity\.title/);
 
-  // Profile menu exposes both routes
-  assert.match(avatar, /\/account\/activity/);
+  // User activity belongs to the account sidebar; admin activity stays in the
+  // administrator section of the profile menu.
+  assert.match(accountLayout, /\/account\/activity/);
   assert.match(avatar, /\/admin\/activity/);
 
   for (const key of [

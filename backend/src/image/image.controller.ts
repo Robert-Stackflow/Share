@@ -469,6 +469,26 @@ export class AdminImageController {
     return new StreamableFile(image.file);
   }
 
+  @Get(":id/content")
+  async content(
+    @Param("id") id: string,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const image = await this.images.getAdminContent(id);
+    setImageHeaders(response, image.metaData, "private, no-store");
+    return new StreamableFile(image.file);
+  }
+
+  @Get(":id/original")
+  async original(
+    @Param("id") id: string,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const image = await this.images.getAdminOriginalContent(id);
+    setImageHeaders(response, image.metaData, "private, no-store");
+    return new StreamableFile(image.file);
+  }
+
   @Delete(":id")
   remove(@Param("id") id: string) {
     return this.images.destroyAdmin(id);

@@ -661,12 +661,20 @@ export class ImageService {
   }
 
   async getAdminThumbnail(id: string) {
-    const image = await this.prisma.hostedImage.findUnique({
-      where: { id },
-      include: IMAGE_INCLUDE,
-    });
-    if (!image) throw new NotFoundException("Image not found");
-    return this.getThumbnail(image as HostedImageWithRelations);
+    return this.getThumbnail(await this.getAdmin(id));
+  }
+
+  async getAdminContent(id: string) {
+    const image = await this.getAdmin(id);
+    return this.assets.getDownloadStream(image.asset);
+  }
+
+  async getAdminOriginalContent(id: string) {
+    const image = await this.getAdmin(id);
+    const original = image.variants?.find(
+      (variant) => variant.kind === ImageVariantKind.ORIGINAL,
+    );
+    return this.assets.getDownloadStream(original?.asset ?? image.asset);
   }
 
   async getPublicContent(slug: string) {
@@ -720,13 +728,17 @@ export class ImageService {
       album: image.album ?? null,
       url,
       path: url ? path : null,
-      contentUrl: `/api/images/${image.id}/content`,
+      contentUrl: options.admin
+        ? `/api/admin/images/${image.id}/content`
+        : `/api/images/${image.id}/content`,
       thumbnailUrl: url
         ? `${origin}${path}/thumbnail`
         : options.admin
           ? `/api/admin/images/${image.id}/thumbnail`
           : `/api/images/${image.id}/thumbnail`,
-      originalUrl: `/api/images/${image.id}/original`,
+      originalUrl: options.admin
+        ? `/api/admin/images/${image.id}/original`
+        : `/api/images/${image.id}/original`,
       hasOriginal: Boolean(original),
       thumbnail: thumbnail
         ? {
@@ -1048,6 +1060,15 @@ export class ImageService {
         ...(includeDeleted ? {} : { deletedAt: null }),
         asset: { ownerId: userId, shareId: null, roomId: null },
       },
+      include: IMAGE_INCLUDE,
+    });
+    if (!image) throw new NotFoundException("Image not found");
+    return image as HostedImageWithRelations;
+  }
+
+  private async getAdmin(id: string): Promise<HostedImageWithRelations> {
+    const image = await this.prisma.hostedImage.findUnique({
+      where: { id },
       include: IMAGE_INCLUDE,
     });
     if (!image) throw new NotFoundException("Image not found");

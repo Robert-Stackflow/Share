@@ -2,7 +2,7 @@ export const isRouteWithin = (pathname: string, root: string): boolean =>
   pathname === root || (root !== "/" && pathname.startsWith(`${root}/`));
 
 export const contentRoutes = [
-  "/account/images",
+  "/pickup",
   "/account/assets",
   "/account/shares",
   "/account/reverseShares",
@@ -11,6 +11,12 @@ export const contentRoutes = [
 export const isContentRoute = (pathname: string): boolean =>
   contentRoutes.some((root) => isRouteWithin(pathname, root));
 
+export const primaryAccountRoutes = ["/account/images"] as const;
+
+export const isPrimaryAccountRoute = (pathname: string): boolean =>
+  primaryAccountRoutes.some((root) => isRouteWithin(pathname, root));
+
 export const isProfileRoute = (pathname: string): boolean =>
   (isRouteWithin(pathname, "/account") || isRouteWithin(pathname, "/admin")) &&
-  !isContentRoute(pathname);
+  !isContentRoute(pathname) &&
+  !isPrimaryAccountRoute(pathname);

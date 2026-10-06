@@ -1,4 +1,5 @@
 import {
+  ActionIcon,
   Badge,
   Button,
   CopyButton,
@@ -8,18 +9,34 @@ import {
   Stack,
   Text,
 } from "@mantine/core";
-import { Code2, Copy, Globe2, Lock, Trash2 } from "lucide-react";
+import { useHotkeys } from "@mantine/hooks";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Code2,
+  Copy,
+  Download,
+  Globe2,
+  Lock,
+  Trash2,
+} from "lucide-react";
 import { useIntl } from "react-intl";
 import useTranslate from "../../hooks/useTranslate.hook";
 import classes from "../../pages/account/images.module.css";
 import { HostedImage } from "../../types/image.type";
 import { byteToHumanSizeString } from "../../utils/fileSize.util";
+import modalClasses from "./AdminHostedImageDetailsModal.module.css";
 
 type AdminHostedImageDetailsModalProps = {
   image: HostedImage | null;
   allowPublic: boolean;
   busy: boolean;
+  positionLabel?: string;
+  hasPrevious: boolean;
+  hasNext: boolean;
   onClose: () => void;
+  onPrevious: () => void;
+  onNext: () => void;
   onToggleVisibility: () => void;
   onRemove: () => void;
 };
@@ -28,12 +45,22 @@ const AdminHostedImageDetailsModal = ({
   image,
   allowPublic,
   busy,
+  positionLabel,
+  hasPrevious,
+  hasNext,
   onClose,
+  onPrevious,
+  onNext,
   onToggleVisibility,
   onRemove,
 }: AdminHostedImageDetailsModalProps) => {
   const t = useTranslate();
   const intl = useIntl();
+
+  useHotkeys([
+    ["ArrowLeft", () => image && hasPrevious && onPrevious()],
+    ["ArrowRight", () => image && hasNext && onNext()],
+  ]);
 
   return (
     <Modal
@@ -45,21 +72,54 @@ const AdminHostedImageDetailsModal = ({
     >
       {image ? (
         <Stack gap="lg">
-          <Image
-            src={image.thumbnailUrl}
-            alt={image.name}
-            className={classes.modalImage}
-            fit="contain"
-          />
-          <div>
-            <Text fw={650}>{image.name}</Text>
-            {image.owner ? (
-              <Text size="sm" c="dimmed">
-                {t("admin.images.owner")}: {image.owner.username} ·{" "}
-                {image.owner.email}
-              </Text>
-            ) : null}
+          <div className={modalClasses.preview}>
+            <Image
+              src={image.contentUrl}
+              alt={image.name}
+              className={classes.modalImage}
+              fit="contain"
+            />
+            <ActionIcon
+              className={modalClasses.previous}
+              size="lg"
+              radius="xl"
+              variant="filled"
+              color="dark"
+              disabled={!hasPrevious}
+              aria-label={t("images.details.previous")}
+              onClick={onPrevious}
+            >
+              <ChevronLeft size={20} />
+            </ActionIcon>
+            <ActionIcon
+              className={modalClasses.next}
+              size="lg"
+              radius="xl"
+              variant="filled"
+              color="dark"
+              disabled={!hasNext}
+              aria-label={t("images.details.next")}
+              onClick={onNext}
+            >
+              <ChevronRight size={20} />
+            </ActionIcon>
           </div>
+          <Group justify="space-between" align="flex-start" wrap="nowrap">
+            <div>
+              <Text fw={650}>{image.name}</Text>
+              {image.owner ? (
+                <Text size="sm" c="dimmed">
+                  {t("admin.images.owner")}: {image.owner.username} ·{" "}
+                  {image.owner.email}
+                </Text>
+              ) : null}
+            </div>
+            {positionLabel ? (
+              <Badge variant="light" color="gray">
+                {positionLabel}
+              </Badge>
+            ) : null}
+          </Group>
           <div className={classes.detailsGrid}>
             <div>
               <Text size="xs" c="dimmed">
@@ -96,6 +156,16 @@ const AdminHostedImageDetailsModal = ({
           </div>
           <Group justify="space-between" wrap="wrap">
             <Group gap="xs">
+              <Button
+                component="a"
+                href={image.originalUrl}
+                download={image.name}
+                size="xs"
+                variant="subtle"
+                leftSection={<Download size={14} />}
+              >
+                {t("images.details.downloadOriginal")}
+              </Button>
               <Badge variant="light">
                 {t("admin.images.views", { count: image.views.toString() })}
               </Badge>
