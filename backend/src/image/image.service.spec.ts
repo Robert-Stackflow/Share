@@ -347,6 +347,97 @@ test("paginates image queries with owner and organization filters", async () => 
   assert.equal(receivedQuery.where.asset.tagAssignments.some.tag.name, "docs");
 });
 
+test("searches administrator image lists by image and owner fields", async () => {
+  let receivedQuery: any;
+  const service = new ImageService(
+    {
+      hostedImage: {
+        findMany: async (query: any) => {
+          receivedQuery = query;
+          return [];
+        },
+      },
+    } as any,
+    {} as any,
+    createConfig() as any,
+  );
+
+  await service.listAdmin({ q: "chewie" });
+
+  assert.equal(receivedQuery.where.OR.length, 4);
+  assert.deepEqual(receivedQuery.where.OR[2], {
+    asset: { owner: { username: { contains: "chewie" } } },
+  });
+  assert.deepEqual(receivedQuery.where.OR[3], {
+    asset: { owner: { email: { contains: "chewie" } } },
+  });
+});
+
+test("applies administrator batch visibility changes across owners", async () => {
+  let updateQuery: any;
+  const images = ["image-1", "image-2"].map((id) => ({
+    id,
+    asset: { ...asset, id: `asset-${id}` },
+    variants: [],
+  }));
+  const service = new ImageService(
+    {
+      hostedImage: {
+        findMany: async () => images,
+        updateMany: async (query: any) => {
+          updateQuery = query;
+          return { count: images.length };
+        },
+      },
+    } as any,
+    {} as any,
+    createConfig() as any,
+  );
+
+  const updated = await service.updateBatchAdmin(
+    images.map((image) => image.id),
+    ImageVisibility.PRIVATE,
+  );
+
+  assert.equal(updated, 2);
+  assert.deepEqual(updateQuery.where.id.in, ["image-1", "image-2"]);
+  assert.equal(updateQuery.data.visibility, ImageVisibility.PRIVATE);
+});
+
+test("permanently removes administrator image batches and variants", async () => {
+  const removedAssets: string[] = [];
+  const images = ["image-1", "image-2"].map((id) => ({
+    id,
+    asset: { ...asset, id: `asset-${id}` },
+    variants: [
+      {
+        asset: { ...asset, id: `thumbnail-${id}` },
+      },
+    ],
+  }));
+  const service = new ImageService(
+    {
+      hostedImage: { findMany: async () => images },
+    } as any,
+    {
+      remove: async (item: { id: string }) => removedAssets.push(item.id),
+    } as any,
+    createConfig() as any,
+  );
+
+  const deleted = await service.destroyBatchAdmin(
+    images.map((image) => image.id),
+  );
+
+  assert.equal(deleted, 2);
+  assert.deepEqual(removedAssets, [
+    "thumbnail-image-1",
+    "asset-image-1",
+    "thumbnail-image-2",
+    "asset-image-2",
+  ]);
+});
+
 test("deduplicates only within the requested visibility and album", async () => {
   let duplicateQuery: any;
   const existing = {

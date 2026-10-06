@@ -482,6 +482,22 @@ export class ImageService {
     await this.destroyImage(image as HostedImageWithRelations);
   }
 
+  async updateBatchAdmin(ids: string[], visibility: ImageVisibility) {
+    const images = await this.getAdminBatch(ids);
+    this.assertVisibilityAllowed(visibility);
+    const { count } = await this.prisma.hostedImage.updateMany({
+      where: { id: { in: images.map((image) => image.id) } },
+      data: { visibility },
+    });
+    return count;
+  }
+
+  async destroyBatchAdmin(ids: string[]) {
+    const images = await this.getAdminBatch(ids);
+    for (const image of images) await this.destroyImage(image);
+    return images.length;
+  }
+
   async createAlbum(userId: string, input: CreateImageAlbumDTO) {
     const name = input.name.trim();
     try {
@@ -765,19 +781,24 @@ export class ImageService {
       Math.max(query.limit ?? DEFAULT_HOSTED_IMAGE_PAGE_SIZE, 1),
       MAX_HOSTED_IMAGE_PAGE_SIZE,
     );
+    const searchConditions: Prisma.HostedImageWhereInput[] = query.q
+      ? [
+          { slug: { contains: query.q } },
+          { asset: { name: { contains: query.q } } },
+          ...(admin
+            ? [
+                { asset: { owner: { username: { contains: query.q } } } },
+                { asset: { owner: { email: { contains: query.q } } } },
+              ]
+            : []),
+        ]
+      : [];
     const where: Prisma.HostedImageWhereInput = {
       ...baseWhere,
       deletedAt: query.trashed ? { not: null } : null,
       ...(query.visibility ? { visibility: query.visibility } : {}),
       ...(query.albumId ? { albumId: query.albumId } : {}),
-      ...(query.q
-        ? {
-            OR: [
-              { slug: { contains: query.q } },
-              { asset: { name: { contains: query.q } } },
-            ],
-          }
-        : {}),
+      ...(searchConditions.length ? { OR: searchConditions } : {}),
     };
     const items = (await this.prisma.hostedImage.findMany({
       where,
@@ -1062,6 +1083,26 @@ export class ImageService {
         ...(includeDeleted ? {} : { deletedAt: null }),
         asset: { ownerId: userId, shareId: null, roomId: null },
       },
+      include: IMAGE_INCLUDE,
+    });
+    if (images.length !== uniqueIds.length) {
+      throw new NotFoundException("One or more images were not found");
+    }
+    return images as HostedImageWithRelations[];
+  }
+
+  private async getAdminBatch(ids: string[]) {
+    const uniqueIds = [...new Set(ids)];
+    if (
+      uniqueIds.length === 0 ||
+      uniqueIds.length > MAX_HOSTED_IMAGE_BATCH_SIZE
+    ) {
+      throw new BadRequestException(
+        `Select between 1 and ${MAX_HOSTED_IMAGE_BATCH_SIZE} images`,
+      );
+    }
+    const images = await this.prisma.hostedImage.findMany({
+      where: { id: { in: uniqueIds }, deletedAt: null },
       include: IMAGE_INCLUDE,
     });
     if (images.length !== uniqueIds.length) {

@@ -28,3 +28,8 @@ export class BatchUpdateHostedImageDTO extends BatchHostedImageDTO {
   @IsUUID("4")
   albumId?: string | null;
 }
+
+export class AdminBatchUpdateHostedImageDTO extends BatchHostedImageDTO {
+  @IsEnum(ImageVisibility)
+  visibility: ImageVisibility;
+}

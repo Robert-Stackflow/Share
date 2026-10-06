@@ -9,12 +9,14 @@ import {
   TextInput,
 } from "@mantine/core";
 import { useDebouncedValue } from "@mantine/hooks";
+import { useModals } from "@mantine/modals";
 import { Images as ImagesIcon, Search } from "lucide-react";
 import { useRouter } from "next/router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import CenterLoader from "../../components/core/CenterLoader";
 import EmptyState from "../../components/core/EmptyState";
 import FormattedMessage from "../../components/core/FormattedMessage";
+import showConfirmDialog from "../../components/core/showConfirmDialog";
 import HostedImageCard from "../../components/image/HostedImageCard";
 import HostedImageDetailsModal from "../../components/image/HostedImageDetailsModal";
 import ImageBulkBar from "../../components/image/ImageBulkBar";
@@ -56,6 +58,7 @@ const Images = () => {
   const t = useTranslate();
   const router = useRouter();
   const config = useConfig();
+  const modals = useModals();
   const uploadEnabled = config.get("images.uploadEnabled") === true;
   const allowPublic = config.get("images.allowPublic") === true;
   const defaultPublic = config.get("images.defaultPublic") === true;
@@ -333,37 +336,55 @@ const Images = () => {
     }
   };
 
-  const remove = async (image: HostedImage) => {
-    if (!window.confirm(t("images.delete.confirm"))) return;
-    try {
-      await imageService.remove(image.id);
-      setImages((current) => current?.filter((item) => item.id !== image.id));
-      setSelected((current) => (current?.id === image.id ? null : current));
-      await Promise.all([refreshStats(), refreshAlbums()]);
-      toast.success(t("images.delete.success"));
-    } catch (error) {
-      toast.axiosError(error);
-    }
-  };
+  const remove = (image: HostedImage) =>
+    showConfirmDialog(modals, {
+      title: t("common.button.delete"),
+      message: t("images.delete.confirm"),
+      confirmLabel: t("common.button.delete"),
+      cancelLabel: t("common.button.cancel"),
+      onConfirm: async () => {
+        try {
+          await imageService.remove(image.id);
+          setImages((current) =>
+            current?.filter((item) => item.id !== image.id),
+          );
+          setSelected((current) => (current?.id === image.id ? null : current));
+          await Promise.all([refreshStats(), refreshAlbums()]);
+          toast.success(t("images.delete.success"));
+        } catch (error) {
+          toast.axiosError(error);
+        }
+      },
+    });
 
   const removeSelected = async () => {
     const ids = [...selectedIds];
-    if (!ids.length || !window.confirm(t("images.batch.deleteConfirm"))) return;
-    setBulkBusy(true);
-    try {
-      const deleted = await imageService.removeBatch(ids);
-      const deletedIds = new Set(ids);
-      setImages((current) =>
-        current?.filter((image) => !deletedIds.has(image.id)),
-      );
-      setSelectedIds(new Set());
-      await Promise.all([refreshStats(), refreshAlbums()]);
-      toast.success(t("images.batch.deleted", { count: deleted.toString() }));
-    } catch (error) {
-      toast.axiosError(error);
-    } finally {
-      setBulkBusy(false);
-    }
+    if (!ids.length) return;
+    showConfirmDialog(modals, {
+      title: t("common.button.delete"),
+      message: t("images.batch.deleteConfirm"),
+      confirmLabel: t("common.button.delete"),
+      cancelLabel: t("common.button.cancel"),
+      onConfirm: async () => {
+        setBulkBusy(true);
+        try {
+          const deleted = await imageService.removeBatch(ids);
+          const deletedIds = new Set(ids);
+          setImages((current) =>
+            current?.filter((image) => !deletedIds.has(image.id)),
+          );
+          setSelectedIds(new Set());
+          await Promise.all([refreshStats(), refreshAlbums()]);
+          toast.success(
+            t("images.batch.deleted", { count: deleted.toString() }),
+          );
+        } catch (error) {
+          toast.axiosError(error);
+        } finally {
+          setBulkBusy(false);
+        }
+      },
+    });
   };
 
   const saveName = async () => {

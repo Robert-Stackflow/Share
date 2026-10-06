@@ -1,8 +1,10 @@
 import { Button, Group, Image, Paper, SimpleGrid, Text } from "@mantine/core";
+import { useModals } from "@mantine/modals";
 import { RotateCcw, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import CenterLoader from "../../components/core/CenterLoader";
 import EmptyState from "../../components/core/EmptyState";
+import showConfirmDialog from "../../components/core/showConfirmDialog";
 import ImageLibraryLayout, {
   ImagePanel,
 } from "../../components/image/ImageLibraryLayout";
@@ -17,6 +19,7 @@ import classes from "./image-trash.module.css";
 const ImageTrash = () => {
   const t = useTranslate();
   const config = useConfig();
+  const modals = useModals();
   const retentionDays = Number(config.get("images.recycleRetentionDays")) || 30;
   const [images, setImages] = useState<HostedImage[]>();
   const [nextCursor, setNextCursor] = useState<string | null>(null);
@@ -46,16 +49,24 @@ const ImageTrash = () => {
     }
   };
 
-  const destroy = async (image: HostedImage) => {
-    if (!window.confirm(t("images.trash.destroyConfirm"))) return;
-    try {
-      await imageService.destroy(image.id);
-      setImages((current) => current?.filter((item) => item.id !== image.id));
-      toast.success(t("images.trash.destroyed"));
-    } catch (error) {
-      toast.axiosError(error);
-    }
-  };
+  const destroy = (image: HostedImage) =>
+    showConfirmDialog(modals, {
+      title: t("images.trash.destroy"),
+      message: t("images.trash.destroyConfirm"),
+      confirmLabel: t("images.trash.destroy"),
+      cancelLabel: t("common.button.cancel"),
+      onConfirm: async () => {
+        try {
+          await imageService.destroy(image.id);
+          setImages((current) =>
+            current?.filter((item) => item.id !== image.id),
+          );
+          toast.success(t("images.trash.destroyed"));
+        } catch (error) {
+          toast.axiosError(error);
+        }
+      },
+    });
 
   const loadMore = async () => {
     if (!nextCursor || loadingMore) return;

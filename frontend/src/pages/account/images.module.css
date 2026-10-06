@@ -199,6 +199,14 @@
   transform: scale(1.025);
 }
 
+.previewStatic {
+  cursor: default;
+}
+
+.previewStatic:hover img {
+  transform: none;
+}
+
 .cardBody {
   display: flex;
   flex-direction: column;

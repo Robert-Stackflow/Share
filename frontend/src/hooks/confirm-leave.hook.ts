@@ -1,5 +1,8 @@
+import { useModals } from "@mantine/modals";
 import { useRouter } from "next/router";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
+import showConfirmDialog from "../components/core/showConfirmDialog";
+import useTranslate from "./useTranslate.hook";
 
 const useConfirmLeave = ({
   message,
@@ -9,20 +12,41 @@ const useConfirmLeave = ({
   enabled: boolean;
 }) => {
   const router = useRouter();
+  const modals = useModals();
+  const t = useTranslate();
+  const dialogId = useRef<string | null>(null);
+  const bypassNextChange = useRef(false);
 
   useEffect(() => {
     if (!enabled) return;
 
-    // Show confirmation dialog when route changes
-    const handleRouteChange = () => {
-      const confirmLeave = window.confirm(message);
-      if (!confirmLeave) {
-        router.events.emit("routeChangeError");
-        throw "Route change aborted.";
+    const handleRouteChange = (url: string) => {
+      if (bypassNextChange.current) {
+        bypassNextChange.current = false;
+        return;
       }
+
+      router.events.emit("routeChangeError");
+      if (!dialogId.current) {
+        dialogId.current = showConfirmDialog(modals, {
+          title: t("common.button.confirm"),
+          message,
+          confirmLabel: t("common.button.confirm"),
+          cancelLabel: t("common.button.cancel"),
+          destructive: false,
+          onCancel: () => {
+            dialogId.current = null;
+          },
+          onConfirm: () => {
+            dialogId.current = null;
+            bypassNextChange.current = true;
+            void router.push(url);
+          },
+        });
+      }
+      throw "Route change aborted.";
     };
 
-    // Show confirmation when the user tries to leave or reload the page
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
       event.preventDefault();
       event.returnValue = message;
@@ -35,8 +59,12 @@ const useConfirmLeave = ({
     return () => {
       router.events.off("routeChangeStart", handleRouteChange);
       window.removeEventListener("beforeunload", handleBeforeUnload);
+      if (dialogId.current) {
+        modals.closeModal(dialogId.current);
+        dialogId.current = null;
+      }
     };
-  }, [router, message, enabled]);
+  }, [enabled, message, modals, router, t]);
 };
 
 export default useConfirmLeave;

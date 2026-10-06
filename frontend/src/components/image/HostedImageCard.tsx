@@ -28,8 +28,9 @@ type HostedImageCardProps = {
   image: HostedImage;
   selected: boolean;
   allowPublic: boolean;
+  ownerLabel?: string;
   onSelect: (checked: boolean) => void;
-  onOpen: () => void;
+  onOpen?: () => void;
   onToggleVisibility: () => void;
   onRemove: () => void;
 };
@@ -38,6 +39,7 @@ const HostedImageCard = ({
   image,
   selected,
   allowPublic,
+  ownerLabel,
   onSelect,
   onOpen,
   onToggleVisibility,
@@ -58,14 +60,20 @@ const HostedImageCard = ({
           onChange={(event) => onSelect(event.currentTarget.checked)}
         />
       </div>
-      <button
-        type="button"
-        className={classes.preview}
-        onClick={onOpen}
-        aria-label={t("images.preview", { name: image.name })}
-      >
-        <Image src={image.thumbnailUrl} alt={image.name} loading="lazy" />
-      </button>
+      {onOpen ? (
+        <button
+          type="button"
+          className={classes.preview}
+          onClick={onOpen}
+          aria-label={t("images.preview", { name: image.name })}
+        >
+          <Image src={image.thumbnailUrl} alt={image.name} loading="lazy" />
+        </button>
+      ) : (
+        <div className={`${classes.preview} ${classes.previewStatic}`}>
+          <Image src={image.thumbnailUrl} alt={image.name} loading="lazy" />
+        </div>
+      )}
       <div className={classes.cardBody}>
         <Group justify="space-between" wrap="nowrap" align="flex-start">
           <div className={classes.cardMeta}>
@@ -77,6 +85,11 @@ const HostedImageCard = ({
             >
               {image.name}
             </Text>
+            {ownerLabel ? (
+              <Text size="xs" c="dimmed" truncate title={ownerLabel}>
+                {ownerLabel}
+              </Text>
+            ) : null}
             <Text size="xs" c="dimmed">
               {image.width} × {image.height} ·{" "}
               {byteToHumanSizeString(Number(image.size))}

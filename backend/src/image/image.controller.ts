@@ -30,6 +30,7 @@ import { GetUser } from "src/auth/decorator/getUser.decorator";
 import { AdministratorGuard } from "src/auth/guard/isAdmin.guard";
 import { JwtGuard } from "src/auth/guard/jwt.guard";
 import {
+  AdminBatchUpdateHostedImageDTO,
   BatchHostedImageDTO,
   BatchUpdateHostedImageDTO,
 } from "./dto/batchHostedImage.dto";
@@ -444,6 +445,18 @@ export class AdminImageController {
   @Get("stats")
   stats() {
     return this.images.adminStats();
+  }
+
+  @Patch("batch")
+  async updateBatch(@Body() input: AdminBatchUpdateHostedImageDTO) {
+    return {
+      updated: await this.images.updateBatchAdmin(input.ids, input.visibility),
+    };
+  }
+
+  @Delete("batch")
+  async removeBatch(@Body() input: BatchHostedImageDTO) {
+    return { deleted: await this.images.destroyBatchAdmin(input.ids) };
   }
 
   @Get(":id/thumbnail")

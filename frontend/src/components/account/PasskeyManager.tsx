@@ -1,8 +1,11 @@
 import { Button, Group, Stack, Text } from "@mantine/core";
+import { useModals } from "@mantine/modals";
 import { KeyRound, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useIntl } from "react-intl";
 import useTranslate from "../../hooks/useTranslate.hook";
+import PromptDialog from "../core/PromptDialog";
+import showConfirmDialog from "../core/showConfirmDialog";
 import authService from "../../services/auth.service";
 import toast from "../../utils/toast.util";
 import { showPasskeyError } from "../../utils/passkey.util";
@@ -17,8 +20,12 @@ type Passkey = {
 const PasskeyManager = () => {
   const t = useTranslate();
   const intl = useIntl();
+  const modals = useModals();
   const [keys, setKeys] = useState<Passkey[]>([]);
   const [busy, setBusy] = useState(false);
+  const [renamingKey, setRenamingKey] = useState<Passkey | null>(null);
+  const [renameValue, setRenameValue] = useState("");
+  const [savingRename, setSavingRename] = useState(false);
 
   const reload = () =>
     authService
@@ -57,27 +64,42 @@ const PasskeyManager = () => {
     }
   };
 
-  const rename = async (key: Passkey) => {
-    const next = window.prompt(t("passkey.name"), key.name)?.trim();
-    if (!next || next === key.name) return;
+  const openRename = (key: Passkey) => {
+    setRenamingKey(key);
+    setRenameValue(key.name);
+  };
+
+  const rename = async () => {
+    const next = renameValue.trim();
+    if (!renamingKey || !next || next === renamingKey.name) return;
+    setSavingRename(true);
     try {
-      await authService.renamePasskey(key.id, next);
+      await authService.renamePasskey(renamingKey.id, next);
       await reload();
+      setRenamingKey(null);
     } catch (error) {
       toast.axiosError(error);
+    } finally {
+      setSavingRename(false);
     }
   };
 
-  const remove = async (key: Passkey) => {
-    if (!window.confirm(t("passkey.removeConfirm"))) return;
-    try {
-      await authService.removePasskey(key.id);
-      await reload();
-      toast.success(t("passkey.removed"));
-    } catch (error) {
-      toast.axiosError(error);
-    }
-  };
+  const remove = (key: Passkey) =>
+    showConfirmDialog(modals, {
+      title: t("passkey.remove"),
+      message: t("passkey.removeConfirm"),
+      confirmLabel: t("passkey.remove"),
+      cancelLabel: t("common.button.cancel"),
+      onConfirm: async () => {
+        try {
+          await authService.removePasskey(key.id);
+          await reload();
+          toast.success(t("passkey.removed"));
+        } catch (error) {
+          toast.axiosError(error);
+        }
+      },
+    });
 
   return (
     <Stack mt="md" gap="sm">
@@ -90,7 +112,7 @@ const PasskeyManager = () => {
           {t("passkey.add")}
         </Button>
       </Group>
-      {keys.length === 0 && <Text size="sm">{t("passkey.empty")}</Text>}
+      {keys.length === 0 ? <Text size="sm">{t("passkey.empty")}</Text> : null}
       {keys.map((key) => (
         <Group key={key.id} justify="space-between" wrap="wrap">
           <div>
@@ -105,15 +127,18 @@ const PasskeyManager = () => {
                 day: "numeric",
               })}
               {key.lastUsedAt &&
-                ` · ${t("passkey.lastUsed")}: ${intl.formatDate(key.lastUsedAt, {
-                  year: "numeric",
-                  month: "short",
-                  day: "numeric",
-                })}`}
+                ` · ${t("passkey.lastUsed")}: ${intl.formatDate(
+                  key.lastUsedAt,
+                  {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                  },
+                )}`}
             </Text>
           </div>
           <Group gap="xs">
-            <Button size="xs" variant="subtle" onClick={() => void rename(key)}>
+            <Button size="xs" variant="subtle" onClick={() => openRename(key)}>
               {t("passkey.rename")}
             </Button>
             <Button
@@ -128,6 +153,19 @@ const PasskeyManager = () => {
           </Group>
         </Group>
       ))}
+      <PromptDialog
+        opened={renamingKey !== null}
+        title={t("passkey.rename")}
+        label={t("passkey.name")}
+        value={renameValue}
+        maxLength={80}
+        confirmLabel={t("common.button.save")}
+        cancelLabel={t("common.button.cancel")}
+        loading={savingRename}
+        onChange={setRenameValue}
+        onCancel={() => setRenamingKey(null)}
+        onConfirm={() => void rename()}
+      />
     </Stack>
   );
 };

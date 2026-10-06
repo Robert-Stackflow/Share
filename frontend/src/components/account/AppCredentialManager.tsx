@@ -13,6 +13,7 @@ import {
   Text,
   TextInput,
 } from "@mantine/core";
+import { useModals } from "@mantine/modals";
 import {
   Copy,
   FolderSync,
@@ -25,6 +26,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useIntl } from "react-intl";
 import useConfig from "../../hooks/config.hook";
 import useTranslate from "../../hooks/useTranslate.hook";
+import showConfirmDialog from "../core/showConfirmDialog";
 import appCredentialService from "../../services/appCredential.service";
 import {
   AppCredential,
@@ -41,6 +43,7 @@ const AppCredentialManager = () => {
   const t = useTranslate();
   const intl = useIntl();
   const config = useConfig();
+  const modals = useModals();
   const [credentials, setCredentials] = useState<AppCredential[]>([]);
   const [creating, setCreating] = useState(false);
   const [name, setName] = useState("");
@@ -106,16 +109,22 @@ const AppCredentialManager = () => {
     }
   };
 
-  const revoke = async (credential: AppCredential) => {
-    if (!window.confirm(t("credentials.revokeConfirm"))) return;
-    try {
-      await appCredentialService.revoke(credential.id);
-      await reload();
-      toast.success(t("credentials.revoked"));
-    } catch (error) {
-      toast.axiosError(error);
-    }
-  };
+  const revoke = (credential: AppCredential) =>
+    showConfirmDialog(modals, {
+      title: t("credentials.revoke"),
+      message: t("credentials.revokeConfirm"),
+      confirmLabel: t("credentials.revoke"),
+      cancelLabel: t("common.button.cancel"),
+      onConfirm: async () => {
+        try {
+          await appCredentialService.revoke(credential.id);
+          await reload();
+          toast.success(t("credentials.revoked"));
+        } catch (error) {
+          toast.axiosError(error);
+        }
+      },
+    });
 
   const formatDate = (value: string) =>
     intl.formatDate(value, {

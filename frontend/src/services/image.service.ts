@@ -109,6 +109,15 @@ const adminRemove = async (id: string): Promise<void> => {
   await api.delete(`/admin/images/${id}`);
 };
 
+const adminUpdateBatch = async (
+  ids: string[],
+  visibility: ImageVisibility,
+): Promise<number> =>
+  (await api.patch("/admin/images/batch", { ids, visibility })).data.updated;
+
+const adminRemoveBatch = async (ids: string[]): Promise<number> =>
+  (await api.delete("/admin/images/batch", { data: { ids } })).data.deleted;
+
 export default {
   list,
   stats,
@@ -129,4 +138,6 @@ export default {
   adminList,
   adminStats,
   adminRemove,
+  adminUpdateBatch,
+  adminRemoveBatch,
 };

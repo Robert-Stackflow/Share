@@ -910,6 +910,13 @@ export default {
   "admin.images.deleteConfirm":
     "Permanently delete this image and every derived file? This cannot be undone.",
   "admin.images.deleted": "Image permanently deleted",
+  "admin.images.owner": "Owner",
+  "admin.images.search": "Search images, usernames, or email",
+  "admin.images.batchDeleteConfirm":
+    "Permanently delete the selected {count} image(s) and every derived file? This cannot be undone.",
+  "admin.images.batchDeleted": "Permanently deleted {count} image(s)",
+  "admin.images.empty": "No hosted images",
+  "admin.images.emptyDescription": "Images uploaded by users will appear here.",
   "admin.images.views": "{count} views",
   "admin.version": "Version",
   // END /admin

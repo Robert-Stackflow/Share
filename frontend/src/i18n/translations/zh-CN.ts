@@ -837,6 +837,13 @@ export default {
   "admin.images.deleteConfirm":
     "永久删除这张图片及其全部衍生文件？此操作无法撤销。",
   "admin.images.deleted": "图片已永久删除",
+  "admin.images.owner": "所属用户",
+  "admin.images.search": "搜索图片、用户名或邮箱",
+  "admin.images.batchDeleteConfirm":
+    "永久删除选中的 {count} 张图片及其全部衍生文件？此操作无法撤销。",
+  "admin.images.batchDeleted": "已永久删除 {count} 张图片",
+  "admin.images.empty": "暂无图床图片",
+  "admin.images.emptyDescription": "用户上传的图片会显示在这里。",
   "admin.images.views": "{count} 次访问",
   "admin.version": "版本",
   // END /admin

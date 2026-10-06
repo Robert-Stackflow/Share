@@ -11,11 +11,14 @@ import {
   TextInput,
   Title,
 } from "@mantine/core";
+import { useModals } from "@mantine/modals";
 import { Edit3, FolderOpen, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import CenterLoader from "../../components/core/CenterLoader";
 import EmptyState from "../../components/core/EmptyState";
+import PromptDialog from "../../components/core/PromptDialog";
+import showConfirmDialog from "../../components/core/showConfirmDialog";
 import ImageLibraryLayout, {
   ImagePanel,
 } from "../../components/image/ImageLibraryLayout";
@@ -27,10 +30,14 @@ import classes from "./image-albums.module.css";
 
 const ImageAlbums = () => {
   const t = useTranslate();
+  const modals = useModals();
   const [albums, setAlbums] = useState<ImageAlbum[]>();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [creating, setCreating] = useState(false);
+  const [renamingAlbum, setRenamingAlbum] = useState<ImageAlbum | null>(null);
+  const [renameValue, setRenameValue] = useState("");
+  const [savingRename, setSavingRename] = useState(false);
 
   const refresh = useCallback(async () => {
     try {
@@ -64,27 +71,42 @@ const ImageAlbums = () => {
     }
   };
 
-  const rename = async (album: ImageAlbum) => {
-    const nextName = window.prompt(t("images.albums.renamePrompt"), album.name);
-    if (!nextName?.trim() || nextName.trim() === album.name) return;
+  const openRename = (album: ImageAlbum) => {
+    setRenamingAlbum(album);
+    setRenameValue(album.name);
+  };
+
+  const rename = async () => {
+    const nextName = renameValue.trim();
+    if (!renamingAlbum || !nextName || nextName === renamingAlbum.name) return;
+    setSavingRename(true);
     try {
-      await imageService.updateAlbum(album.id, { name: nextName.trim() });
+      await imageService.updateAlbum(renamingAlbum.id, { name: nextName });
       await refresh();
+      setRenamingAlbum(null);
     } catch (error) {
       toast.axiosError(error);
+    } finally {
+      setSavingRename(false);
     }
   };
 
-  const remove = async (album: ImageAlbum) => {
-    if (!window.confirm(t("images.albums.deleteConfirm"))) return;
-    try {
-      await imageService.removeAlbum(album.id);
-      await refresh();
-      toast.success(t("images.albums.deleted"));
-    } catch (error) {
-      toast.axiosError(error);
-    }
-  };
+  const remove = (album: ImageAlbum) =>
+    showConfirmDialog(modals, {
+      title: t("common.button.delete"),
+      message: t("images.albums.deleteConfirm"),
+      confirmLabel: t("common.button.delete"),
+      cancelLabel: t("common.button.cancel"),
+      onConfirm: async () => {
+        try {
+          await imageService.removeAlbum(album.id);
+          await refresh();
+          toast.success(t("images.albums.deleted"));
+        } catch (error) {
+          toast.axiosError(error);
+        }
+      },
+    });
 
   if (!albums) {
     return (
@@ -173,7 +195,7 @@ const ImageAlbums = () => {
                       variant="subtle"
                       color="gray"
                       aria-label={t("common.button.edit")}
-                      onClick={() => void rename(album)}
+                      onClick={() => openRename(album)}
                     >
                       <Edit3 size={16} />
                     </ActionIcon>
@@ -192,6 +214,20 @@ const ImageAlbums = () => {
           </SimpleGrid>
         )}
       </ImagePanel>
+
+      <PromptDialog
+        opened={renamingAlbum !== null}
+        title={t("images.albums.renamePrompt")}
+        label={t("images.albums.name")}
+        value={renameValue}
+        maxLength={80}
+        confirmLabel={t("common.button.save")}
+        cancelLabel={t("common.button.cancel")}
+        loading={savingRename}
+        onChange={setRenameValue}
+        onCancel={() => setRenamingAlbum(null)}
+        onConfirm={() => void rename()}
+      />
     </ImageLibraryLayout>
   );
 };

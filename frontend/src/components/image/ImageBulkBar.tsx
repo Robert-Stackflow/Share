@@ -17,10 +17,10 @@ type ImageBulkBarProps = {
   selectedIds: Set<string>;
   allowPublic: boolean;
   busy: boolean;
-  albums: ImageAlbum[];
+  albums?: ImageAlbum[];
   onToggleVisible: (checked: boolean) => void;
   onUpdateVisibility: (visibility: ImageVisibility) => void;
-  onMove: (albumId: string | null) => void;
+  onMove?: (albumId: string | null) => void;
   onRemove: () => void;
   onClear: () => void;
 };
@@ -30,7 +30,7 @@ const ImageBulkBar = ({
   selectedIds,
   allowPublic,
   busy,
-  albums,
+  albums = [],
   onToggleVisible,
   onUpdateVisibility,
   onMove,
@@ -88,19 +88,21 @@ const ImageBulkBar = ({
         >
           {t("images.makePrivate")}
         </Button>
-        <Select
-          size="xs"
-          clearable
-          searchable
-          disabled={!hasSelection || busy}
-          className={classes.bulkAlbumSelect}
-          placeholder={t("images.batch.move")}
-          data={albums.map((album) => ({
-            value: album.id,
-            label: album.name,
-          }))}
-          onChange={onMove}
-        />
+        {onMove ? (
+          <Select
+            size="xs"
+            clearable
+            searchable
+            disabled={!hasSelection || busy}
+            className={classes.bulkAlbumSelect}
+            placeholder={t("images.batch.move")}
+            data={albums.map((album) => ({
+              value: album.id,
+              label: album.name,
+            }))}
+            onChange={onMove}
+          />
+        ) : null}
         <Button
           size="xs"
           variant="subtle"
