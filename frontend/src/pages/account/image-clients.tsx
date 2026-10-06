@@ -1,18 +1,12 @@
 import { Code, CopyButton, Group, Stack, Text } from "@mantine/core";
 import AppCredentialManager from "../../components/account/AppCredentialManager";
-import ImageApiPanel from "../../components/image/ImageApiPanel";
 import ImageLibraryLayout, {
   ImagePanel,
 } from "../../components/image/ImageLibraryLayout";
-import useConfig from "../../hooks/config.hook";
 import useTranslate from "../../hooks/useTranslate.hook";
 
 const ImageClients = () => {
   const t = useTranslate();
-  const config = useConfig();
-  const enabled =
-    config.get("images.uploadEnabled") === true &&
-    config.get("images.apiUploadEnabled") === true;
   const endpoint =
     typeof window === "undefined"
       ? "/api/image-api/images"
@@ -31,7 +25,6 @@ const ImageClients = () => {
       >
         <AppCredentialManager mode="image" />
       </ImagePanel>
-      <ImageApiPanel enabled={enabled} />
       <ImagePanel
         title="images.clients.clipper"
         description="images.clients.clipperDescription"
