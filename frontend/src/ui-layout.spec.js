@@ -20,9 +20,14 @@ test("image hosting is primary navigation and pickup lives under content sharing
   const navigation = read("components/header/navigation.util.ts");
 
   assert.match(header, /link:\s*"\/account\/images"/);
+  assert.match(header, /isPrimaryAccountRoute\(currentRoute\)/);
   assert.match(shareMenu, /href="\/pickup"/);
   assert.doesNotMatch(shareMenu, /href="\/account\/images"/);
-  assert.match(navigation, /primaryAccountRoutes = \["\/account\/images"\]/);
+  assert.match(navigation, /"\/account\/images"/);
+  assert.match(navigation, /"\/account\/image-albums"/);
+  assert.match(navigation, /"\/account\/image-trash"/);
+  assert.match(navigation, /"\/account\/image-preferences"/);
+  assert.match(navigation, /"\/account\/image-clients"/);
   assert.match(navigation, /contentRoutes = \[\s*"\/pickup"/);
 });
 
@@ -138,6 +143,8 @@ test("administrator configuration navigation is grouped and collapsible", () => 
   assert.match(navigation, /admin\.config\.group\.storage/);
   assert.match(navigation, /<Collapse in=\{expanded\}>/);
   assert.match(navigation, /aria-expanded=\{expanded\}/);
+  assert.match(navigation, /new Set\(categoryGroups\.map/);
+  assert.match(navigation, /toggleGroup\(group\.id\)/);
   assert.match(navigation, /mobileNavigation/);
   assert.match(configPage, /ConfigurationNavBar, \{\s*categories,/);
 });

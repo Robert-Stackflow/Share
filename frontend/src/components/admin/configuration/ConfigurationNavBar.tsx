@@ -22,7 +22,7 @@ import {
   Workflow,
 } from "lucide-react";
 import Link from "next/link";
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useState } from "react";
 import FormattedMessage from "../../core/FormattedMessage";
 import classes from "./ConfigurationNavBar.module.css";
 
@@ -93,28 +93,29 @@ const ConfigurationCategoryLink = ({
 );
 
 const ConfigurationNavBar = ({ categoryId }: { categoryId: string }) => {
-  const activeGroupId =
-    categoryGroups.find((group) =>
-      group.categories.some((category) => category.id === categoryId),
-    )?.id ?? categoryGroups[0].id;
-  const [expandedGroup, setExpandedGroup] = useState<string | null>(
-    activeGroupId,
+  const [expandedGroups, setExpandedGroups] = useState(
+    () => new Set(categoryGroups.map((group) => group.id)),
   );
 
-  useEffect(() => {
-    setExpandedGroup(activeGroupId);
-  }, [activeGroupId]);
+  const toggleGroup = (groupId: string) => {
+    setExpandedGroups((current) => {
+      const next = new Set(current);
+      if (next.has(groupId)) next.delete(groupId);
+      else next.add(groupId);
+      return next;
+    });
+  };
 
   return (
     <Box className={classes.navbar} component="nav">
       <Stack className={classes.desktopNavigation} gap="sm">
         {categoryGroups.map((group) => {
-          const expanded = expandedGroup === group.id;
+          const expanded = expandedGroups.has(group.id);
           return (
             <section className={classes.navGroup} key={group.id}>
               <UnstyledButton
                 className={classes.groupButton}
-                onClick={() => setExpandedGroup(expanded ? null : group.id)}
+                onClick={() => toggleGroup(group.id)}
                 aria-expanded={expanded}
                 aria-controls={`admin-config-group-${group.id}`}
               >

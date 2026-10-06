@@ -11,7 +11,13 @@ export const contentRoutes = [
 export const isContentRoute = (pathname: string): boolean =>
   contentRoutes.some((root) => isRouteWithin(pathname, root));
 
-export const primaryAccountRoutes = ["/account/images"] as const;
+export const primaryAccountRoutes = [
+  "/account/images",
+  "/account/image-albums",
+  "/account/image-trash",
+  "/account/image-preferences",
+  "/account/image-clients",
+] as const;
 
 export const isPrimaryAccountRoute = (pathname: string): boolean =>
   primaryAccountRoutes.some((root) => isRouteWithin(pathname, root));

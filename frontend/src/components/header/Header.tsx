@@ -38,6 +38,7 @@ import ActionAvatar from "./ActionAvatar";
 import NavbarShareMenu from "./NavbarShareMenu";
 import {
   isContentRoute,
+  isPrimaryAccountRoute,
   isProfileRoute,
   isRouteWithin,
 } from "./navigation.util";
@@ -111,6 +112,11 @@ const Header = () => {
       link: "/auth/signUp",
       label: t("navbar.signup"),
     });
+
+  const isNavLinkActive = (link?: string) =>
+    link === "/account/images"
+      ? isPrimaryAccountRoute(currentRoute)
+      : !!link && isRouteWithin(currentRoute, link);
 
   const mobilePrimaryLinks: NavLink[] = user
     ? [
@@ -213,14 +219,9 @@ const Header = () => {
             key={link.label}
             href={link.link ?? ""}
             onClick={close}
-            aria-current={
-              link.link && isRouteWithin(currentRoute, link.link)
-                ? "page"
-                : undefined
-            }
+            aria-current={isNavLinkActive(link.link) ? "page" : undefined}
             className={clsx(classes.link, {
-              [classes.linkActive]:
-                !!link.link && isRouteWithin(currentRoute, link.link),
+              [classes.linkActive]: isNavLinkActive(link.link),
             })}
           >
             {link.label}
@@ -234,7 +235,7 @@ const Header = () => {
     const active =
       link.link === "/account"
         ? currentRoute.replace(/\/$/, "") === "/account"
-        : !!link.link && isRouteWithin(currentRoute, link.link);
+        : isNavLinkActive(link.link);
     return (
       <Link
         key={link.link}
