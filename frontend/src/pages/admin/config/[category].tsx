@@ -15,7 +15,9 @@ import { useEffect, useState } from "react";
 import FormattedMessage from "../../../components/core/FormattedMessage";
 import Meta from "../../../components/Meta";
 import AdminConfigInput from "../../../components/admin/configuration/AdminConfigInput";
-import ConfigurationNavBar from "../../../components/admin/configuration/ConfigurationNavBar";
+import ConfigurationNavBar, {
+  categories,
+} from "../../../components/admin/configuration/ConfigurationNavBar";
 import LogoConfigInput from "../../../components/admin/configuration/LogoConfigInput";
 import TestEmailButton from "../../../components/admin/configuration/TestEmailButton";
 import TestRedisButton from "../../../components/admin/configuration/TestRedisButton";
@@ -36,21 +38,6 @@ export const getStaticPaths: GetStaticPaths = async () => ({
 export const getStaticProps: GetStaticProps = async () => ({ props: {} });
 import { camelToKebab } from "../../../utils/string.util";
 import toast from "../../../utils/toast.util";
-
-const categories = [
-  "general",
-  "appearance",
-  "email",
-  "share",
-  "smtp",
-  "oauth",
-  "ldap",
-  "s3",
-  "webdav",
-  "images",
-  "legal",
-  "cache",
-];
 
 const OAUTH_PROVIDERS = ["github", "google", "microsoft", "discord", "oidc"];
 

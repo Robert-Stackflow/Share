@@ -16,9 +16,13 @@ export default {
   "passkey.removed": "通行密钥已移除",
   "passkey.created": "添加时间",
   "passkey.lastUsed": "最近使用",
-  "credentials.title": "API 密钥",
+  "credentials.title": "WebDAV",
   "credentials.description":
     "为 WebDAV 客户端和图床上传工具创建独立密钥，无需使用账户密码。",
+  "credentials.webdav.description":
+    "为 WebDAV 客户端创建独立应用密码，无需使用账户密码。",
+  "credentials.image.description":
+    "为图床上传客户端和自动化任务创建独立 API Token。",
   "credentials.name": "名称",
   "credentials.namePlaceholder": "笔记本、PicGo、自动化任务…",
   "credentials.type": "凭据类型",
@@ -151,7 +155,7 @@ export default {
   "images.api.title": "客户端与 API 上传",
   "images.api.description":
     "同时支持 multipart/form-data 的 file 字段和直接发送原始图片内容，可用于 Clipper、PicGo、ShareX 与自动化任务。",
-  "images.api.manageKeys": "管理 API 密钥",
+  "images.api.manageKeys": "管理 API Token",
   "images.details.title": "图片详情",
   "images.details.name": "图片名称",
   "images.details.dimensions": "尺寸",
@@ -233,6 +237,9 @@ export default {
   "images.clients.title": "客户端与 API",
   "images.clients.description":
     "查看图床接口地址、认证方式和第三方客户端配置。",
+  "images.clients.tokens": "API Token",
+  "images.clients.tokensDescription":
+    "创建和撤销供图床上传客户端使用的 Token。",
   "images.clients.clipper": "Clipper 配置",
   "images.clients.clipperDescription": "按以下参数配置 Clipper 的图床上传。",
   "images.clients.uploadUrl": "上传地址",
@@ -330,7 +337,7 @@ export default {
   "account.title": "我的账户",
   "account.nav.profile": "个人资料",
   "account.nav.security": "安全",
-  "account.nav.credentials": "API 密钥",
+  "account.nav.credentials": "WebDAV",
   "account.nav.preferences": "偏好设置",
   "account.section.profile.description":
     "管理身份信息、登录方式和账户生命周期。",
@@ -342,7 +349,7 @@ export default {
   "account.section.security.description":
     "通过两步验证和通行密钥保护账户安全。",
   "account.section.credentials.description":
-    "为 WebDAV 客户端和图床上传工具创建独立密钥。",
+    "查看 WebDAV 存储并管理客户端应用密码。",
   "account.section.preferences.description": "选择账户使用的语言与界面外观。",
   "account.section.activity.description": "查看该账户最近执行的操作。",
   "account.security.totp.title": "两步验证",
@@ -1111,6 +1118,9 @@ export default {
   "admin.config.category.appearance": "外观",
   "admin.config.category.share": "共享",
   "admin.config.category.cache": "缓存",
+  "admin.config.group.site": "基础与分享",
+  "admin.config.group.access": "账户与通知",
+  "admin.config.group.storage": "存储与服务",
   "admin.config.category.email": "电子邮件",
   "admin.config.category.smtp": "SMTP",
   "admin.config.category.oauth": "社交账号登录",

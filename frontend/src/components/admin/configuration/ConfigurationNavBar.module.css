@@ -1,50 +1,105 @@
 .navbar {
-  padding: 16px 12px;
+  padding: 14px 12px;
 }
+
+.mobileNavigation {
+  display: none;
+}
+
+.navGroup + .navGroup {
+  border-top: 1px solid var(--share-border);
+  padding-top: 10px;
+}
+
+.groupButton {
+  align-items: center;
+  border-radius: 10px;
+  color: var(--mantine-color-dimmed);
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 10px;
+  transition:
+    background 150ms ease,
+    color 150ms ease;
+  width: 100%;
+}
+
+.groupButton:hover {
+  background: light-dark(#f5f7f9, #222a35);
+  color: var(--mantine-color-text);
+}
+
+.groupChevron {
+  height: 15px;
+  transition: transform 160ms ease;
+  width: 15px;
+}
+
+.groupChevronExpanded {
+  transform: rotate(180deg);
+}
+
+.groupLinks {
+  padding-top: 3px;
+}
+
 .navLink {
   border-radius: 12px;
   color: var(--mantine-color-dimmed);
   display: block;
-  padding: 12px 14px;
+  padding: 11px 14px;
   text-decoration: none;
   transition:
     background 150ms ease,
     color 150ms ease;
 }
+
 .navLink:hover {
   background: light-dark(#f1f5f7, #252d39);
   color: var(--mantine-color-text);
 }
+
 .navLink.activeLink,
 .navLink.activeLink:hover {
   background: var(--share-accent-soft);
   color: var(--share-accent-ink);
   font-weight: 650;
 }
+
 .navIcon {
   align-items: center;
   display: inline-flex;
   flex: 0 0 20px;
   justify-content: center;
 }
+
 .navIcon svg {
   height: 18px;
   stroke-width: 1.8;
   width: 18px;
 }
+
 @media (max-width: 760px) {
   .navbar {
     overflow-x: auto;
     padding: 8px 12px;
     scrollbar-width: none;
   }
+
   .navbar::-webkit-scrollbar {
     display: none;
   }
-  .navbar :global(.mantine-Stack-root) {
+
+  .desktopNavigation {
+    display: none;
+  }
+
+  .mobileNavigation {
+    display: flex;
     flex-direction: row;
     width: max-content;
   }
+
   .navLink {
     padding: 9px 12px;
     white-space: nowrap;

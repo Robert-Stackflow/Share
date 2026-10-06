@@ -113,6 +113,37 @@ test("storage and WebDAV settings expose a shared status control plane", () => {
   assert.match(systemService, /api\.post\("system\/storage\/cleanup"\)/);
 });
 
+test("WebDAV and image API credentials live in their own workspaces", () => {
+  const accountLayout = read("components/account/AccountSettingsLayout.tsx");
+  const credentialsPage = read("pages/account/credentials.tsx");
+  const imageClients = read("pages/account/image-clients.tsx");
+  const imageApiPanel = read("components/image/ImageApiPanel.tsx");
+  const credentialManager = read("components/account/AppCredentialManager.tsx");
+
+  assert.match(accountLayout, /account\.nav\.credentials/);
+  assert.match(credentialsPage, /AppCredentialManager mode="webdav"/);
+  assert.match(imageClients, /id="image-api-tokens"/);
+  assert.match(imageClients, /AppCredentialManager mode="image"/);
+  assert.match(imageApiPanel, /href="#image-api-tokens"/);
+  assert.doesNotMatch(imageApiPanel, /href="\/account\/credentials"/);
+  assert.match(credentialManager, /credential\.type === type/);
+});
+
+test("administrator configuration navigation is grouped and collapsible", () => {
+  const navigation = read(
+    "components/admin/configuration/ConfigurationNavBar.tsx",
+  );
+  const configPage = read("pages/admin/config/[category].tsx");
+
+  assert.match(navigation, /admin\.config\.group\.site/);
+  assert.match(navigation, /admin\.config\.group\.access/);
+  assert.match(navigation, /admin\.config\.group\.storage/);
+  assert.match(navigation, /<Collapse in=\{expanded\}>/);
+  assert.match(navigation, /aria-expanded=\{expanded\}/);
+  assert.match(navigation, /mobileNavigation/);
+  assert.match(configPage, /ConfigurationNavBar, \{\s*categories,/);
+});
+
 test("a single AssetComposer powers file/text/link with aligned chat fields", () => {
   const composer = read("components/asset/AssetComposer.tsx");
 

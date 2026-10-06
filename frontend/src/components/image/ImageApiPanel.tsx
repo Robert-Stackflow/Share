@@ -33,7 +33,7 @@ const ImageApiPanel = ({ enabled }: { enabled: boolean }) => {
             <Code>/api/image-api/images</Code>
             <Button
               component={Link}
-              href="/account/credentials"
+              href="#image-api-tokens"
               size="xs"
               variant="light"
             >

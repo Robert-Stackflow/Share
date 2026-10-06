@@ -27,6 +27,7 @@ type ImageLibraryLayoutProps = {
 };
 
 type ImagePanelProps = {
+  id?: string;
   title?: string;
   description?: string;
   children: ReactNode;
@@ -66,6 +67,7 @@ const navigation = [
 ];
 
 export const ImagePanel = ({
+  id,
   title,
   description,
   children,
@@ -73,7 +75,7 @@ export const ImagePanel = ({
   const t = useTranslate();
 
   return (
-    <section className={classes.panel}>
+    <section className={classes.panel} id={id}>
       {title ? (
         <header className={classes.panelHeader}>
           <Title order={4}>{t(title)}</Title>

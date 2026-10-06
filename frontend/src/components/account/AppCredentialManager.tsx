@@ -38,8 +38,9 @@ import toast from "../../utils/toast.util";
 import classes from "./AppCredentialManager.module.css";
 
 type Expiry = "never" | "30" | "90" | "365";
+type AppCredentialManagerMode = "webdav" | "image";
 
-const AppCredentialManager = () => {
+const AppCredentialManager = ({ mode }: { mode: AppCredentialManagerMode }) => {
   const t = useTranslate();
   const intl = useIntl();
   const config = useConfig();
@@ -47,7 +48,6 @@ const AppCredentialManager = () => {
   const [credentials, setCredentials] = useState<AppCredential[]>([]);
   const [creating, setCreating] = useState(false);
   const [name, setName] = useState("");
-  const [type, setType] = useState<AppCredentialType>("APP_PASSWORD");
   const [expiry, setExpiry] = useState<Expiry>("never");
   const [allowWrite, setAllowWrite] = useState(true);
   const [created, setCreated] = useState<CreatedAppCredential | null>(null);
@@ -58,16 +58,24 @@ const AppCredentialManager = () => {
   const imageApiEnabled =
     config.get("images.uploadEnabled") === true &&
     config.get("images.apiUploadEnabled") === true;
-  const canAllowWrite =
-    type === "APP_PASSWORD" ? webDavAllowWrite : imageApiEnabled;
+  const type: AppCredentialType =
+    mode === "webdav" ? "APP_PASSWORD" : "API_TOKEN";
+  const canAllowWrite = mode === "webdav" ? webDavAllowWrite : imageApiEnabled;
   const effectiveAllowWrite = allowWrite && canAllowWrite;
   const webDavUrl = `${origin}/dav/`;
   const imageApiUrl = `${origin}/api/image-api/images`;
 
   const reload = useCallback(
     () =>
-      appCredentialService.list().then(setCredentials).catch(toast.axiosError),
-    [],
+      appCredentialService
+        .list()
+        .then((items) =>
+          setCredentials(
+            items.filter((credential) => credential.type === type),
+          ),
+        )
+        .catch(toast.axiosError),
+    [type],
   );
 
   useEffect(() => {
@@ -80,9 +88,9 @@ const AppCredentialManager = () => {
     if (!trimmedName) return;
 
     const readScope: AppCredentialScope =
-      type === "APP_PASSWORD" ? "webdav:read" : "image:read";
+      mode === "webdav" ? "webdav:read" : "image:read";
     const writeScope: AppCredentialScope =
-      type === "APP_PASSWORD" ? "webdav:write" : "image:write";
+      mode === "webdav" ? "webdav:write" : "image:write";
     const expiresAt =
       expiry === "never"
         ? undefined
@@ -142,90 +150,62 @@ const AppCredentialManager = () => {
   return (
     <Stack gap="xl">
       <div className={classes.serviceGrid}>
-        <div className={classes.serviceCard}>
-          <Group justify="space-between" wrap="nowrap">
-            <Group gap="sm" wrap="nowrap">
-              <span className={classes.serviceIcon}>
-                <FolderSync size={19} />
-              </span>
-              <div>
-                <Text fw={650}>{t("credentials.service.webdav")}</Text>
-                <Text size="xs" c="dimmed">
-                  {t("credentials.type.appPassword")}
-                </Text>
-              </div>
+        {mode === "webdav" ? (
+          <div className={classes.serviceCard}>
+            <Group justify="space-between" wrap="nowrap">
+              <Group gap="sm" wrap="nowrap">
+                <span className={classes.serviceIcon}>
+                  <FolderSync size={19} />
+                </span>
+                <div>
+                  <Text fw={650}>{t("credentials.service.webdav")}</Text>
+                  <Text size="xs" c="dimmed">
+                    {t("credentials.type.appPassword")}
+                  </Text>
+                </div>
+              </Group>
+              <Badge variant="light" color={serviceStatus.color}>
+                {serviceStatus.label}
+              </Badge>
             </Group>
-            <Badge variant="light" color={serviceStatus.color}>
-              {serviceStatus.label}
-            </Badge>
-          </Group>
-          <Group className={classes.endpoint} gap="xs" wrap="nowrap">
-            <Code>{webDavUrl}</Code>
-            <CopyButton value={webDavUrl}>
-              {({ copied, copy }) => (
-                <ActionIcon
-                  variant="subtle"
-                  color={copied ? "teal" : "gray"}
-                  onClick={copy}
-                  aria-label={t("credentials.copyAddress")}
-                >
-                  <Copy size={16} />
-                </ActionIcon>
-              )}
-            </CopyButton>
-          </Group>
-        </div>
-
-        <div className={classes.serviceCard}>
-          <Group justify="space-between" wrap="nowrap">
-            <Group gap="sm" wrap="nowrap">
-              <span className={classes.serviceIcon}>
-                <ImageUp size={19} />
-              </span>
-              <div>
-                <Text fw={650}>{t("credentials.service.imageApi")}</Text>
-                <Text size="xs" c="dimmed">
-                  {t("credentials.type.apiToken")}
-                </Text>
-              </div>
+            <ServiceEndpoint value={webDavUrl} />
+          </div>
+        ) : (
+          <div className={classes.serviceCard}>
+            <Group justify="space-between" wrap="nowrap">
+              <Group gap="sm" wrap="nowrap">
+                <span className={classes.serviceIcon}>
+                  <ImageUp size={19} />
+                </span>
+                <div>
+                  <Text fw={650}>{t("credentials.service.imageApi")}</Text>
+                  <Text size="xs" c="dimmed">
+                    {t("credentials.type.apiToken")}
+                  </Text>
+                </div>
+              </Group>
+              <Badge variant="light" color={imageApiEnabled ? "teal" : "gray"}>
+                {t(
+                  imageApiEnabled
+                    ? "credentials.status.available"
+                    : "credentials.status.disabled",
+                )}
+              </Badge>
             </Group>
-            <Badge variant="light" color={imageApiEnabled ? "teal" : "gray"}>
-              {t(
-                imageApiEnabled
-                  ? "credentials.status.available"
-                  : "credentials.status.disabled",
-              )}
-            </Badge>
-          </Group>
-          <Group className={classes.endpoint} gap="xs" wrap="nowrap">
-            <Code>{imageApiUrl}</Code>
-            <CopyButton value={imageApiUrl}>
-              {({ copied, copy }) => (
-                <ActionIcon
-                  variant="subtle"
-                  color={copied ? "teal" : "gray"}
-                  onClick={copy}
-                  aria-label={t("credentials.copyAddress")}
-                >
-                  <Copy size={16} />
-                </ActionIcon>
-              )}
-            </CopyButton>
-          </Group>
-        </div>
+            <ServiceEndpoint value={imageApiUrl} />
+          </div>
+        )}
       </div>
 
-      {!webDavEnabled ? (
+      {mode === "webdav" && !webDavEnabled ? (
         <Alert color="gray" title={t("credentials.webdavDisabled.title")}>
           {t("credentials.webdavDisabled.description")}
         </Alert>
-      ) : !webDavAllowWrite ? (
+      ) : mode === "webdav" && !webDavAllowWrite ? (
         <Alert color="yellow" title={t("credentials.webdavReadOnly.title")}>
           {t("credentials.webdavReadOnly.description")}
         </Alert>
-      ) : null}
-
-      {!imageApiEnabled ? (
+      ) : mode === "image" && !imageApiEnabled ? (
         <Alert color="gray" title={t("credentials.imageApiDisabled.title")}>
           {t("credentials.imageApiDisabled.description")}
         </Alert>
@@ -241,7 +221,11 @@ const AppCredentialManager = () => {
         <div>
           <Text fw={650}>{t("credentials.createTitle")}</Text>
           <Text size="sm" c="dimmed">
-            {t("credentials.description")}
+            {t(
+              mode === "webdav"
+                ? "credentials.webdav.description"
+                : "credentials.image.description",
+            )}
           </Text>
         </div>
         <div className={classes.formGrid}>
@@ -250,23 +234,6 @@ const AppCredentialManager = () => {
             placeholder={t("credentials.namePlaceholder")}
             value={name}
             onChange={(event) => setName(event.currentTarget.value)}
-          />
-          <Select
-            label={t("credentials.type")}
-            value={type}
-            onChange={(value) =>
-              setType((value as AppCredentialType) ?? "APP_PASSWORD")
-            }
-            data={[
-              {
-                value: "APP_PASSWORD",
-                label: t("credentials.type.appPassword"),
-              },
-              {
-                value: "API_TOKEN",
-                label: t("credentials.type.apiToken"),
-              },
-            ]}
           />
           <Select
             label={t("credentials.expiry")}
@@ -414,6 +381,28 @@ const AppCredentialManager = () => {
         ) : null}
       </Modal>
     </Stack>
+  );
+};
+
+const ServiceEndpoint = ({ value }: { value: string }) => {
+  const t = useTranslate();
+
+  return (
+    <Group className={classes.endpoint} gap="xs" wrap="nowrap">
+      <Code>{value}</Code>
+      <CopyButton value={value}>
+        {({ copied, copy }) => (
+          <ActionIcon
+            variant="subtle"
+            color={copied ? "teal" : "gray"}
+            onClick={copy}
+            aria-label={t("credentials.copyAddress")}
+          >
+            <Copy size={16} />
+          </ActionIcon>
+        )}
+      </CopyButton>
+    </Group>
   );
 };
 

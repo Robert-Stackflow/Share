@@ -1,4 +1,5 @@
-import { Alert, Code, CopyButton, Group, Stack, Text } from "@mantine/core";
+import { Code, CopyButton, Group, Stack, Text } from "@mantine/core";
+import AppCredentialManager from "../../components/account/AppCredentialManager";
 import ImageApiPanel from "../../components/image/ImageApiPanel";
 import ImageLibraryLayout, {
   ImagePanel,
@@ -23,11 +24,13 @@ const ImageClients = () => {
       title="images.clients.title"
       description="images.clients.description"
     >
-      {!enabled ? (
-        <Alert color="gray" title={t("credentials.status.disabled")}>
-          {t("credentials.imageApiDisabled.description")}
-        </Alert>
-      ) : null}
+      <ImagePanel
+        id="image-api-tokens"
+        title="images.clients.tokens"
+        description="images.clients.tokensDescription"
+      >
+        <AppCredentialManager mode="image" />
+      </ImagePanel>
       <ImageApiPanel enabled={enabled} />
       <ImagePanel
         title="images.clients.clipper"

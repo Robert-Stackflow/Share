@@ -17,7 +17,7 @@ const Credentials = () => (
       <WebDavUsagePanel />
     </AccountPanel>
     <AccountPanel>
-      <AppCredentialManager />
+      <AppCredentialManager mode="webdav" />
     </AccountPanel>
   </AccountSettingsLayout>
 );

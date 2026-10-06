@@ -20,9 +20,13 @@ export default {
   "passkey.removed": "Passkey removed",
   "passkey.created": "Added",
   "passkey.lastUsed": "Last used",
-  "credentials.title": "API keys",
+  "credentials.title": "WebDAV",
   "credentials.description":
     "Create separate secrets for WebDAV clients and image upload tools. Your account password is never used.",
+  "credentials.webdav.description":
+    "Create an app password for a WebDAV client without using your account password.",
+  "credentials.image.description":
+    "Create a separate API token for image upload clients and automation.",
   "credentials.name": "Name",
   "credentials.namePlaceholder": "Laptop, PicGo, automation…",
   "credentials.type": "Credential type",
@@ -159,7 +163,7 @@ export default {
   "images.api.title": "Client and API uploads",
   "images.api.description":
     "Use multipart/form-data with the file field or send raw image bytes directly from Clipper, PicGo, ShareX and automation tools.",
-  "images.api.manageKeys": "Manage API keys",
+  "images.api.manageKeys": "Manage API tokens",
   "images.details.title": "Image details",
   "images.details.name": "Image name",
   "images.details.dimensions": "Dimensions",
@@ -248,6 +252,9 @@ export default {
   "images.clients.title": "Clients & API",
   "images.clients.description":
     "Find image upload endpoints, authentication details, and client setup values.",
+  "images.clients.tokens": "API tokens",
+  "images.clients.tokensDescription":
+    "Create and revoke tokens used by image upload clients.",
   "images.clients.clipper": "Clipper setup",
   "images.clients.clipperDescription":
     "Use these values to configure Clipper image uploads.",
@@ -358,7 +365,7 @@ export default {
   "account.title": "My account",
   "account.nav.profile": "Profile",
   "account.nav.security": "Security",
-  "account.nav.credentials": "API keys",
+  "account.nav.credentials": "WebDAV",
   "account.nav.preferences": "Preferences",
   "account.section.profile.description":
     "Manage your identity, sign-in methods and account lifecycle.",
@@ -371,7 +378,7 @@ export default {
   "account.section.security.description":
     "Protect your account with two-factor authentication and passkeys.",
   "account.section.credentials.description":
-    "Create separate secrets for WebDAV clients and image upload tools.",
+    "Review WebDAV storage and manage app passwords for your clients.",
   "account.section.preferences.description":
     "Choose the language and appearance used for your account.",
   "account.section.activity.description":
@@ -1234,6 +1241,9 @@ export default {
   "admin.config.category.appearance": "Appearance",
   "admin.config.category.share": "Share",
   "admin.config.category.cache": "Cache",
+  "admin.config.group.site": "Site & sharing",
+  "admin.config.group.access": "Accounts & messaging",
+  "admin.config.group.storage": "Storage & services",
   "admin.config.category.email": "Email",
   "admin.config.category.smtp": "SMTP",
   "admin.config.category.oauth": "Social Login",
