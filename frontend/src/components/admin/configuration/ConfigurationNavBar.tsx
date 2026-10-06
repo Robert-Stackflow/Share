@@ -1,6 +1,7 @@
 import {
   AtSign,
   Database,
+  FolderSync,
   Mail,
   Network,
   Palette,
@@ -24,6 +25,7 @@ export const categories = [
   { name: "OAuth", icon: <Network /> },
   { name: "LDAP", icon: <Workflow /> },
   { name: "S3", icon: <Database /> },
+  { name: "WebDAV", icon: <FolderSync /> },
   { name: "Legal", icon: <Scale /> },
   { name: "Cache", icon: <ServerCog /> },
 ];

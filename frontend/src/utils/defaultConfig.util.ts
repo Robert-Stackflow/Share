@@ -99,6 +99,18 @@ export function getDefaultConfig(): Config[] {
       type: "boolean",
     },
     {
+      key: "webdav.enabled",
+      value: "true",
+      defaultValue: "true",
+      type: "boolean",
+    },
+    {
+      key: "webdav.allowWrite",
+      value: "true",
+      defaultValue: "true",
+      type: "boolean",
+    },
+    {
       key: "legal.enabled",
       value: "false",
       defaultValue: "false",

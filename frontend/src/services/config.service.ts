@@ -12,6 +12,7 @@ const categories = [
   "oauth",
   "ldap",
   "s3",
+  "webdav",
   "legal",
   "cache",
 ];

@@ -443,6 +443,18 @@ export const configVariables = {
         '[{"pattern":"*.apk","replacement":"*.apk.1","type":"glob"},{"pattern":"*.ipa","replacement":"*.ipa.1","type":"glob"}]',
     },
   },
+  webdav: {
+    enabled: {
+      type: "boolean",
+      defaultValue: "true",
+      secret: false,
+    },
+    allowWrite: {
+      type: "boolean",
+      defaultValue: "true",
+      secret: false,
+    },
+  },
   legal: {
     enabled: {
       type: "boolean",

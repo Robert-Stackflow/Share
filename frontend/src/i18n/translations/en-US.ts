@@ -16,7 +16,7 @@ export default {
   "passkey.removed": "Passkey removed",
   "passkey.created": "Added",
   "passkey.lastUsed": "Last used",
-  "credentials.title": "App credentials",
+  "credentials.title": "API keys",
   "credentials.description":
     "Create separate secrets for WebDAV clients and image upload tools. Your account password is never used.",
   "credentials.name": "Name",
@@ -48,6 +48,24 @@ export default {
   "credentials.imageApiUrl": "Image upload endpoint",
   "credentials.copy": "Copy secret",
   "credentials.copied": "Copied",
+  "credentials.service.webdav": "WebDAV",
+  "credentials.service.imageApi": "Image API",
+  "credentials.status.disabled": "Disabled",
+  "credentials.status.readOnly": "Read only",
+  "credentials.status.readWrite": "Read and write",
+  "credentials.status.available": "Available",
+  "credentials.copyAddress": "Copy service address",
+  "credentials.webdavDisabled.title": "WebDAV is disabled",
+  "credentials.webdavDisabled.description":
+    "An administrator has disabled the WebDAV service. Existing passwords remain saved but cannot be used until it is enabled again.",
+  "credentials.webdavReadOnly.title": "WebDAV is read only",
+  "credentials.webdavReadOnly.description":
+    "An administrator has disabled WebDAV writes. New WebDAV passwords will be created with read access only.",
+  "credentials.allowWriteDisabled": "Disabled by the administrator",
+  "credentials.createTitle": "Create a key",
+  "credentials.listTitle": "Your keys",
+  "credentials.listDescription":
+    "Secrets are shown once. Revoke keys that you no longer use.",
   "images.title": "Image hosting",
   "images.description":
     "Upload images once, manage their visibility, and copy ready-to-use links for websites, Markdown, and forums.",
@@ -170,6 +188,36 @@ export default {
 
   // /account
   "account.title": "My account",
+  "account.nav.profile": "Profile",
+  "account.nav.security": "Security",
+  "account.nav.credentials": "API keys",
+  "account.nav.preferences": "Preferences",
+  "account.section.profile.description":
+    "Manage your identity, sign-in methods and account lifecycle.",
+  "account.section.profile.infoDescription":
+    "Update the name and email address associated with your account.",
+  "account.section.profile.passwordDescription":
+    "Use a unique password that you do not reuse on other services.",
+  "account.section.profile.oauthDescription":
+    "Connect or remove external sign-in providers.",
+  "account.section.security.description":
+    "Protect your account with two-factor authentication and passkeys.",
+  "account.section.credentials.description":
+    "Create separate secrets for WebDAV clients and image upload tools.",
+  "account.section.preferences.description":
+    "Choose the language and appearance used for your account.",
+  "account.section.activity.description":
+    "Review recent actions performed by your account.",
+  "account.security.totp.title": "Two-factor authentication",
+  "account.security.totp.description":
+    "Use time-based one-time passwords as an additional sign-in check.",
+  "account.security.passkey.description":
+    "Sign in securely with a device, security key or password manager.",
+  "account.preferences.theme.description":
+    "Choose a light, dark or system-matched color scheme.",
+  "account.danger.title": "Danger zone",
+  "account.danger.description":
+    "Deleting your account permanently removes its data and active shares.",
 
   "account.card.info.title": "Account info",
   "account.card.info.username": "Username",
@@ -1279,6 +1327,7 @@ export default {
     "Logo updated successfully. It may take a few minutes to update on the website.",
   "admin.config.notify.no-changes": "No changes to save.",
   "admin.config.category.s3": "S3",
+  "admin.config.category.webdav": "WebDAV",
   "admin.config.s3.enabled": "Enabled",
   "admin.config.s3.enabled.description":
     "Whether S3 should be used to store the shared files instead of the local file system. WARNING: If ClamAV is active, files will be temporarily downloaded from S3 to be checked.",
@@ -1312,6 +1361,12 @@ export default {
   "admin.config.s3.file-rename-rules.glob": "Wildcard",
   "admin.config.s3.file-rename-rules.regex": "Regex",
   "admin.config.s3.file-rename-rules.add": "Add rule",
+  "admin.config.webdav.enabled": "Enable WebDAV",
+  "admin.config.webdav.enabled.description":
+    "Expose the /dav/ endpoint. WebDAV uses the configured S3 bucket and app passwords created by each user.",
+  "admin.config.webdav.allow-write": "Allow write access",
+  "admin.config.webdav.allow-write.description":
+    "Allow WebDAV clients to create, replace, move, copy and delete files. Turn this off to make every WebDAV account read-only.",
   "admin.config.category.legal": "Legal",
   "admin.config.legal.enabled": "Enable legal notices",
   "admin.config.legal.enabled.description":

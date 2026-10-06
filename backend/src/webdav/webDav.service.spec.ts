@@ -3,9 +3,13 @@ import { test } from "node:test";
 import * as express from "express";
 import { WebDavService } from "./webDav.service";
 
-function createConfig(enabled = true) {
-  const values: Record<string, unknown> = { "s3.enabled": enabled };
-  return { get: (key: string) => values[key] };
+function createConfig(values: Record<string, unknown> = {}) {
+  const defaults: Record<string, unknown> = {
+    "s3.enabled": true,
+    "webdav.enabled": true,
+    "webdav.allowWrite": true,
+  };
+  return { get: (key: string) => ({ ...defaults, ...values })[key] };
 }
 
 function createObjects() {
@@ -51,11 +55,38 @@ test("returns service unavailable while S3 storage is disabled", async () => {
   const credentials = { authenticateWebDav: async () => null };
   const service = new WebDavService(
     credentials as any,
-    createConfig(false) as any,
+    createConfig({ "s3.enabled": false }) as any,
     createObjects() as any,
   );
   const response = await request(service, "/dav/");
   assert.equal(response.status, 503);
+});
+
+test("returns service unavailable while WebDAV is disabled", async () => {
+  const credentials = { authenticateWebDav: async () => null };
+  const service = new WebDavService(
+    credentials as any,
+    createConfig({ "webdav.enabled": false }) as any,
+    createObjects() as any,
+  );
+  const response = await request(service, "/dav/");
+  assert.equal(response.status, 503);
+  assert.match(await response.text(), /disabled by the administrator/);
+});
+
+test("blocks write methods when WebDAV is globally read-only", async () => {
+  const credentials = { authenticateWebDav: async () => null };
+  const service = new WebDavService(
+    credentials as any,
+    createConfig({ "webdav.allowWrite": false }) as any,
+    createObjects() as any,
+  );
+  const response = await request(service, "/dav/file.txt", {
+    method: "PUT",
+    body: "blocked",
+  });
+  assert.equal(response.status, 403);
+  assert.match(await response.text(), /write access is disabled/);
 });
 
 test("advertises WebDAV capabilities without requiring credentials", async () => {

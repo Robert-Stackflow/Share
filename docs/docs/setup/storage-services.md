@@ -17,6 +17,8 @@ Open **My account → Security → App credentials** to create a credential. The
 
 WebDAV requires S3 storage to be enabled. Configure a client with:
 
+Administrators can enable or disable the endpoint and enforce read-only access under **Administration → Configuration → WebDAV**.
+
 - Server address: `https://share.example.com/dav/`
 - Username: the Share username or email address
 - Password: the generated WebDAV app password

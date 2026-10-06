@@ -84,6 +84,19 @@ export class WebDavService {
       );
 
       this.middlewareInstance = (request, response, next) => {
+        if (!this.config.get("webdav.enabled")) {
+          response.status(503).send("WebDAV is disabled by the administrator");
+          return;
+        }
+        if (
+          !READ_METHODS.has(request.method.toUpperCase()) &&
+          !this.config.get("webdav.allowWrite")
+        ) {
+          response
+            .status(403)
+            .send("WebDAV write access is disabled by the administrator");
+          return;
+        }
         if (!this.config.get("s3.enabled")) {
           response.status(503).send("WebDAV requires S3 storage to be enabled");
           return;
