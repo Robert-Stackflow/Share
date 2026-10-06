@@ -16,6 +16,7 @@ import {
   LOG_LEVEL_DEFAULT,
   LOG_LEVEL_ENV,
 } from "./constants";
+import { WebDavService } from "./webdav/webDav.service";
 
 function generateNestJsLogLevels(): LogLevel[] {
   if (LOG_LEVEL_ENV) {
@@ -44,6 +45,11 @@ async function bootstrap() {
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
 
   const config = app.get<ConfigService>(ConfigService);
+  const webDav = app.get<WebDavService>(WebDavService);
+
+  // WebDAV needs the untouched request stream for large PUT requests. Mount it
+  // before the API's octet-stream body parser and outside the /api prefix.
+  app.use("/dav", webDav.middleware());
 
   app.use((req: Request, res: Response, next: NextFunction) => {
     const chunkSize = config.get("share.chunkSize");

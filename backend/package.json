@@ -17,8 +17,10 @@
     "path-to-regexp": "^8.4.0"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.787.0",
+    "@aws-sdk/client-s3": "3.996.0",
+    "@aws-sdk/lib-storage": "3.996.0",
     "@keyv/redis": "^4.4.0",
+    "@nephele/adapter-s3": "1.0.0-alpha.67",
     "@nestjs/cache-manager": "^3.0.1",
     "@nestjs/common": "^11.0.17",
     "@nestjs/config": "^4.0.2",
@@ -48,6 +50,7 @@
     "mime-types": "^3.0.1",
     "moment": "^2.30.1",
     "nanoid": "^5.1.5",
+    "nephele": "1.0.0-alpha.67",
     "nestjs-i18n": "^10.8.4",
     "nodemailer": "^8.0.4",
     "otplib": "^13.3.0",

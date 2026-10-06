@@ -9,6 +9,7 @@ import {
   ListObjectsV2Command,
   PutObjectCommand,
   S3Client,
+  S3ClientConfig,
   UploadPartCommand,
 } from "@aws-sdk/client-s3";
 import {
@@ -352,33 +353,37 @@ export class S3ObjectStorageService {
     );
   }
 
-  private getClient(): S3Client {
-    const clientConfig = {
+  getS3ClientConfig(): S3ClientConfig {
+    const checksumConfig =
+      this.config.get("s3.useChecksum") === true
+        ? {}
+        : {
+            requestChecksumCalculation: "WHEN_REQUIRED" as const,
+            responseChecksumValidation: "WHEN_REQUIRED" as const,
+          };
+    return {
       endpoint: this.config.get("s3.endpoint"),
       region: this.config.get("s3.region"),
-      accessKeyId: this.config.get("s3.key"),
-      secretAccessKey: this.config.get("s3.secret"),
+      credentials: {
+        accessKeyId: this.config.get("s3.key"),
+        secretAccessKey: this.config.get("s3.secret"),
+      },
       forcePathStyle: this.config.get("s3.forcePathStyle"),
-      useChecksum: this.config.get("s3.useChecksum") === true,
+      ...checksumConfig,
     };
+  }
+
+  getBucketName(): string {
+    return this.getBucket();
+  }
+
+  private getClient(): S3Client {
+    const clientConfig = this.getS3ClientConfig();
     const signature = JSON.stringify(clientConfig);
 
     if (!this.client || signature !== this.clientSignature) {
       this.client?.destroy();
-      const checksumCalculation = clientConfig.useChecksum
-        ? null
-        : "WHEN_REQUIRED";
-      this.client = new S3Client({
-        endpoint: clientConfig.endpoint,
-        region: clientConfig.region,
-        credentials: {
-          accessKeyId: clientConfig.accessKeyId,
-          secretAccessKey: clientConfig.secretAccessKey,
-        },
-        forcePathStyle: clientConfig.forcePathStyle,
-        requestChecksumCalculation: checksumCalculation,
-        responseChecksumValidation: checksumCalculation,
-      });
+      this.client = new S3Client(clientConfig);
       this.clientSignature = signature;
     }
 

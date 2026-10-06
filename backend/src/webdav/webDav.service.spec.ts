@@ -1,0 +1,141 @@
+import { strict as assert } from "node:assert";
+import { test } from "node:test";
+import * as express from "express";
+import { WebDavService } from "./webDav.service";
+
+function createConfig(enabled = true) {
+  const values: Record<string, unknown> = { "s3.enabled": enabled };
+  return { get: (key: string) => values[key] };
+}
+
+function createObjects() {
+  return {
+    getS3ClientConfig: () => ({
+      endpoint: "https://s3.example.com",
+      region: "auto",
+      credentials: { accessKeyId: "key", secretAccessKey: "secret" },
+      forcePathStyle: true,
+    }),
+    getBucketName: () => "share",
+    resolveKey: (key: string) => `root/${key}`,
+    list: async () => ({ objects: [], prefixes: [] }),
+    put: async () => undefined,
+  };
+}
+
+async function request(
+  service: WebDavService,
+  path: string,
+  init: RequestInit = {},
+) {
+  const app = express();
+  app.use("/dav", service.middleware());
+  const server = app.listen(0);
+  await new Promise<void>((resolve) => server.once("listening", resolve));
+  const address = server.address();
+  if (!address || typeof address === "string") {
+    server.close();
+    throw new Error("Test server did not bind to a TCP port");
+  }
+
+  try {
+    return await fetch(`http://127.0.0.1:${address.port}${path}`, init);
+  } finally {
+    await new Promise<void>((resolve, reject) =>
+      server.close((error) => (error ? reject(error) : resolve())),
+    );
+  }
+}
+
+test("returns service unavailable while S3 storage is disabled", async () => {
+  const credentials = { authenticateWebDav: async () => null };
+  const service = new WebDavService(
+    credentials as any,
+    createConfig(false) as any,
+    createObjects() as any,
+  );
+  const response = await request(service, "/dav/");
+  assert.equal(response.status, 503);
+});
+
+test("advertises WebDAV capabilities without requiring credentials", async () => {
+  const credentials = { authenticateWebDav: async () => null };
+  const service = new WebDavService(
+    credentials as any,
+    createConfig() as any,
+    createObjects() as any,
+  );
+  const response = await request(service, "/dav/", { method: "OPTIONS" });
+  assert.equal(response.status, 200);
+  assert.match(response.headers.get("dav") ?? "", /1/);
+  assert.match(response.headers.get("allow") ?? "", /PROPFIND/);
+});
+
+test("challenges unauthenticated WebDAV requests with Basic auth", async () => {
+  const credentials = { authenticateWebDav: async () => null };
+  const service = new WebDavService(
+    credentials as any,
+    createConfig() as any,
+    createObjects() as any,
+  );
+  const response = await request(service, "/dav/missing.txt");
+  assert.equal(response.status, 401);
+  assert.equal(
+    response.headers.get("www-authenticate"),
+    'Basic realm="Share WebDAV", charset="UTF-8"',
+  );
+});
+
+test("maps read and write methods to the matching credential scope", async () => {
+  const calls: unknown[][] = [];
+  const authentication = {
+    user: { id: "user-1", username: "chewie" },
+    credential: { id: "credential-1" },
+  };
+  const credentials = {
+    authenticateWebDav: async (...args: unknown[]) => {
+      calls.push(args);
+      return authentication;
+    },
+  };
+  const service = new WebDavService(
+    credentials as any,
+    createConfig() as any,
+    createObjects() as any,
+  );
+  const encoded = Buffer.from("chewie:share_secret").toString("base64");
+
+  await (service as any).tryAuthenticate(
+    { method: "PROPFIND", headers: { authorization: `Basic ${encoded}` } },
+    {},
+  );
+  await (service as any).tryAuthenticate(
+    { method: "PUT", headers: { authorization: `Basic ${encoded}` } },
+    {},
+  );
+
+  assert.deepEqual(calls, [
+    ["chewie", "share_secret", false],
+    ["chewie", "share_secret", true],
+  ]);
+});
+
+test("initializes an empty S3 prefix once for each WebDAV user", async () => {
+  const puts: string[] = [];
+  const objects = {
+    ...createObjects(),
+    put: async (key: string) => puts.push(key),
+  };
+  const service = new WebDavService(
+    { authenticateWebDav: async () => null } as any,
+    createConfig() as any,
+    objects as any,
+  );
+
+  await Promise.all([
+    (service as any).ensureUserRoot("user-1"),
+    (service as any).ensureUserRoot("user-1"),
+  ]);
+
+  assert.deepEqual(puts, ["dav/user-1/.nepheleempty"]);
+});
