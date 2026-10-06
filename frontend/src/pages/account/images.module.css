@@ -10,6 +10,26 @@
   max-width: 680px;
 }
 
+.statsGrid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-bottom: 20px;
+}
+
+.statCard {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  min-width: 0;
+  padding: 15px 17px;
+}
+
+.statCard > svg {
+  color: var(--share-accent-ink);
+  flex: 0 0 auto;
+}
+
 .dropzone {
   align-items: center;
   border: 1px dashed var(--mantine-primary-color-4);
@@ -17,11 +37,17 @@
   display: flex;
   justify-content: space-between;
   min-height: 132px;
+  margin-top: 16px;
   padding: 24px;
   transition:
     background-color 150ms ease,
     border-color 150ms ease,
     transform 150ms ease;
+}
+
+.dropzoneDisabled {
+  border-color: var(--share-border);
+  opacity: 0.68;
 }
 
 .dropzoneActive {
@@ -54,9 +80,42 @@
   max-width: 420px;
 }
 
+.bulkBar {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  min-height: 58px;
+  padding: 10px 14px;
+}
+
 .card {
   overflow: hidden;
   padding: 0;
+  position: relative;
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.cardSelected {
+  border-color: var(--mantine-primary-color-5);
+  box-shadow: 0 0 0 2px var(--share-accent-soft);
+}
+
+.selectControl {
+  align-items: center;
+  backdrop-filter: blur(8px);
+  background: light-dark(rgba(255, 255, 255, 0.88), rgba(25, 30, 39, 0.88));
+  border-radius: 9px;
+  display: flex;
+  height: 32px;
+  justify-content: center;
+  left: 12px;
+  position: absolute;
+  top: 12px;
+  width: 32px;
+  z-index: 2;
 }
 
 .preview {
@@ -95,6 +154,10 @@
   padding: 16px;
 }
 
+.cardMeta {
+  min-width: 0;
+}
+
 .fileName {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -107,6 +170,40 @@
   max-height: 70vh;
   max-width: 100%;
   object-fit: contain;
+}
+
+.apiPanel {
+  margin-top: 28px;
+  padding: 20px;
+}
+
+.apiIcon {
+  align-items: center;
+  background: var(--share-accent-soft);
+  border-radius: 12px;
+  color: var(--share-accent-ink);
+  display: flex;
+  flex: 0 0 44px;
+  height: 44px;
+  justify-content: center;
+}
+
+.apiCopy {
+  min-width: 0;
+  width: 100%;
+}
+
+.nameInput {
+  flex: 1;
+}
+
+.detailsGrid {
+  background: light-dark(#f7f8fa, #171c24);
+  border-radius: 12px;
+  display: grid;
+  gap: 18px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  padding: 16px;
 }
 
 @media (max-width: 48em) {
@@ -124,5 +221,23 @@
 
   .toolbar :global(.mantine-SegmentedControl-root) {
     width: 100%;
+  }
+
+  .statsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .bulkBar {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .bulkBar :global(.mantine-Group-root) {
+    align-items: stretch;
+  }
+
+  .detailsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

@@ -52,7 +52,11 @@ const AppCredentialManager = () => {
 
   const webDavEnabled = config.get("webdav.enabled") === true;
   const webDavAllowWrite = config.get("webdav.allowWrite") === true;
-  const canAllowWrite = type !== "APP_PASSWORD" || webDavAllowWrite;
+  const imageApiEnabled =
+    config.get("images.uploadEnabled") === true &&
+    config.get("images.apiUploadEnabled") === true;
+  const canAllowWrite =
+    type === "APP_PASSWORD" ? webDavAllowWrite : imageApiEnabled;
   const effectiveAllowWrite = allowWrite && canAllowWrite;
   const webDavUrl = `${origin}/dav/`;
   const imageApiUrl = `${origin}/api/image-api/images`;
@@ -176,8 +180,12 @@ const AppCredentialManager = () => {
                 </Text>
               </div>
             </Group>
-            <Badge variant="light" color="teal">
-              {t("credentials.status.available")}
+            <Badge variant="light" color={imageApiEnabled ? "teal" : "gray"}>
+              {t(
+                imageApiEnabled
+                  ? "credentials.status.available"
+                  : "credentials.status.disabled",
+              )}
             </Badge>
           </Group>
           <Group className={classes.endpoint} gap="xs" wrap="nowrap">
@@ -205,6 +213,12 @@ const AppCredentialManager = () => {
       ) : !webDavAllowWrite ? (
         <Alert color="yellow" title={t("credentials.webdavReadOnly.title")}>
           {t("credentials.webdavReadOnly.description")}
+        </Alert>
+      ) : null}
+
+      {!imageApiEnabled ? (
+        <Alert color="gray" title={t("credentials.imageApiDisabled.title")}>
+          {t("credentials.imageApiDisabled.description")}
         </Alert>
       ) : null}
 

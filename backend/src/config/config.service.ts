@@ -230,6 +230,15 @@ export class ConfigService extends EventEmitter {
           "Zip compression level must be between 0 and 9",
         ),
       },
+      {
+        key: "images.maxSize",
+        condition: (value: number) =>
+          value >= 1024 * 1024 && value <= 100 * 1024 * 1024,
+        message: this.t(
+          "config.imageSizeValidation",
+          "Image size limit must be between 1 MB and 100 MB",
+        ),
+      },
       // TODO add validation for timespan type
     ];
 

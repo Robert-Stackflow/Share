@@ -1,7 +1,6 @@
 import {
   Activity,
   CircleUser,
-  History,
   Link2,
   LogOut,
   Settings,
@@ -52,14 +51,6 @@ const ActionAvatar = ({ active }: { active: boolean }) => {
           leftSection={<User size={14} />}
         >
           <FormattedMessage id="navbar.avatar.account" />
-        </Menu.Item>
-        <Menu.Item
-          component={Link}
-          href="/account/activity"
-          {...menuItemProps("/account/activity")}
-          leftSection={<History size={14} />}
-        >
-          <FormattedMessage id="account.activity.title" />
         </Menu.Item>
         {user!.isAdmin && (
           <>

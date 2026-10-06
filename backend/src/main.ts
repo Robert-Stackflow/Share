@@ -17,6 +17,7 @@ import {
   LOG_LEVEL_ENV,
 } from "./constants";
 import { WebDavService } from "./webdav/webDav.service";
+import { MAX_HOSTED_IMAGE_HARD_BYTES } from "./image/image.types";
 
 function generateNestJsLogLevels(): LogLevel[] {
   if (LOG_LEVEL_ENV) {
@@ -50,6 +51,16 @@ async function bootstrap() {
   // WebDAV needs the untouched request stream for large PUT requests. Mount it
   // before the API's octet-stream body parser and outside the /api prefix.
   app.use("/dav", webDav.middleware());
+
+  // Generic image upload clients often send the image bytes directly instead
+  // of multipart/form-data. Preserve those bytes for the image controllers.
+  app.use(
+    ["/api/images", "/api/image-api/images"],
+    bodyParser.raw({
+      type: "image/*",
+      limit: `${MAX_HOSTED_IMAGE_HARD_BYTES}B`,
+    }),
+  );
 
   app.use((req: Request, res: Response, next: NextFunction) => {
     const chunkSize = config.get("share.chunkSize");

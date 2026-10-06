@@ -45,6 +45,7 @@ const categories = [
   "ldap",
   "s3",
   "webdav",
+  "images",
   "legal",
   "cache",
 ];

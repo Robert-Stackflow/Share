@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -25,10 +26,17 @@ import {
 } from "src/appCredential/appCredential.types";
 import { AppCredentialGuard } from "src/appCredential/appCredential.guard";
 import { GetUser } from "src/auth/decorator/getUser.decorator";
+import {
+  BatchHostedImageDTO,
+  BatchUpdateHostedImageDTO,
+} from "./dto/batchHostedImage.dto";
 import { UpdateHostedImageDTO } from "./dto/updateHostedImage.dto";
-import { UploadHostedImageDTO } from "./dto/uploadHostedImage.dto";
 import { ImageService } from "./image.service";
-import { ListHostedImageQuery, MAX_HOSTED_IMAGE_BYTES } from "./image.types";
+import {
+  HOSTED_IMAGE_MIME_TYPES,
+  ListHostedImageQuery,
+  MAX_HOSTED_IMAGE_HARD_BYTES,
+} from "./image.types";
 
 type RawListHostedImageQuery = {
   q?: string;
@@ -36,8 +44,82 @@ type RawListHostedImageQuery = {
 };
 
 const uploadInterceptor = FileInterceptor("file", {
-  limits: { fileSize: MAX_HOSTED_IMAGE_BYTES, files: 1 },
+  limits: { fileSize: MAX_HOSTED_IMAGE_HARD_BYTES, files: 1 },
 });
+
+const RAW_IMAGE_EXTENSIONS: Record<string, string> = {
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+  "image/gif": "gif",
+  "image/avif": "avif",
+};
+
+const firstValue = (value: unknown): string | undefined => {
+  if (Array.isArray(value)) return firstValue(value[0]);
+  return typeof value === "string" && value.trim() ? value.trim() : undefined;
+};
+
+const decodeFileName = (value: string | undefined) => {
+  if (!value) return undefined;
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+};
+
+export const parseHostedImageUpload = (
+  multipartFile: Express.Multer.File | undefined,
+  request: Request,
+): { file: Express.Multer.File | undefined; visibility?: ImageVisibility } => {
+  const body = request.body;
+  const bodyVisibility =
+    body && !Buffer.isBuffer(body) && typeof body === "object"
+      ? firstValue((body as Record<string, unknown>).visibility)
+      : undefined;
+  const visibilityValue =
+    bodyVisibility ??
+    firstValue(request.query.visibility) ??
+    firstValue(request.headers["x-image-visibility"]);
+
+  if (
+    visibilityValue &&
+    !Object.values(ImageVisibility).includes(visibilityValue as ImageVisibility)
+  ) {
+    throw new BadRequestException("Image visibility must be PUBLIC or PRIVATE");
+  }
+
+  if (multipartFile || !Buffer.isBuffer(body) || body.length === 0) {
+    return {
+      file: multipartFile,
+      visibility: visibilityValue as ImageVisibility | undefined,
+    };
+  }
+
+  const mimeType = `${request.headers["content-type"] ?? ""}`
+    .split(";", 1)[0]
+    .trim()
+    .toLowerCase();
+  if (!HOSTED_IMAGE_MIME_TYPES.includes(mimeType as any)) {
+    throw new BadRequestException("Unsupported image content type");
+  }
+
+  const providedName = decodeFileName(
+    firstValue(request.headers["x-file-name"]),
+  );
+  const extension = RAW_IMAGE_EXTENSIONS[mimeType] ?? "img";
+
+  return {
+    file: {
+      buffer: body,
+      size: body.length,
+      originalname: providedName ?? `image-${Date.now()}.${extension}`,
+      mimetype: mimeType,
+    } as Express.Multer.File,
+    visibility: visibilityValue as ImageVisibility | undefined,
+  };
+};
 
 const getOrigin = (request: Request) =>
   `${request.protocol}://${request.get("host")}`;
@@ -89,16 +171,45 @@ export class ImageController {
     return images.map((image) => this.images.toResponse(image, origin));
   }
 
+  @Get("stats")
+  async stats(@GetUser() user: User) {
+    return this.images.stats(user.id);
+  }
+
   @Post()
   @UseInterceptors(uploadInterceptor)
   async upload(
     @UploadedFile() file: Express.Multer.File,
-    @Body() input: UploadHostedImageDTO,
     @GetUser() user: User,
     @Req() request: Request,
   ) {
-    const image = await this.images.upload(file, user, input.visibility);
+    const upload = parseHostedImageUpload(file, request);
+    const image = await this.images.upload(
+      upload.file,
+      user,
+      upload.visibility,
+    );
     return this.images.toResponse(image, getOrigin(request));
+  }
+
+  @Patch("batch")
+  async updateBatch(
+    @Body() input: BatchUpdateHostedImageDTO,
+    @GetUser() user: User,
+    @Req() request: Request,
+  ) {
+    const images = await this.images.updateBatch(
+      input.ids,
+      user.id,
+      input.visibility,
+    );
+    const origin = getOrigin(request);
+    return images.map((image) => this.images.toResponse(image, origin));
+  }
+
+  @Delete("batch")
+  async removeBatch(@Body() input: BatchHostedImageDTO, @GetUser() user: User) {
+    return { deleted: await this.images.removeBatch(input.ids, user.id) };
   }
 
   @Patch(":id")
@@ -151,17 +262,50 @@ export class ImageApiController {
     return images.map((image) => this.images.toResponse(image, origin));
   }
 
+  @Get("stats")
+  @RequireAppCredentialScopes(AppCredentialScope.IMAGE_READ)
+  async stats(@GetUser() user: User) {
+    return this.images.stats(user.id);
+  }
+
   @Post()
   @RequireAppCredentialScopes(AppCredentialScope.IMAGE_WRITE)
   @UseInterceptors(uploadInterceptor)
   async upload(
     @UploadedFile() file: Express.Multer.File,
-    @Body() input: UploadHostedImageDTO,
     @GetUser() user: User,
     @Req() request: Request,
   ) {
-    const image = await this.images.upload(file, user, input.visibility);
+    this.images.assertApiUploadEnabled();
+    const upload = parseHostedImageUpload(file, request);
+    const image = await this.images.upload(
+      upload.file,
+      user,
+      upload.visibility,
+    );
     return this.images.toResponse(image, getOrigin(request));
+  }
+
+  @Patch("batch")
+  @RequireAppCredentialScopes(AppCredentialScope.IMAGE_WRITE)
+  async updateBatch(
+    @Body() input: BatchUpdateHostedImageDTO,
+    @GetUser() user: User,
+    @Req() request: Request,
+  ) {
+    const images = await this.images.updateBatch(
+      input.ids,
+      user.id,
+      input.visibility,
+    );
+    const origin = getOrigin(request);
+    return images.map((image) => this.images.toResponse(image, origin));
+  }
+
+  @Delete("batch")
+  @RequireAppCredentialScopes(AppCredentialScope.IMAGE_WRITE)
+  async removeBatch(@Body() input: BatchHostedImageDTO, @GetUser() user: User) {
+    return { deleted: await this.images.removeBatch(input.ids, user.id) };
   }
 
   @Patch(":id")

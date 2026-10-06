@@ -31,6 +31,18 @@ const asset = {
   lastAccessedAt: null,
 };
 
+const createConfig = (overrides: Record<string, unknown> = {}) => {
+  const values: Record<string, unknown> = {
+    "images.uploadEnabled": true,
+    "images.apiUploadEnabled": true,
+    "images.allowPublic": true,
+    "images.defaultPublic": true,
+    "images.maxSize": 25 * 1024 * 1024,
+    ...overrides,
+  };
+  return { get: (key: string) => values[key] };
+};
+
 test("uploads a validated image through the asset storage layer", async () => {
   const uploads: unknown[][] = [];
   const createdImages: any[] = [];
@@ -59,7 +71,11 @@ test("uploads a validated image through the asset storage layer", async () => {
     },
     asset: { update: async () => asset },
   };
-  const service = new ImageService(prisma as any, assets as any);
+  const service = new ImageService(
+    prisma as any,
+    assets as any,
+    createConfig() as any,
+  );
   const buffer = await sharp({
     create: {
       width: 2,
@@ -97,7 +113,7 @@ test("uploads a validated image through the asset storage layer", async () => {
 });
 
 test("rejects active image formats such as SVG", async () => {
-  const service = new ImageService({} as any, {} as any);
+  const service = new ImageService({} as any, {} as any, createConfig() as any);
   const svg = Buffer.from(
     '<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"></svg>',
   );
@@ -117,7 +133,7 @@ test("rejects active image formats such as SVG", async () => {
 });
 
 test("returns copy-ready links only for public images", () => {
-  const service = new ImageService({} as any, {} as any);
+  const service = new ImageService({} as any, {} as any, createConfig() as any);
   const hostedImage = {
     id: "image-1",
     createdAt: new Date("2026-10-06T00:00:00.000Z"),
@@ -147,4 +163,73 @@ test("returns copy-ready links only for public images", () => {
   );
   assert.equal(privateResponse.url, null);
   assert.equal(privateResponse.links, null);
+});
+
+test("applies administrator upload and visibility policies", async () => {
+  const image = await sharp({
+    create: {
+      width: 1,
+      height: 1,
+      channels: 4,
+      background: "#ffffff",
+    },
+  })
+    .png()
+    .toBuffer();
+  const file = {
+    buffer: image,
+    size: image.length,
+    originalname: "pixel.png",
+    mimetype: "image/png",
+  } as Express.Multer.File;
+
+  const disabled = new ImageService(
+    {} as any,
+    {} as any,
+    createConfig({ "images.uploadEnabled": false }) as any,
+  );
+  await assert.rejects(disabled.upload(file, user as any), /disabled/);
+
+  const privateOnly = new ImageService(
+    {} as any,
+    {} as any,
+    createConfig({ "images.allowPublic": false }) as any,
+  );
+  assert.equal(
+    (privateOnly as any).resolveVisibility(undefined),
+    ImageVisibility.PRIVATE,
+  );
+  await assert.rejects(
+    privateOnly.upload(file, user as any, ImageVisibility.PUBLIC),
+    /Public image links are disabled/,
+  );
+});
+
+test("returns owner-scoped image statistics", async () => {
+  const prisma = {
+    hostedImage: {
+      findMany: async () => [
+        {
+          visibility: ImageVisibility.PUBLIC,
+          asset: { size: "1024" },
+        },
+        {
+          visibility: ImageVisibility.PRIVATE,
+          asset: { size: "2048" },
+        },
+      ],
+    },
+  };
+  const service = new ImageService(
+    prisma as any,
+    {} as any,
+    createConfig() as any,
+  );
+
+  assert.deepEqual(await service.stats(user.id), {
+    count: 2,
+    publicCount: 1,
+    privateCount: 1,
+    totalSize: 3072,
+  });
 });

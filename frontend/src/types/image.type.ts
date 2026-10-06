@@ -24,3 +24,10 @@ export type HostedImage = {
   contentUrl: string;
   links: HostedImageLinks | null;
 };
+
+export type HostedImageStats = {
+  count: number;
+  publicCount: number;
+  privateCount: number;
+  totalSize: number;
+};

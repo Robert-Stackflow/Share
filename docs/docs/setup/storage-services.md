@@ -7,7 +7,7 @@ Share can expose a private WebDAV workspace backed by the configured S3 bucket a
 
 ## App credentials
 
-Open **My account → Security → App credentials** to create a credential. The secret is shown only once.
+Open **My account → API keys** to create a credential. The secret is shown only once.
 
 - A **WebDAV password** can only use the `webdav:read` and `webdav:write` scopes.
 - An **Image API token** can only use the `image:read` and `image:write` scopes.
@@ -27,7 +27,9 @@ Each account is isolated under its own S3 prefix. Standard file and directory op
 
 ## Image hosting
 
-Open **Content & sharing → Images** to upload, paste, preview, search, and delete images. JPEG, PNG, WebP, GIF, and AVIF files up to 25 MB are accepted. SVG is intentionally rejected.
+Open **Content & sharing → Images** to upload, paste, preview, search, rename, change visibility, and manage images in batches. JPEG, PNG, WebP, GIF, and AVIF are accepted. SVG is intentionally rejected.
+
+Administrators can control web and API uploads, public links, default visibility, and the per-image size limit under **Administration → Configuration → Image hosting**.
 
 Public images receive a stable `/i/{slug}` URL and copy-ready direct, Markdown, HTML, and BBCode formats. Private images are available only through an authenticated account or an Image API token.
 
@@ -43,11 +45,25 @@ curl -X POST \
   https://share.example.com/api/image-api/images
 ```
 
-`visibility` can be `PUBLIC` or `PRIVATE`. The response contains the image metadata and, for public images, direct, Markdown, HTML, and BBCode links.
+Generic clients may also send the original image bytes directly:
+
+```bash
+curl -X POST \
+  -H "Authorization: Bearer share_your_token" \
+  -H "Content-Type: image/png" \
+  -H "X-File-Name: photo.png" \
+  --data-binary @photo.png \
+  https://share.example.com/api/image-api/images
+```
+
+`visibility` can be `PUBLIC` or `PRIVATE`. For raw uploads it can be sent as the `visibility` query parameter or `X-Image-Visibility` header. The response contains the image metadata and, for public images, direct, Markdown, HTML, and BBCode links.
 
 The API also supports:
 
 - `GET /api/image-api/images`
+- `GET /api/image-api/images/stats`
+- `PATCH /api/image-api/images/batch`
+- `DELETE /api/image-api/images/batch`
 - `PATCH /api/image-api/images/{id}`
 - `GET /api/image-api/images/{id}/content`
 - `DELETE /api/image-api/images/{id}`

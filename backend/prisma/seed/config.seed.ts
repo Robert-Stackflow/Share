@@ -455,6 +455,33 @@ export const configVariables = {
       secret: false,
     },
   },
+  images: {
+    uploadEnabled: {
+      type: "boolean",
+      defaultValue: "true",
+      secret: false,
+    },
+    apiUploadEnabled: {
+      type: "boolean",
+      defaultValue: "true",
+      secret: false,
+    },
+    allowPublic: {
+      type: "boolean",
+      defaultValue: "true",
+      secret: false,
+    },
+    defaultPublic: {
+      type: "boolean",
+      defaultValue: "true",
+      secret: false,
+    },
+    maxSize: {
+      type: "filesize",
+      defaultValue: "26214400",
+      secret: false,
+    },
+  },
   legal: {
     enabled: {
       type: "boolean",

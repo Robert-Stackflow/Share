@@ -1,4 +1,8 @@
-import { HostedImage, ImageVisibility } from "../types/image.type";
+import {
+  HostedImage,
+  HostedImageStats,
+  ImageVisibility,
+} from "../types/image.type";
 import api from "./api.service";
 
 export type ListHostedImageParams = {
@@ -8,6 +12,9 @@ export type ListHostedImageParams = {
 
 const list = async (params?: ListHostedImageParams): Promise<HostedImage[]> =>
   (await api.get("/images", { params })).data;
+
+const stats = async (): Promise<HostedImageStats> =>
+  (await api.get("/images/stats")).data;
 
 const upload = async (
   file: File,
@@ -28,4 +35,21 @@ const remove = async (id: string): Promise<void> => {
   await api.delete(`/images/${id}`);
 };
 
-export default { list, upload, update, remove };
+const updateBatch = async (
+  ids: string[],
+  visibility: ImageVisibility,
+): Promise<HostedImage[]> =>
+  (await api.patch("/images/batch", { ids, visibility })).data;
+
+const removeBatch = async (ids: string[]): Promise<number> =>
+  (await api.delete("/images/batch", { data: { ids } })).data.deleted;
+
+export default {
+  list,
+  stats,
+  upload,
+  update,
+  updateBatch,
+  remove,
+  removeBatch,
+};

@@ -111,6 +111,36 @@ export function getDefaultConfig(): Config[] {
       type: "boolean",
     },
     {
+      key: "images.uploadEnabled",
+      value: "true",
+      defaultValue: "true",
+      type: "boolean",
+    },
+    {
+      key: "images.apiUploadEnabled",
+      value: "true",
+      defaultValue: "true",
+      type: "boolean",
+    },
+    {
+      key: "images.allowPublic",
+      value: "true",
+      defaultValue: "true",
+      type: "boolean",
+    },
+    {
+      key: "images.defaultPublic",
+      value: "true",
+      defaultValue: "true",
+      type: "boolean",
+    },
+    {
+      key: "images.maxSize",
+      value: "26214400",
+      defaultValue: "26214400",
+      type: "filesize",
+    },
+    {
       key: "legal.enabled",
       value: "false",
       defaultValue: "false",
