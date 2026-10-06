@@ -1,5 +1,6 @@
 import {
   FolderClosed,
+  Images,
   Inbox,
   Link2,
   KeyRound,
@@ -147,6 +148,11 @@ const Header = () => {
       }));
 
   const mobileShareLinks: NavLink[] = [
+    {
+      link: "/account/images",
+      label: t("navbar.links.images"),
+      icon: <Images size={19} />,
+    },
     {
       link: "/account/shares",
       label: t("navbar.links.shares"),

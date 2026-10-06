@@ -31,6 +31,7 @@ import { SystemModule } from "./system/system.module";
 import { StorageModule } from "./storage/storage.module";
 import { AppCredentialModule } from "./appCredential/appCredential.module";
 import { WebDavModule } from "./webdav/webDav.module";
+import { ImageModule } from "./image/image.module";
 
 import { SystemLanguageResolver } from "./i18n/systemLanguage.resolver";
 
@@ -58,6 +59,7 @@ const i18nPath = existsSync(join(__dirname, "../i18n"))
     StorageModule,
     AppCredentialModule,
     WebDavModule,
+    ImageModule,
     ThrottlerModule.forRoot([
       {
         ttl: 60,

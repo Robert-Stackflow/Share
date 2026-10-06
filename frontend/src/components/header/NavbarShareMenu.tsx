@@ -1,4 +1,4 @@
-import { ChevronDown, Inbox, Link2, Package } from "lucide-react";
+import { ChevronDown, Images, Inbox, Link2, Package } from "lucide-react";
 import { Group, Menu, UnstyledButton } from "@mantine/core";
 import clsx from "clsx";
 import Link from "next/link";
@@ -34,6 +34,14 @@ const NavbarShareMenu = ({ active }: { active: boolean }) => {
         </UnstyledButton>
       </Menu.Target>
       <Menu.Dropdown>
+        <Menu.Item
+          component={Link}
+          href="/account/images"
+          {...menuItemProps("/account/images")}
+          leftSection={<Images />}
+        >
+          <FormattedMessage id="navbar.links.images" />
+        </Menu.Item>
         <Menu.Item
           component={Link}
           href="/account/assets"

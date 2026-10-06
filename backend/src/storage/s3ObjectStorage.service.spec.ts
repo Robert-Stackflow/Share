@@ -74,19 +74,12 @@ function createPrisma() {
 
 function attachClient(
   service: S3ObjectStorageService,
-  config: ReturnType<typeof createConfig>,
   send: (command: unknown) => Promise<any>,
 ) {
-  const values = {
-    endpoint: config.get("s3.endpoint"),
-    region: config.get("s3.region"),
-    accessKeyId: config.get("s3.key"),
-    secretAccessKey: config.get("s3.secret"),
-    forcePathStyle: config.get("s3.forcePathStyle"),
-    useChecksum: config.get("s3.useChecksum") === true,
-  };
   (service as any).client = { send, destroy: () => undefined };
-  (service as any).clientSignature = JSON.stringify(values);
+  (service as any).clientSignature = JSON.stringify(
+    service.getS3ClientConfig(),
+  );
 }
 
 test("resolves object keys inside the configured bucket path", () => {
@@ -131,7 +124,7 @@ test("persists multipart state so another service instance can finish it", async
   };
 
   const first = new S3ObjectStorageService(config as any, prisma as any);
-  attachClient(first, config, send);
+  attachClient(first, send);
   await first.saveChunk(
     "asset-1",
     first.assetKey("asset-1"),
@@ -145,7 +138,7 @@ test("persists multipart state so another service instance can finish it", async
   ]);
 
   const afterRestart = new S3ObjectStorageService(config as any, prisma as any);
-  attachClient(afterRestart, config, send);
+  attachClient(afterRestart, send);
   await afterRestart.saveChunk(
     "asset-1",
     afterRestart.assetKey("asset-1"),

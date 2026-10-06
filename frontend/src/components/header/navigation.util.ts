@@ -2,6 +2,7 @@ export const isRouteWithin = (pathname: string, root: string): boolean =>
   pathname === root || (root !== "/" && pathname.startsWith(`${root}/`));
 
 export const contentRoutes = [
+  "/account/images",
   "/account/assets",
   "/account/shares",
   "/account/reverseShares",

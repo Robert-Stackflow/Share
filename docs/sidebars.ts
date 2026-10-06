@@ -44,6 +44,10 @@ const sidebars: SidebarsConfig = {
           type: "doc",
           id: "setup/upgrading",
         },
+        {
+          type: "doc",
+          id: "setup/storage-services",
+        },
       ],
     },
     {

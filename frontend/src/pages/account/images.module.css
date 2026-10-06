@@ -1,0 +1,128 @@
+.hero {
+  align-items: flex-start;
+  display: flex;
+  gap: 24px;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.heroCopy {
+  max-width: 680px;
+}
+
+.dropzone {
+  align-items: center;
+  border: 1px dashed var(--mantine-primary-color-4);
+  border-radius: 18px;
+  display: flex;
+  justify-content: space-between;
+  min-height: 132px;
+  padding: 24px;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    transform 150ms ease;
+}
+
+.dropzoneActive {
+  background: var(--share-accent-soft);
+  border-color: var(--mantine-primary-color-6);
+  transform: translateY(-1px);
+}
+
+.dropIcon {
+  align-items: center;
+  background: var(--share-accent-soft);
+  border-radius: 14px;
+  color: var(--share-accent-ink);
+  display: flex;
+  height: 52px;
+  justify-content: center;
+  width: 52px;
+}
+
+.toolbar {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  margin: 28px 0 18px;
+}
+
+.search {
+  flex: 1;
+  max-width: 420px;
+}
+
+.card {
+  overflow: hidden;
+  padding: 0;
+}
+
+.preview {
+  background:
+    linear-gradient(45deg, light-dark(#f1f3f6, #171b22) 25%, transparent 25%),
+    linear-gradient(-45deg, light-dark(#f1f3f6, #171b22) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, light-dark(#f1f3f6, #171b22) 75%),
+    linear-gradient(-45deg, transparent 75%, light-dark(#f1f3f6, #171b22) 75%);
+  background-position:
+    0 0,
+    0 8px,
+    8px -8px,
+    -8px 0;
+  background-size: 16px 16px;
+  border: 0;
+  cursor: zoom-in;
+  display: block;
+  height: 220px;
+  overflow: hidden;
+  padding: 0;
+  width: 100%;
+}
+
+.preview img {
+  height: 100%;
+  object-fit: cover;
+  transition: transform 180ms ease;
+  width: 100%;
+}
+
+.preview:hover img {
+  transform: scale(1.025);
+}
+
+.cardBody {
+  padding: 16px;
+}
+
+.fileName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.modalImage {
+  display: block;
+  margin: 0 auto;
+  max-height: 70vh;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+@media (max-width: 48em) {
+  .hero,
+  .toolbar,
+  .dropzone {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .search {
+    max-width: none;
+    width: 100%;
+  }
+
+  .toolbar :global(.mantine-SegmentedControl-root) {
+    width: 100%;
+  }
+}

@@ -222,8 +222,20 @@ const AppCredentialManager = () => {
               {t("credentials.copyWarning")}
             </Alert>
             {created.credential.type === "APP_PASSWORD" && (
+              <Stack gap={4}>
+                <Text size="sm">
+                  {t("credentials.webdavUrl")}:{" "}
+                  <Code>{`${typeof window === "undefined" ? "" : window.location.origin}/dav/`}</Code>
+                </Text>
+                <Text size="sm">
+                  {t("credentials.username")}: <Code>{created.username}</Code>
+                </Text>
+              </Stack>
+            )}
+            {created.credential.type === "API_TOKEN" && (
               <Text size="sm">
-                {t("credentials.username")}: <Code>{created.username}</Code>
+                {t("credentials.imageApiUrl")}:{" "}
+                <Code>{`${typeof window === "undefined" ? "" : window.location.origin}/api/image-api/images`}</Code>
               </Text>
             )}
             <Code block style={{ overflowWrap: "anywhere" }}>
