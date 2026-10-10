@@ -289,3 +289,118 @@ test("serializes non-overwriting MOVEs to the same destination across service in
   assert.equal(started.length, 3);
   assert.equal(rows.size, 1);
 });
+
+test("moves a small unlocked collection without waiting for recursive DAV requests", async () => {
+  const reservations = new Map<string, string>();
+  const stored = new Map<string, { metadata?: Record<string, string> }>([
+    [
+      "dav/user-1/probe-a/.nepheleempty",
+      { metadata: { "nephele-locks": "{}" } },
+    ],
+    ["dav/user-1/probe-a/owner.txt", { metadata: {} }],
+  ]);
+  const prisma = {
+    webDavMoveReservation: {
+      create: async ({ data }: { data: { id: string; owner: string } }) => {
+        if (reservations.has(data.id)) throw { code: "P2002" };
+        reservations.set(data.id, data.owner);
+      },
+      deleteMany: async ({
+        where,
+      }: {
+        where: { id: string; owner: string };
+      }) => {
+        if (reservations.get(where.id) === where.owner)
+          reservations.delete(where.id);
+      },
+    },
+  };
+  let releaseCopy: (() => void) | undefined;
+  const copyBlocked = new Promise<void>((resolve) => {
+    releaseCopy = resolve;
+  });
+  const objects = {
+    webDavRootKey: (id: string) => `dav/${id}`,
+    list: async (prefix: string) => ({
+      objects: [...stored.keys()]
+        .filter((key) => key.startsWith(prefix))
+        .map((key) => ({ key })),
+    }),
+    head: async (key: string) => {
+      const value = stored.get(key);
+      if (!value) throw { name: "NotFound" };
+      return value;
+    },
+    copy: async (source: string, destination: string) => {
+      await copyBlocked;
+      stored.set(destination, stored.get(source)!);
+    },
+    deleteMany: async (keys: string[]) => {
+      keys.forEach((key) => stored.delete(key));
+    },
+  };
+  const service = new WebDavService(
+    { authenticateWebDav: async () => ({ user: { id: "user-1" } }) } as any,
+    createConfig() as any,
+    objects as any,
+    prisma as any,
+  );
+  const request = (name: string) => ({
+    method: "MOVE",
+    protocol: "https",
+    originalUrl: `/dav/${name}/`,
+    headers: { authorization: "Basic dXNlcjpwYXNz" },
+    get: (header: string) =>
+      ({
+        host: "share.example.com",
+        destination: "https://share.example.com/dav/probe-target/",
+        overwrite: "F",
+      })[header.toLowerCase()],
+  });
+  const response = () => {
+    const result = new EventEmitter() as EventEmitter & {
+      locals: object;
+      statusCode: number;
+      status: (code: number) => typeof result;
+      set: () => typeof result;
+      end: () => void;
+    };
+    result.locals = {};
+    result.statusCode = 200;
+    result.status = (code) => {
+      result.statusCode = code;
+      return result;
+    };
+    result.set = () => result;
+    result.end = () => result.emit("finish");
+    return result;
+  };
+  const first = response();
+  const second = response();
+  const delegated: string[] = [];
+  const firstMove = (service as any).handleExclusiveMove(
+    request("probe-a"),
+    first,
+    (error: unknown) => {
+      throw error;
+    },
+    () => delegated.push("fallback"),
+  );
+  await new Promise((resolve) => setTimeout(resolve, 20));
+  await (service as any).handleExclusiveMove(
+    request("probe-b"),
+    second,
+    (error: unknown) => {
+      throw error;
+    },
+    () => delegated.push("fallback"),
+  );
+  assert.equal(second.statusCode, 423);
+  releaseCopy!();
+  await firstMove;
+  assert.equal(first.statusCode, 201);
+  assert.equal(stored.has("dav/user-1/probe-target/owner.txt"), true);
+  assert.equal(stored.has("dav/user-1/probe-a/owner.txt"), false);
+  assert.equal(reservations.size, 0);
+  assert.deepEqual(delegated, []);
+});

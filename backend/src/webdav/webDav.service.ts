@@ -183,22 +183,187 @@ export class WebDavService {
         return;
       }
 
-      // A closed socket does not prove the S3 operation stopped. Keep the row
-      // on an interrupted request, so an uncertain write fails closed.
-      response.once("finish", () => {
-        void this.prisma.webDavMoveReservation
-          .deleteMany({ where: { id, owner } })
-          .catch((error) =>
-            this.logger.error(
-              "Could not release WebDAV MOVE reservation",
-              error,
-            ),
-          );
-      });
-      server(request, response, next);
+      let delegated = false;
+      try {
+        // Nephele checks every descendant through S3 when moving a collection.
+        // A small, unlocked sibling collection can be copied with a bounded
+        // number of S3 requests instead. This matters for DAV lock candidates:
+        // clients commonly time out before Nephele's recursive MOVE finishes.
+        if (
+          await this.tryFastExclusiveCollectionMove(
+            request,
+            response,
+            authentication.user.id,
+            destination,
+          )
+        ) {
+          return;
+        }
+
+        delegated = true;
+        // For moves handled by Nephele, only a completed response proves its
+        // recursive S3 operation has stopped.
+        response.once("finish", () => {
+          void this.prisma.webDavMoveReservation
+            .deleteMany({ where: { id, owner } })
+            .catch((error) =>
+              this.logger.error(
+                "Could not release WebDAV MOVE reservation",
+                error,
+              ),
+            );
+        });
+        server(request, response, next);
+      } finally {
+        // The fast path is awaited even if the client disconnects. Its storage
+        // work has stopped here, so it cannot leave a permanent reservation.
+        if (!delegated) {
+          await this.prisma.webDavMoveReservation.deleteMany({
+            where: { id, owner },
+          });
+        }
+      }
     } catch (error) {
       next(error);
     }
+  }
+
+  private async tryFastExclusiveCollectionMove(
+    request: Request,
+    response: Response,
+    userId: string,
+    destination: string,
+  ): Promise<boolean> {
+    const baseUrl = `${request.protocol}://${request.get("host") ?? "localhost"}`;
+    let sourceUrl: URL;
+    let destinationUrl: URL;
+    try {
+      sourceUrl = new URL(request.originalUrl, baseUrl);
+      destinationUrl = new URL(destination, baseUrl);
+    } catch {
+      return false;
+    }
+    if (
+      sourceUrl.host !== destinationUrl.host ||
+      !sourceUrl.pathname.endsWith("/") ||
+      !destinationUrl.pathname.endsWith("/") ||
+      (request.get("Content-Length") &&
+        request.get("Content-Length") !== "0") ||
+      request.get("Transfer-Encoding") ||
+      [
+        "If",
+        "If-Match",
+        "If-None-Match",
+        "If-Modified-Since",
+        "If-Unmodified-Since",
+        "Lock-Token",
+      ].some((header) => request.get(header))
+    ) {
+      return false;
+    }
+
+    let sourcePath: string;
+    let destinationPath: string;
+    try {
+      sourcePath = decodeURIComponent(sourceUrl.pathname);
+      destinationPath = decodeURIComponent(destinationUrl.pathname);
+    } catch {
+      return false;
+    }
+    const valid = (path: string) =>
+      path.startsWith("/dav/") &&
+      !path.includes("\\") &&
+      !path.includes("\0") &&
+      !path.split("/").some((part) => part === "." || part === "..");
+    if (!valid(sourcePath) || !valid(destinationPath)) return false;
+
+    const sourceRelative = sourcePath.slice(5, -1);
+    const destinationRelative = destinationPath.slice(5, -1);
+    const parent = (path: string) =>
+      path.includes("/") ? path.slice(0, path.lastIndexOf("/")) : "";
+    if (
+      !sourceRelative ||
+      !destinationRelative ||
+      sourceRelative === destinationRelative ||
+      parent(sourceRelative) !== parent(destinationRelative)
+    ) {
+      return false;
+    }
+
+    const root = this.objects.webDavRootKey(userId);
+    const sourceKey = `${root}/${sourceRelative}`;
+    const destinationKey = `${root}/${destinationRelative}`;
+    const [source, destinationCollection, destinationFile] = await Promise.all([
+      this.objects.list(`${sourceKey}/`, { maxKeys: 9 }),
+      this.objects.list(`${destinationKey}/`, { maxKeys: 1 }),
+      this.objects.head(destinationKey).then(
+        () => true,
+        (error: { name?: string; $metadata?: { httpStatusCode?: number } }) => {
+          if (
+            error.$metadata?.httpStatusCode === 404 ||
+            error.name === "NotFound"
+          )
+            return false;
+          throw error;
+        },
+      ),
+    ]);
+    if (!source.objects.length || source.continuationToken) return false;
+    if (destinationCollection.objects.length || destinationFile) {
+      response.status(412).end("A resource exists at the destination");
+      return true;
+    }
+
+    // A fast move must not bypass Nephele's WebDAV lock checks. Inspect the
+    // collection's objects and its ancestors; leave locked cases to Nephele.
+    const parentKeys: string[] = [];
+    for (let path = parent(sourceRelative); path; path = parent(path)) {
+      parentKeys.push(`${root}/${path}/.nepheleempty`);
+    }
+    parentKeys.push(`${root}/.nepheleempty`);
+    const metadata = await Promise.all(
+      [...source.objects.map((object) => object.key), ...parentKeys].map(
+        (key) =>
+          this.objects.head(key).then(
+            (object) => object.metadata,
+            (error: {
+              name?: string;
+              $metadata?: { httpStatusCode?: number };
+            }) => {
+              if (
+                error.$metadata?.httpStatusCode === 404 ||
+                error.name === "NotFound"
+              )
+                return undefined;
+              throw error;
+            },
+          ),
+      ),
+    );
+    if (
+      metadata.some((entry) => {
+        try {
+          return (
+            Object.keys(JSON.parse(entry?.["nephele-locks"] ?? "{}")).length > 0
+          );
+        } catch {
+          return true;
+        }
+      })
+    )
+      return false;
+
+    await Promise.all(
+      source.objects.map((object) =>
+        this.objects.copy(
+          object.key,
+          `${destinationKey}/${object.key.slice(sourceKey.length + 1)}`,
+        ),
+      ),
+    );
+    await this.objects.deleteMany(source.objects.map((object) => object.key));
+    response.status(201).set("Location", destinationUrl.toString()).end();
+    return true;
   }
 
   private createAuthenticator(): Authenticator {
