@@ -335,8 +335,8 @@ test("moves a small unlocked collection without waiting for recursive DAV reques
       await copyBlocked;
       stored.set(destination, stored.get(source)!);
     },
-    deleteMany: async (keys: string[]) => {
-      keys.forEach((key) => stored.delete(key));
+    delete: async (key: string) => {
+      stored.delete(key);
     },
   };
   const service = new WebDavService(

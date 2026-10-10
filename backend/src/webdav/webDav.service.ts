@@ -361,7 +361,12 @@ export class WebDavService {
         ),
       ),
     );
-    await this.objects.deleteMany(source.objects.map((object) => object.key));
+    // Some S3-compatible providers reject DeleteObjects without Content-MD5.
+    // This path is bounded to at most nine objects, so individual deletes are
+    // both compatible and inexpensive.
+    await Promise.all(
+      source.objects.map((object) => this.objects.delete(object.key)),
+    );
     response.status(201).set("Location", destinationUrl.toString()).end();
     return true;
   }
