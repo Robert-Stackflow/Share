@@ -12,6 +12,8 @@ import { ConfigService } from "src/config/config.service";
 import { S3ObjectStorageService } from "src/storage/s3ObjectStorage.service";
 import { StorageService } from "src/storage/storage.service";
 import { StorageProvider } from "@prisma/client";
+import { createHash, randomUUID } from "node:crypto";
+import { PrismaService } from "src/prisma/prisma.service";
 
 type WebDavAuthentication = Awaited<
   ReturnType<AppCredentialService["authenticateWebDav"]>
@@ -42,6 +44,7 @@ export class WebDavService {
     private readonly credentials: AppCredentialService,
     private readonly config: ConfigService,
     private readonly objects: S3ObjectStorageService,
+    private readonly prisma: PrismaService,
     private readonly storage?: StorageService,
   ) {}
 
@@ -109,11 +112,93 @@ export class WebDavService {
           response.status(503).send("WebDAV requires S3 storage to be enabled");
           return;
         }
+        if (
+          request.method.toUpperCase() === "MOVE" &&
+          request.get("Overwrite")?.toUpperCase() === "F"
+        ) {
+          void this.handleExclusiveMove(request, response, next, server);
+          return;
+        }
         server(request, response, next);
       };
     }
 
     return this.middlewareInstance;
+  }
+
+  private async handleExclusiveMove(
+    request: Request,
+    response: Response,
+    next: Parameters<RequestHandler>[2],
+    server: RequestHandler,
+  ): Promise<void> {
+    try {
+      const authentication = await this.tryAuthenticate(
+        request,
+        response.locals as WebDavLocals,
+      );
+      const destination = request.get("Destination");
+      if (!authentication || !destination) {
+        server(request, response, next);
+        return;
+      }
+
+      // The destination, not the source, is the resource all contenders must
+      // agree on. A unique DB row serializes them across Share processes using
+      // the same database; URL host aliases still map to the same DAV path.
+      let path: string;
+      try {
+        const base = `${request.protocol}://${request.get("host") ?? "localhost"}`;
+        path = decodeURIComponent(new URL(destination, base).pathname)
+          .normalize("NFC")
+          .replace(/\/+$/, "");
+      } catch {
+        server(request, response, next);
+        return;
+      }
+      const id = createHash("sha256")
+        .update(`${authentication.user.id}\0${path}`)
+        .digest("hex");
+      const owner = randomUUID();
+      let reserved = false;
+      for (let attempt = 0; attempt < 20; attempt += 1) {
+        try {
+          await this.prisma.webDavMoveReservation.create({
+            data: { id, owner },
+          });
+          reserved = true;
+          break;
+        } catch (error) {
+          if ((error as { code?: string }).code !== "P2002") throw error;
+          // The previous response can reach a client just before its finish
+          // handler removes the row. Retry briefly so the next MOVE can see
+          // the actual destination state instead of a stale 423.
+          if (attempt < 19) {
+            await new Promise((resolve) => setTimeout(resolve, 50));
+          }
+        }
+      }
+      if (!reserved) {
+        response.status(423).end("WebDAV destination is busy");
+        return;
+      }
+
+      // A closed socket does not prove the S3 operation stopped. Keep the row
+      // on an interrupted request, so an uncertain write fails closed.
+      response.once("finish", () => {
+        void this.prisma.webDavMoveReservation
+          .deleteMany({ where: { id, owner } })
+          .catch((error) =>
+            this.logger.error(
+              "Could not release WebDAV MOVE reservation",
+              error,
+            ),
+          );
+      });
+      server(request, response, next);
+    } catch (error) {
+      next(error);
+    }
   }
 
   private createAuthenticator(): Authenticator {

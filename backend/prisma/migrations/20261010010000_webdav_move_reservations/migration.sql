@@ -1,0 +1,5 @@
+CREATE TABLE "WebDavMoveReservation" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "owner" TEXT NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);

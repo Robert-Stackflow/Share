@@ -25,6 +25,8 @@ Administrators can enable or disable the endpoint and enforce read-only access u
 
 Each account is isolated under its own S3 prefix. Standard file and directory operations, range downloads, copy, move, and delete are supported.
 
+For a `MOVE` with `Overwrite: F`, Share reserves the destination in its SQLite database before starting the S3-backed move. Concurrent claims for the same destination are serialized across Share processes that share that database. A request interrupted before a response completes leaves its reservation in place to avoid an uncertain overwrite; an administrator should inspect the source and destination before clearing a stale `WebDavMoveReservation` row. General multi-file moves still use S3 copy and delete operations rather than an atomic S3 rename.
+
 ## Image hosting
 
 Open **Content & sharing → Images** to enter the image workspace. Its sidebar contains:

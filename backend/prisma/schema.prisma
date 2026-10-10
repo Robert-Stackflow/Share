@@ -364,6 +364,14 @@ model StorageMultipartUpload {
   @@index([updatedAt])
 }
 
+// A failed or interrupted MOVE keeps its reservation until it can be checked
+// and released, rather than allowing a later writer to race the S3 copy.
+model WebDavMoveReservation {
+  id        String   @id
+  owner     String
+  createdAt DateTime @default(now())
+}
+
 model AppCredential {
   id         String            @id
   createdAt  DateTime          @default(now())
