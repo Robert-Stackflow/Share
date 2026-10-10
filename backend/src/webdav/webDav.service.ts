@@ -10,6 +10,7 @@ import createWebDavServer, {
 import { AppCredentialService } from "src/appCredential/appCredential.service";
 import { ConfigService } from "src/config/config.service";
 import { S3ObjectStorageService } from "src/storage/s3ObjectStorage.service";
+import { StorageObject } from "src/storage/storage.types";
 import { StorageService } from "src/storage/storage.service";
 import { StorageProvider } from "@prisma/client";
 import { createHash, randomUUID } from "node:crypto";
@@ -119,11 +120,138 @@ export class WebDavService {
           void this.handleExclusiveMove(request, response, next, server);
           return;
         }
+        if (request.method.toUpperCase() === "PUT") {
+          void this.handleSmallPut(request, response, next, server);
+          return;
+        }
         server(request, response, next);
       };
     }
 
     return this.middlewareInstance;
+  }
+
+  private async handleSmallPut(
+    request: Request,
+    response: Response,
+    next: Parameters<RequestHandler>[2],
+    server: RequestHandler,
+  ): Promise<void> {
+    try {
+      const authentication = await this.tryAuthenticate(
+        request,
+        response.locals as WebDavLocals,
+      );
+      if (
+        !authentication ||
+        !(await this.tryFastSmallPut(request, response, authentication.user.id))
+      ) {
+        server(request, response, next);
+      }
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  private async tryFastSmallPut(
+    request: Request,
+    response: Response,
+    userId: string,
+  ): Promise<boolean> {
+    const length = Number(request.get("Content-Length"));
+    if (
+      !Number.isSafeInteger(length) ||
+      length < 0 ||
+      length > 64 * 1024 ||
+      !request.get("Content-Length") ||
+      request.get("Transfer-Encoding") ||
+      request.get("Content-Encoding") ||
+      request.get("Content-Range") ||
+      request.get("Content-Language") ||
+      [
+        "If",
+        "If-Match",
+        "If-None-Match",
+        "If-Modified-Since",
+        "If-Unmodified-Since",
+        "Lock-Token",
+      ].some((header) => request.get(header))
+    ) {
+      return false;
+    }
+
+    let url: URL;
+    let pathname: string;
+    try {
+      url = new URL(
+        request.originalUrl,
+        `${request.protocol}://${request.get("host") ?? "localhost"}`,
+      );
+      pathname = decodeURIComponent(url.pathname);
+    } catch {
+      return false;
+    }
+    if (
+      !pathname.startsWith("/dav/") ||
+      pathname.endsWith("/") ||
+      pathname.includes("\\") ||
+      pathname.includes("\0") ||
+      pathname.split("/").some((part) => part === "." || part === "..")
+    ) {
+      return false;
+    }
+    const relative = pathname.slice(5);
+    const parent = relative.slice(0, relative.lastIndexOf("/"));
+    if (!parent || relative.split("/").length > 8) return false;
+
+    const root = this.objects.webDavRootKey(userId);
+    const key = `${root}/${relative}`;
+    const [parentContents, collectionContents, existing] = await Promise.all([
+      this.objects.list(`${root}/${parent}/`, { maxKeys: 1 }),
+      this.objects.list(`${key}/`, { maxKeys: 1 }),
+      this.headWebDavObject(key),
+    ]);
+    if (!parentContents.objects.length || collectionContents.objects.length)
+      return false;
+
+    const lockKeys = [key];
+    for (
+      let path = parent;
+      path;
+      path = path.includes("/") ? path.slice(0, path.lastIndexOf("/")) : ""
+    ) {
+      lockKeys.push(`${root}/${path}`, `${root}/${path}/.nepheleempty`);
+    }
+    if (await this.hasWebDavLocks(lockKeys, existing)) return false;
+
+    const chunks: Buffer[] = [];
+    let bytes = 0;
+    for await (const chunk of request) {
+      const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+      bytes += buffer.length;
+      if (bytes > 64 * 1024) {
+        response.status(413).end("WebDAV upload exceeds the fast path limit");
+        return true;
+      }
+      chunks.push(buffer);
+    }
+    await this.objects.put(key, Buffer.concat(chunks), {
+      contentType: request.get("Content-Type")?.split(";")[0],
+      metadata: existing?.metadata ?? {
+        "nephele-properties": "{}",
+        "nephele-locks": "{}",
+      },
+    });
+    response.set({
+      "Cache-Control": "private, no-cache",
+      Date: new Date().toUTCString(),
+    });
+    if (existing) {
+      response.status(204).end();
+    } else {
+      response.status(201).set("Location", url.toString()).end();
+    }
+    return true;
   }
 
   private async handleExclusiveMove(
@@ -293,22 +421,15 @@ export class WebDavService {
     const root = this.objects.webDavRootKey(userId);
     const sourceKey = `${root}/${sourceRelative}`;
     const destinationKey = `${root}/${destinationRelative}`;
-    const [source, destinationCollection, destinationFile] = await Promise.all([
-      this.objects.list(`${sourceKey}/`, { maxKeys: 9 }),
-      this.objects.list(`${destinationKey}/`, { maxKeys: 1 }),
-      this.objects.head(destinationKey).then(
-        () => true,
-        (error: { name?: string; $metadata?: { httpStatusCode?: number } }) => {
-          if (
-            error.$metadata?.httpStatusCode === 404 ||
-            error.name === "NotFound"
-          )
-            return false;
-          throw error;
-        },
-      ),
-    ]);
-    if (!source.objects.length || source.continuationToken) return false;
+    const [source, destinationCollection, destinationFile, sourceDirect] =
+      await Promise.all([
+        this.objects.list(`${sourceKey}/`, { maxKeys: 9 }),
+        this.objects.list(`${destinationKey}/`, { maxKeys: 1 }),
+        this.headWebDavObject(destinationKey),
+        this.headWebDavObject(sourceKey),
+      ]);
+    if (!source.objects.length || source.continuationToken || sourceDirect)
+      return false;
     if (destinationCollection.objects.length || destinationFile) {
       response.status(412).end("A resource exists at the destination");
       return true;
@@ -318,38 +439,14 @@ export class WebDavService {
     // collection's objects and its ancestors; leave locked cases to Nephele.
     const parentKeys: string[] = [];
     for (let path = parent(sourceRelative); path; path = parent(path)) {
-      parentKeys.push(`${root}/${path}/.nepheleempty`);
+      parentKeys.push(`${root}/${path}`, `${root}/${path}/.nepheleempty`);
     }
     parentKeys.push(`${root}/.nepheleempty`);
-    const metadata = await Promise.all(
-      [...source.objects.map((object) => object.key), ...parentKeys].map(
-        (key) =>
-          this.objects.head(key).then(
-            (object) => object.metadata,
-            (error: {
-              name?: string;
-              $metadata?: { httpStatusCode?: number };
-            }) => {
-              if (
-                error.$metadata?.httpStatusCode === 404 ||
-                error.name === "NotFound"
-              )
-                return undefined;
-              throw error;
-            },
-          ),
-      ),
-    );
     if (
-      metadata.some((entry) => {
-        try {
-          return (
-            Object.keys(JSON.parse(entry?.["nephele-locks"] ?? "{}")).length > 0
-          );
-        } catch {
-          return true;
-        }
-      })
+      await this.hasWebDavLocks([
+        ...source.objects.map((object) => object.key),
+        ...parentKeys,
+      ])
     )
       return false;
 
@@ -369,6 +466,46 @@ export class WebDavService {
     );
     response.status(201).set("Location", destinationUrl.toString()).end();
     return true;
+  }
+
+  private async headWebDavObject(key: string): Promise<StorageObject | null> {
+    try {
+      return await this.objects.head(key);
+    } catch (error) {
+      const s3Error = error as {
+        name?: string;
+        $metadata?: { httpStatusCode?: number };
+      };
+      if (
+        s3Error.$metadata?.httpStatusCode === 404 ||
+        s3Error.name === "NotFound" ||
+        s3Error.name === "NoSuchKey"
+      )
+        return null;
+      throw error;
+    }
+  }
+
+  private async hasWebDavLocks(
+    keys: string[],
+    known?: StorageObject | null,
+  ): Promise<boolean> {
+    const metadata = await Promise.all(
+      [...new Set(keys)].map((key) =>
+        known?.key === key
+          ? Promise.resolve(known.metadata)
+          : this.headWebDavObject(key).then((object) => object?.metadata),
+      ),
+    );
+    return metadata.some((entry) => {
+      try {
+        return (
+          Object.keys(JSON.parse(entry?.["nephele-locks"] ?? "{}")).length > 0
+        );
+      } catch {
+        return true;
+      }
+    });
   }
 
   private createAuthenticator(): Authenticator {

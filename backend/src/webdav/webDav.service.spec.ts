@@ -2,6 +2,7 @@ import { strict as assert } from "node:assert";
 import { test } from "node:test";
 import * as express from "express";
 import { EventEmitter } from "node:events";
+import { Readable } from "node:stream";
 import { WebDavService } from "./webDav.service";
 
 function createConfig(values: Record<string, unknown> = {}) {
@@ -403,4 +404,88 @@ test("moves a small unlocked collection without waiting for recursive DAV reques
   assert.equal(stored.has("dav/user-1/probe-a/owner.txt"), false);
   assert.equal(reservations.size, 0);
   assert.deepEqual(delegated, []);
+});
+
+test("writes a small unlocked DAV file directly and respects collection locks", async () => {
+  const stored = new Map<
+    string,
+    { key: string; metadata?: Record<string, string> }
+  >([
+    [
+      "dav/user-1/probe/.nepheleempty",
+      {
+        key: "dav/user-1/probe/.nepheleempty",
+        metadata: { "nephele-locks": "{}" },
+      },
+    ],
+  ]);
+  const objects = {
+    webDavRootKey: (id: string) => `dav/${id}`,
+    list: async (prefix: string) => ({
+      objects: [...stored.keys()]
+        .filter((key) => key.startsWith(prefix))
+        .map((key) => ({ key })),
+    }),
+    head: async (key: string) => {
+      const object = stored.get(key);
+      if (!object) throw { name: "NotFound" };
+      return object;
+    },
+    put: async (
+      key: string,
+      body: Buffer,
+      options: { metadata?: Record<string, string> },
+    ) => {
+      assert.equal(body.toString(), "owner");
+      stored.set(key, { key, metadata: options.metadata });
+    },
+  };
+  const service = new WebDavService(
+    { authenticateWebDav: async () => null } as any,
+    createConfig() as any,
+    objects as any,
+    {} as any,
+  );
+  const request = () =>
+    Object.assign(Readable.from([Buffer.from("owner")]), {
+      originalUrl: "/dav/probe/owner.txt",
+      protocol: "https",
+      get: (header: string) =>
+        ({
+          host: "share.example.com",
+          "content-length": "5",
+          "content-type": "text/plain",
+        })[header.toLowerCase()],
+    });
+  const response = () => ({
+    statusCode: 200,
+    status(code: number) {
+      this.statusCode = code;
+      return this;
+    },
+    set() {
+      return this;
+    },
+    end() {
+      return this;
+    },
+  });
+  const created = response();
+  assert.equal(
+    await (service as any).tryFastSmallPut(request(), created, "user-1"),
+    true,
+  );
+  assert.equal(created.statusCode, 201);
+  assert.equal(stored.has("dav/user-1/probe/owner.txt"), true);
+
+  stored.set("dav/user-1/probe/.nepheleempty", {
+    key: "dav/user-1/probe/.nepheleempty",
+    metadata: { "nephele-locks": '{"lock":{}}' },
+  });
+  const locked = response();
+  assert.equal(
+    await (service as any).tryFastSmallPut(request(), locked, "user-1"),
+    false,
+  );
+  assert.equal(locked.statusCode, 200);
 });
