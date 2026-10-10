@@ -375,9 +375,6 @@ export class WebDavService {
       sourceUrl.host !== destinationUrl.host ||
       !sourceUrl.pathname.endsWith("/") ||
       !destinationUrl.pathname.endsWith("/") ||
-      (request.get("Content-Length") &&
-        request.get("Content-Length") !== "0") ||
-      request.get("Transfer-Encoding") ||
       [
         "If",
         "If-Match",
@@ -418,25 +415,55 @@ export class WebDavService {
       return false;
     }
 
+    // Proxies can forward an empty MOVE with chunked framing. Check the
+    // actual stream instead of delegating it to a recursive MOVE that may
+    // partly move the lock candidate before returning 207.
+    for await (const chunk of request) {
+      if (chunk.length) {
+        response.status(415).end("WebDAV MOVE request body is unsupported");
+        return true;
+      }
+    }
+
     const root = this.objects.webDavRootKey(userId);
     const sourceKey = `${root}/${sourceRelative}`;
     const destinationKey = `${root}/${destinationRelative}`;
-    const [source, destinationCollection, destinationFile, sourceDirect] =
-      await Promise.all([
-        this.objects.list(`${sourceKey}/`, { maxKeys: 9 }),
-        this.objects.list(`${destinationKey}/`, { maxKeys: 1 }),
-        this.headWebDavObject(destinationKey),
-        this.headWebDavObject(sourceKey),
-      ]);
-    if (!source.objects.length || source.continuationToken || sourceDirect)
-      return false;
+    const [
+      initialSource,
+      destinationCollection,
+      destinationFile,
+      sourceDirect,
+    ] = await Promise.all([
+      this.objects.list(`${sourceKey}/`, { maxKeys: 9 }),
+      this.objects.list(`${destinationKey}/`, { maxKeys: 1 }),
+      this.headWebDavObject(destinationKey),
+      this.headWebDavObject(sourceKey),
+    ]);
+    let source = initialSource;
     if (destinationCollection.objects.length || destinationFile) {
       response.status(412).end("A resource exists at the destination");
       return true;
     }
+    // Freshly created S3 collections may take a moment to appear in a LIST.
+    // Do not send a small, exclusive MOVE to Nephele while its source tree is
+    // still uncertain: recursive MOVE can partly copy and respond 207.
+    for (let attempt = 0; !source.objects.length && attempt < 2; attempt += 1) {
+      await new Promise((resolve) => setTimeout(resolve, 150));
+      source = await this.objects.list(`${sourceKey}/`, { maxKeys: 9 });
+    }
+    if (!source.objects.length) {
+      this.logger.warn("WebDAV exclusive MOVE source was not visible in S3");
+      response.status(409).end("WebDAV source collection is not yet visible");
+      return true;
+    }
+    if (source.continuationToken) return false;
+    if (sourceDirect) {
+      this.logger.warn("WebDAV exclusive MOVE source has a direct S3 object");
+      return false;
+    }
 
-    // A fast move must not bypass Nephele's WebDAV lock checks. Inspect the
-    // collection's objects and its ancestors; leave locked cases to Nephele.
+    // A fast move must not bypass WebDAV lock checks. Inspect the collection's
+    // objects and its ancestors before copying anything.
     const parentKeys: string[] = [];
     for (let path = parent(sourceRelative); path; path = parent(path)) {
       parentKeys.push(`${root}/${path}`, `${root}/${path}/.nepheleempty`);
@@ -447,8 +474,10 @@ export class WebDavService {
         ...source.objects.map((object) => object.key),
         ...parentKeys,
       ])
-    )
-      return false;
+    ) {
+      response.status(423).end("WebDAV source or parent is locked");
+      return true;
+    }
 
     await Promise.all(
       source.objects.map((object) =>

@@ -346,18 +346,20 @@ test("moves a small unlocked collection without waiting for recursive DAV reques
     objects as any,
     prisma as any,
   );
-  const request = (name: string) => ({
-    method: "MOVE",
-    protocol: "https",
-    originalUrl: `/dav/${name}/`,
-    headers: { authorization: "Basic dXNlcjpwYXNz" },
-    get: (header: string) =>
-      ({
-        host: "share.example.com",
-        destination: "https://share.example.com/dav/probe-target/",
-        overwrite: "F",
-      })[header.toLowerCase()],
-  });
+  const request = (name: string) =>
+    Object.assign(Readable.from([]), {
+      method: "MOVE",
+      protocol: "https",
+      originalUrl: `/dav/${name}/`,
+      headers: { authorization: "Basic dXNlcjpwYXNz" },
+      get: (header: string) =>
+        ({
+          host: "share.example.com",
+          destination: "https://share.example.com/dav/probe-target/",
+          overwrite: "F",
+          "transfer-encoding": "chunked",
+        })[header.toLowerCase()],
+    });
   const response = () => {
     const result = new EventEmitter() as EventEmitter & {
       locals: object;
